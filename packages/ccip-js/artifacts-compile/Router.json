@@ -1,0 +1,710 @@
+{
+    "contracts": {
+        "src/contracts/Router.sol:Router": {
+            "routerAbi": [
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "wrappedNative",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "armProxy",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "constructor"
+                },
+                {
+                    "inputs": [],
+                    "name": "BadARMSignal",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "FailedToSendValue",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InsufficientFeeTokenAmount",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InvalidMsgValue",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "InvalidRecipientAddress",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "chainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "offRamp",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OffRampMismatch",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "OnlyOffRamp",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destChainSelector",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "UnsupportedDestinationChain",
+                    "type": "error"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "bytes32",
+                            "name": "messageId",
+                            "type": "bytes32"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint64",
+                            "name": "sourceChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "address",
+                            "name": "offRamp",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "bytes32",
+                            "name": "calldataHash",
+                            "type": "bytes32"
+                        }
+                    ],
+                    "name": "MessageExecuted",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "uint64",
+                            "name": "sourceChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "address",
+                            "name": "offRamp",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OffRampAdded",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "uint64",
+                            "name": "sourceChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "address",
+                            "name": "offRamp",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OffRampRemoved",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "uint64",
+                            "name": "destChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "address",
+                            "name": "onRamp",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OnRampSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OwnershipTransferRequested",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OwnershipTransferred",
+                    "type": "event"
+                },
+                {
+                    "inputs": [],
+                    "name": "MAX_RET_BYTES",
+                    "outputs": [
+                        {
+                            "internalType": "uint16",
+                            "name": "",
+                            "type": "uint16"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "acceptOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint64",
+                                    "name": "destChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "onRamp",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct Router.OnRamp[]",
+                            "name": "onRampUpdates",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sourceChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "offRamp",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct Router.OffRamp[]",
+                            "name": "offRampRemoves",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sourceChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "offRamp",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct Router.OffRamp[]",
+                            "name": "offRampAdds",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "applyRampUpdates",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destinationChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes",
+                                    "name": "receiver",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "tokenAmounts",
+                                    "type": "tuple[]"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "feeToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "extraArgs",
+                                    "type": "bytes"
+                                }
+                            ],
+                            "internalType": "struct Client.EVM2AnyMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "ccipSend",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ],
+                    "stateMutability": "payable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getArmProxy",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destinationChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes",
+                                    "name": "receiver",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "tokenAmounts",
+                                    "type": "tuple[]"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "feeToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "extraArgs",
+                                    "type": "bytes"
+                                }
+                            ],
+                            "internalType": "struct Client.EVM2AnyMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "getFee",
+                    "outputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "fee",
+                            "type": "uint256"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getOffRamps",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sourceChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "offRamp",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct Router.OffRamp[]",
+                            "name": "",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destChainSelector",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "getOnRamp",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "chainSelector",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "getSupportedTokens",
+                    "outputs": [
+                        {
+                            "internalType": "address[]",
+                            "name": "",
+                            "type": "address[]"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getWrappedNative",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "chainSelector",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "isChainSupported",
+                    "outputs": [
+                        {
+                            "internalType": "bool",
+                            "name": "",
+                            "type": "bool"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "sourceChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "offRamp",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "isOffRamp",
+                    "outputs": [
+                        {
+                            "internalType": "bool",
+                            "name": "",
+                            "type": "bool"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "owner",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "tokenAddress",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "amount",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "recoverTokens",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes32",
+                                    "name": "messageId",
+                                    "type": "bytes32"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sourceChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "sender",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "destTokenAmounts",
+                                    "type": "tuple[]"
+                                }
+                            ],
+                            "internalType": "struct Client.Any2EVMMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "uint16",
+                            "name": "gasForCallExactCheck",
+                            "type": "uint16"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "gasLimit",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "receiver",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "routeMessage",
+                    "outputs": [
+                        {
+                            "internalType": "bool",
+                            "name": "success",
+                            "type": "bool"
+                        },
+                        {
+                            "internalType": "bytes",
+                            "name": "retData",
+                            "type": "bytes"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "gasUsed",
+                            "type": "uint256"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "wrappedNative",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "setWrappedNative",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "transferOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "typeAndVersion",
+                    "outputs": [
+                        {
+                            "internalType": "string",
+                            "name": "",
+                            "type": "string"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                }
+            ],
+            "routerBin": "60a034620000f357601f62001f7038819003918201601f19168301916001600160401b03831184841017620000f7578084926040948552833981010312620000f3576200005a602062000052836200010b565b92016200010b565b903315620000ae5760018060a01b03199033825f5416175f5560018060a01b0316906002541617600255608052604051611e4f908162000121823960805181818161065a0152818161088701526114ca0152f35b60405162461bcd60e51b815260206004820152601860248201527f43616e6e6f7420736574206f776e657220746f207a65726f00000000000000006044820152606490fd5b5f80fd5b634e487b7160e01b5f52604160045260245ffd5b51906001600160a01b0382168203620000f35756fe60806040526004361015610011575f80fd5b5f3560e01c8063181f5a771461013457806320487ded1461012f5780633cf979831461012a5780635246492f1461012557806352cb60ca146101205780635f3e849f1461011b578063787350e31461011657806379ba50971461011157806383826b2b1461010c5780638da5cb5b1461010757806396f4e9f914610102578063a40e69c7146100fd578063a48a9058146100f8578063a8d87a3b146100f3578063da5fcac8146100ee578063e861e907146100e9578063f2fde38b146100e45763fbca3b74146100df575f80fd5b6111e2565b61111c565b6110f4565b610e40565b610dcc565b610d85565b610c90565b61085b565b610834565b6107e2565b61072a565b61070f565b6106d0565b610689565b610645565b6105d6565b6104a2565b61026e565b5f91031261014357565b5f80fd5b634e487b7160e01b5f52604160045260245ffd5b604081019081106001600160401b0382111761017657604052565b610147565b6001600160401b03811161017657604052565b60a081019081106001600160401b0382111761017657604052565b60c081019081106001600160401b0382111761017657604052565b90601f801991011681019081106001600160401b0382111761017657604052565b604051906101f28261018e565b565b604051906101f28261015b565b6001600160401b03811161017657601f01601f191660200190565b91908251928382525f5b848110610246575050825f602080949584010152601f8019910116010190565b602081830181015184830182015201610226565b90602061026b92818152019061021c565b90565b34610143575f366003190112610143576102ba60405161028d8161015b565b600c81526b0526f7574657220312e322e360a41b602082015260405191829160208352602083019061021c565b0390f35b6001600160401b0381160361014357565b81601f82011215610143578035906102e682610201565b926102f460405194856101c4565b8284526020838301011161014357815f926020809301838601378301015290565b6001600160401b0381116101765760051b60200190565b6001600160a01b0381160361014357565b35906101f28261032c565b9080601f8301121561014357813591602061036284610315565b9360409361037360405196876101c4565b818652828087019260061b85010193818511610143578301915b84831061039d5750505050505090565b85838303126101435783869182516103b48161015b565b85356103bf8161032c565b8152828601358382015281520192019161038d565b9060031960408184011261014357600480356103ef816102be565b93602435916001600160401b03938484116101435760a0908484030112610143576104186101e5565b9383820135818111610143578383610432928701016102cf565b8552602484013581811161014357838361044e928701016102cf565b6020860152604484013581811161014357838361046d92870101610348565b604086015261047e6064850161033d565b606086015260848401359081116101435761049a9301016102cf565b608082015290565b34610143576104b0366103d4565b6060810180516001600160a01b03919082161561059e575b506104f46104e7846001600160401b03165f52600360205260405f2090565b546001600160a01b031690565b168015610579579060209161051f936040518095819482936320487ded60e01b84526004840161130e565b03915afa8015610574576102ba915f91610545575b506040519081529081906020820190565b610567915060203d60201161056d575b61055f81836101c4565b810190611253565b5f610534565b503d610555565b61132e565b604051632b88db6760e21b81526001600160401b0384166004820152602490fd5b0390fd5b6002546001600160a01b031690525f6104c8565b9392916105d1906040921515865260606020870152606086019061021c565b930152565b346101435760031960803682011261014357600435906001600160401b0382116101435760a0908236030112610143576024359061ffff82168203610143576102ba91610636916064359161062a8361032c565b604435916004016114b0565b604093919351938493846105b2565b34610143575f366003190112610143576040517f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03168152602090f35b34610143576020366003190112610143576004356106a68161032c565b6106ae6119db565b600280546001600160a01b0319166001600160a01b0392909216919091179055005b346101435760603660031901126101435761070d6004356106f08161032c565b6024356106fc8161032c565b6107046119db565b60443591611648565b005b34610143575f36600319011261014357602060405160848152f35b34610143575f366003190112610143576001546001600160a01b0390811633036107a4575f546001600160a01b03165f80546001600160a01b0319163317905590600180546001600160a01b03191690553391167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e05f80a3005b60405162461bcd60e51b815260206004820152601660248201527526bab9ba10313290383937b837b9b2b21037bbb732b960511b6044820152606490fd5b3461014357604036600319011261014357602061082a610819600435610807816102be565b602435906108148261032c565b611a8f565b5f52600560205260405f2054151590565b6040519015158152f35b34610143575f366003190112610143575f546040516001600160a01b039091168152602090f35b610864366103d4565b6040805163397796f760e01b81526020906004906001600160a01b0390838184817f000000000000000000000000000000000000000000000000000000000000000086165afa908115610574575f91610c08575b50610bf9576108db6104e7876001600160401b03165f52600360205260405f2090565b938185168015610bd457606087018051909690610908906001600160a01b03165b6001600160a01b031690565b610b47576002546001600160a01b0316875282516320487ded60e01b81528681806109368c8e8b840161130e565b0381865afa908115610574575f91610b2a575b503410610b1a578651349790610969906108fc906001600160a01b031681565b91823b15610143575f8793865194858092630d0e30db60e41b825234905af1928315610574576109b593610b01575b5090513491906109b0906001600160a01b03166108fc565b611a2c565b5f5b82880180518051831015610a9257906109e86108fc6109da85610a2196956116c7565b51516001600160a01b031690565b855163122a62a960e21b81526001600160401b038d168982019081526001600160a01b038316602082015290948a918691829160400190565b0381885afa90811561057457878a85610a57956001985f96610a5d575b5090610a4a91516116c7565b5101519216903390611abf565b016109b7565b610a4a92919650610a8390843d8611610a8b575b610a7b81836101c4565b8101906116e0565b959091610a3e565b503d610a71565b50505091509391945f8497610abc87519889968795869463df0aa9e960e01b8652339386016116f5565b03925af1918215610574576102ba935f93610ae2575b5050519081529081906020820190565b610af9929350803d1061056d5761055f81836101c4565b905f80610ad2565b80610b0e610b149261017b565b80610139565b5f610998565b82516303ed377360e11b81528590fd5b610b419150873d891161056d5761055f81836101c4565b5f610949565b34610bc45782516320487ded60e01b815290868280610b698c8e8b840161130e565b0381865afa90811561057457610ba0925f92610ba5575b50975190978891610b99906001600160a01b03166108fc565b3390611abf565b6109b5565b610bbd919250883d8a1161056d5761055f81836101c4565b905f610b80565b8251631841b4e160e01b81528590fd5b8151632b88db6760e21b81526001600160401b03891681860190815281906020010390fd5b50825163c148371560e01b8152fd5b610c289150843d8611610c2e575b610c2081836101c4565b810190611339565b5f6108b8565b503d610c16565b60208082019080835283518092528060408094019401925f905b838210610c5e57505050505090565b845180516001600160401b031687528301516001600160a01b0316868401529485019493820193600190910190610c4f565b34610143575f366003190112610143576040518060045480835281602080940160045f527f8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b925f5b86828210610d6f5784610ced818603826101c4565b610cf78151611732565b915f5b8251811015610d615780610d10600192856116c7565b51610d45610d1c6101f4565b60a083901c6001600160401b031681529160a085901b859003166001600160a01b031685830152565b610d4f82876116c7565b52610d5a81866116c7565b5001610cfa565b604051806102ba8682610c35565b8554845260019586019587955093019201610cd8565b3461014357602036600319011261014357602061082a600435610da7816102be565b6001600160401b03165f908152600360205260409020546001600160a01b0316151590565b34610143576020366003190112610143576001600160401b03600435610df1816102be565b165f526003602052602060018060a01b0360405f205416604051908152f35b9181601f84011215610143578235916001600160401b038311610143576020808501948460061b01011161014357565b346101435760603660031901126101435760046001600160401b03813581811161014357610e72903690600401610e10565b91909260243582811161014357610e8d903690600401610e10565b909160443584811161014357610ea7903690600401610e10565b969095610eb26119db565b5f5b81811061101b575050505f5b828110610f6557505050505f5b838110610ed657005b80610eec610ee76001938787611790565b611351565b610f026020610efc848989611790565b016117d9565b9084610f16610f118484611a8f565b611d12565b610f24575b50505001610ecd565b6040516001600160a01b0393909316835216907fa4bdf64ebdf3316320601a081916a75aa144bcef6c4beeb0e9fb1982cacc6b9490602090a25f8084610f1b565b610f73610ee7828587611790565b610f836020610efc848789611790565b90610f9d610f99610f948484611a8f565b611c67565b1590565b610fe6576040516001600160a01b0392909216825260019291908716907fa823809efda3ba66c873364eec120fa0923d9fabda73bc97dd5663341e2d9bcb90602090a201610ec0565b60408051630496477960e41b81526001600160401b039092168286019081526001600160a01b03841660208201528291010390fd5b8061103161102c6001938587611790565b6117a0565b7f1f7d0ec248b80e5c0dde0ee531c4fc8fdb6ce9a2b3d90f560c74acd6a7202f23896110d66110c860208501946110bb611071875160018060a01b031690565b61109c61108584516001600160401b031690565b6001600160401b03165f52600360205260405f2090565b80546001600160a01b0319166001600160a01b03909216919091179055565b516001600160401b031690565b93516001600160a01b031690565b6040516001600160a01b03919091168152921691602090a201610eb4565b34610143575f366003190112610143576002546040516001600160a01b039091168152602090f35b34610143576020366003190112610143576004356111398161032c565b6111416119db565b6001600160a01b031633811461119d57600180546001600160a01b031916821790555f54611177906001600160a01b03166108fc565b7fed8889f560326eb138920d842192f0eb3dd22b4f139c87a2c57538e05bae12785f80a3005b60405162461bcd60e51b815260206004820152601760248201527f43616e6e6f74207472616e7366657220746f2073656c660000000000000000006044820152606490fd5b346101435760208060031936011261014357611208600435611203816102be565b611866565b90604051918183928301818452825180915281604085019301915f5b82811061123357505050500390f35b83516001600160a01b031685528695509381019392810192600101611224565b90816020910312610143575190565b9190611277835160a0835260a083019061021c565b9061128e602092838601518382038585015261021c565b60409060408601519383820360408501528080865193848152019501925f905b8382106112e5575050506060808701516001600160a01b03169084015250929361026b93506080015190608081840391015261021c565b845180516001600160a01b031688528301518784015295860195938201936001909101906112ae565b6040906001600160401b0361026b94931681528160208201520190611262565b6040513d5f823e3d90fd5b90816020910312610143575180151581036101435790565b3561026b816102be565b9035601e19823603018112156101435701602081359101916001600160401b03821161014357813603831361014357565b908060209392818452848401375f828201840152601f01601f1916010190565b9190808252602080920192915f905b8282106113c9575050505090565b9091929360019085356113db8161032c565b828060a01b031681528286013583820152604080910195019201909291926113bb565b906020825280356020830152602081013591611419836102be565b6001600160401b03809316604082015261144a611439604084018461135b565b60a0606085015260c084019161138c565b9261146f61145b606085018561135b565b601f1985880381016080870152969161138c565b926080810135601e1982360301811215610143570191602083359301918311610143578260061b360382136101435760a061026b95828603019101526113ac565b60405163397796f760e01b815290949291906020816004817f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03165afa908115610574575f916115fa575b506115e8576020850194611527610f996108198835611520816102be565b3390611a8f565b6115d657611599926115ce61158f7f9b877de93ea9895756e337442c657f95a34fc68e7eb988bdfa693d5be83016b6946040519360208501996385572ffb60e01b8b526115898661157b89602483016113fe565b03601f1981018852876101c4565b85611940565b9891969099611351565b9251902060408051943585526001600160401b0390931660208501523392840192909252606083019190915281906080820190565b0390a1929190565b604051636918b76f60e11b8152600490fd5b60405163c148371560e01b8152600490fd5b611613915060203d602011610c2e57610c2081836101c4565b5f611502565b3d15611643573d9061162a82610201565b9161163860405193846101c4565b82523d5f602084013e565b606090565b9091906001600160a01b0390818416801561169b57501691821561166f576101f292611a2c565b5f809350809281925af1611681611619565b501561168957565b60405163e417b80b60e01b8152600490fd5b602490604051906326a78f8f60e01b82526004820152fd5b634e487b7160e01b5f52603260045260245ffd5b80518210156116db5760209160051b010190565b6116b3565b90816020910312610143575161026b8161032c565b929493906060926001600160401b0361171c92168552608060208601526080850190611262565b60408401959095526001600160a01b0316910152565b9061173c82610315565b60409061174c60405191826101c4565b838152809361175d601f1991610315565b01915f5b83811061176e5750505050565b602090825161177c8161015b565b5f8152825f81830152828601015201611761565b91908110156116db5760061b0190565b604081360312610143576020604051916117b98361015b565b80356117c4816102be565b835201356117d18161032c565b602082015290565b3561026b8161032c565b6020908181840312610143578051906001600160401b03821161014357019180601f8401121561014357825161181881610315565b9361182660405195866101c4565b818552838086019260051b820101928311610143578301905b82821061184d575050505090565b838091835161185b8161032c565b81520191019061183f565b6001600160401b0381165f908152600360205260409020546001600160a01b031615611919576001600160401b0381165f908152600360205260408120546118e892906118bd906108fc906001600160a01b031681565b6040518080958194633ef28edd60e21b8352600483019190916001600160401b036020820193169052565b03915afa908115610574575f916118fd575090565b61026b91503d805f833e61191181836101c4565b8101906117e3565b50604051602081018181106001600160401b03821117610176576040525f81525f36813790565b604051949261194e866101a9565b60848652602086019460a0368737833b156119cc575a908082106119bd578291038060061c900311156119ae575f918291825a9560208451940192f1905a9003923d90608482116119a5575b5f908287523e929190565b6084915061199a565b6337c3be2960e01b5f5260045ffd5b632be8ca8b60e21b5f5260045ffd5b63030ed58f60e21b5f5260045ffd5b5f546001600160a01b031633036119ee57565b60405162461bcd60e51b815260206004820152601660248201527527b7363c9031b0b63630b1363290313c9037bbb732b960511b6044820152606490fd5b60405163a9059cbb60e01b60208201526001600160a01b03909216602483015260448083019390935291815260808101916001600160401b03831182841017610176576101f292604052611b01565b634e487b7160e01b5f52601160045260245ffd5b6001600160a01b0390911660a09190911b67ffffffffffffffff60a01b16908101908110611aba5790565b611a7b565b6040516323b872dd60e01b60208201526001600160a01b0392831660248201529290911660448301526064808301939093529181526101f291611b018261018e565b604051611b5e916001600160a01b0316611b1a8261015b565b5f806020958685527f5361666545524332303a206c6f772d6c6576656c2063616c6c206661696c656487860152868151910182855af1611b58611619565b91611d88565b80519081611b6b57505050565b8280611b7b938301019101611339565b15611b835750565b6084906040519062461bcd60e51b82526004820152602a60248201527f5361666545524332303a204552433230206f7065726174696f6e20646964206e6044820152691bdd081cdd58d8d9595960b21b6064820152fd5b6004548110156116db5760045f527f8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b01905f90565b6004548015611c53575f19810190808210156116db577f8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19a5f91600483520155600455565b634e487b7160e01b5f52603160045260245ffd5b5f818152600560205260409020548015611d0c575f199181830191808311611aba57600454938401938411611aba5783835f95611cbd9503611cc3575b505050611caf611c0f565b5f52600560205260405f2090565b55600190565b611caf611ceb91611ce3611cd9611d0395611bda565b90549060031b1c90565b928391611bda565b90919082549060031b91821b915f19901b1916179055565b555f8080611ca4565b50505f90565b805f52600560205260405f2054155f14611d8357600454680100000000000000008110156101765760018101806004558110156116db5781907f8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b0155600454905f52600560205260405f2055600190565b505f90565b91929015611dea5750815115611d9c575090565b3b15611da55790565b60405162461bcd60e51b815260206004820152601d60248201527f416464726573733a2063616c6c20746f206e6f6e2d636f6e74726163740000006044820152606490fd5b825190915015611dfd5750805190602001fd5b60405162461bcd60e51b815290819061059a906004830161025a56fea26469706673582212201e0fba5fe8d69c7858fc719ac378071573efd1d64618d46a45e4bd04520d639864736f6c63430008180033"
+        }
+    },
+    "version": "0.8.24+commit.e11b9ed9"
+}

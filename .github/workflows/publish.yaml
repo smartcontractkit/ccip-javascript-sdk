@@ -1,0 +1,47 @@
+name: Publish to NPM
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: publish
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12
+          always-auth: true
+
+      - name: Install PNPM
+        run: npm install -g pnpm@9.4.0
+        shell: bash
+
+      - name: Install dependencies
+        run:
+          pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
+        shell: bash    
+
+      - name: Publish ccip-js to NPM
+        run: |
+          pnpm build-ccip-js
+          cd packages/ccip-js
+          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JAVASCRIPT_SDK }}
+          pnpm publish --no-git-checks --access public
+        shell: bash    
+
+      - name: Publish ccip-react-components to NPM
+        run: |
+          pnpm build-components
+          cd packages/ccip-react-components
+          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JAVASCRIPT_SDK }}
+          pnpm publish --no-git-checks --access public
+        shell: bash 

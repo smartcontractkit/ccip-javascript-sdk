@@ -1,0 +1,24 @@
+export const BaseSVG = () => (
+  <svg
+    width="32"
+    height="32"
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clipPath="url(#clip0_1460_57405)">
+      <rect width="32" height="32" rx="4" fill="#0052FF" />
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M16.23 27.5352C22.4529 27.5352 27.4976 22.4906 27.4976 16.2676C27.4976 10.0447 22.4529 5 16.23 5C10.3264 5 5.4832 9.5402 5.00167 15.3194H21.722V17.1957H5C5.47193 22.9845 10.3195 27.5352 16.23 27.5352Z"
+        fill="white"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_1460_57405">
+        <rect width="32" height="32" rx="4" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);

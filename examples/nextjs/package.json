@@ -1,0 +1,35 @@
+{
+  "name": "example-nextjs",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "bdev": "pnpm run build-components && next dev",
+    "dev": "next dev",
+    "build-ccip-js": "pnpm --filter ccip-js run build",
+    "build-components": "pnpm --filter ccip-react-components run build",
+    "build": "pnpm build-ccip-js && pnpm build-components && next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chainlink/ccip-js": "0.2.1",
+    "@chainlink/ccip-react-components": "0.2.1",
+    "@tanstack/react-query": "^5.37.1",
+    "next": "14.2.3",
+    "react": "18",
+    "react-dom": "18",
+    "typescript": "^5",
+    "viem": "2.21.25",
+    "wagmi": "^2.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1"
+  }
+}

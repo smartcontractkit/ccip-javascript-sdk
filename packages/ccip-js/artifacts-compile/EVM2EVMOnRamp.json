@@ -1,0 +1,1869 @@
+{
+    "contracts": {
+        "src/contracts/EVM2EVMOnRamp.sol:EVM2EVMOnRamp": {
+            "onRampAbi": [
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "linkToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "chainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "destChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "defaultTxGasLimit",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint96",
+                                    "name": "maxNopFeesJuels",
+                                    "type": "uint96"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "prevOnRamp",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "rmnProxy",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "tokenAdminRegistry",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.StaticConfig",
+                            "name": "staticConfig",
+                            "type": "tuple"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "router",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "maxNumberOfTokensPerMsg",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerPayloadByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destDataAvailabilityOverheadGas",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerDataAvailabilityByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destDataAvailabilityMultiplierBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "priceRegistry",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxDataBytes",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxPerMsgGasLimit",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "defaultTokenFeeUSDCents",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "defaultTokenDestGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enforceOutOfOrder",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.DynamicConfig",
+                            "name": "dynamicConfig",
+                            "type": "tuple"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bool",
+                                    "name": "isEnabled",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "capacity",
+                                    "type": "uint128"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "rate",
+                                    "type": "uint128"
+                                }
+                            ],
+                            "internalType": "struct RateLimiter.Config",
+                            "name": "rateLimiterConfig",
+                            "type": "tuple"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "networkFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "gasMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "premiumMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.FeeTokenConfigArgs[]",
+                            "name": "feeTokenConfigs",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "minFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "deciBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destBytesOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "aggregateRateLimitEnabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.TokenTransferFeeConfigArgs[]",
+                            "name": "tokenTransferFeeConfigArgs",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "nop",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "weight",
+                                    "type": "uint16"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.NopAndWeight[]",
+                            "name": "nopsAndWeights",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "constructor"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "capacity",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "requested",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "AggregateValueMaxCapacityExceeded",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "minWaitInSeconds",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "available",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "AggregateValueRateLimitReached",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "BucketOverfilled",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "CannotSendZeroTokens",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "CursedByRMN",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "ExtraArgOutOfOrderExecutionMustBeTrue",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "GetSupportedTokensFunctionalityRemovedCheckAdminRegistry",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InsufficientBalance",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "chainSelector",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "InvalidChainSelector",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InvalidConfig",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "uint32",
+                            "name": "destBytesOverhead",
+                            "type": "uint32"
+                        }
+                    ],
+                    "name": "InvalidDestBytesOverhead",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "bytes",
+                            "name": "encodedAddress",
+                            "type": "bytes"
+                        }
+                    ],
+                    "name": "InvalidEVMAddress",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InvalidExtraArgsTag",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "nop",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "InvalidNopAddress",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "InvalidWithdrawParams",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "LinkBalanceNotSettled",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "MaxFeeBalanceReached",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "MessageGasLimitTooHigh",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "maxSize",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "actualSize",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "MessageTooLarge",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "MustBeCalledByRouter",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "NoFeesToPay",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "NoNopsToPay",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "NotAFeeToken",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "OnlyCallableByAdminOrOwner",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "OnlyCallableByOwnerOrAdmin",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "OnlyCallableByOwnerOrAdminOrNop",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "PriceNotFoundForToken",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "RouterMustSetOriginalSender",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "SourceTokenDataTooLarge",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "capacity",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "requested",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "tokenAddress",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "TokenMaxCapacityExceeded",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "minWaitInSeconds",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "available",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "tokenAddress",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "TokenRateLimitReached",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "TooManyNops",
+                    "type": "error"
+                },
+                {
+                    "inputs": [],
+                    "name": "UnsupportedNumberOfTokens",
+                    "type": "error"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "UnsupportedToken",
+                    "type": "error"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "address",
+                            "name": "newAdmin",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "AdminSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sourceChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "sender",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "receiver",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "sequenceNumber",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "gasLimit",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "strict",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "nonce",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "feeToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint256",
+                                    "name": "feeTokenAmount",
+                                    "type": "uint256"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "tokenAmounts",
+                                    "type": "tuple[]"
+                                },
+                                {
+                                    "internalType": "bytes[]",
+                                    "name": "sourceTokenData",
+                                    "type": "bytes[]"
+                                },
+                                {
+                                    "internalType": "bytes32",
+                                    "name": "messageId",
+                                    "type": "bytes32"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct Internal.EVM2EVMMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "CCIPSendRequested",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bool",
+                                    "name": "isEnabled",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "capacity",
+                                    "type": "uint128"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "rate",
+                                    "type": "uint128"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct RateLimiter.Config",
+                            "name": "config",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "ConfigChanged",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "linkToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "chainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "destChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "defaultTxGasLimit",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint96",
+                                    "name": "maxNopFeesJuels",
+                                    "type": "uint96"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "prevOnRamp",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "rmnProxy",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "tokenAdminRegistry",
+                                    "type": "address"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct EVM2EVMOnRamp.StaticConfig",
+                            "name": "staticConfig",
+                            "type": "tuple"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "router",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "maxNumberOfTokensPerMsg",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerPayloadByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destDataAvailabilityOverheadGas",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerDataAvailabilityByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destDataAvailabilityMultiplierBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "priceRegistry",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxDataBytes",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxPerMsgGasLimit",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "defaultTokenFeeUSDCents",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "defaultTokenDestGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enforceOutOfOrder",
+                                    "type": "bool"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct EVM2EVMOnRamp.DynamicConfig",
+                            "name": "dynamicConfig",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "ConfigSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "networkFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "gasMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "premiumMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct EVM2EVMOnRamp.FeeTokenConfigArgs[]",
+                            "name": "feeConfig",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "FeeConfigSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "nop",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "amount",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "NopPaid",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "nopWeightsTotal",
+                            "type": "uint256"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "nop",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "weight",
+                                    "type": "uint16"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct EVM2EVMOnRamp.NopAndWeight[]",
+                            "name": "nopsAndWeights",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "NopsSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OwnershipTransferRequested",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "from",
+                            "type": "address"
+                        },
+                        {
+                            "indexed": true,
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "OwnershipTransferred",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "address[]",
+                            "name": "tokens",
+                            "type": "address[]"
+                        }
+                    ],
+                    "name": "TokenTransferFeeConfigDeleted",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "minFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "deciBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destBytesOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "aggregateRateLimitEnabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "indexed": false,
+                            "internalType": "struct EVM2EVMOnRamp.TokenTransferFeeConfigArgs[]",
+                            "name": "transferFeeConfig",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "TokenTransferFeeConfigSet",
+                    "type": "event"
+                },
+                {
+                    "anonymous": false,
+                    "inputs": [
+                        {
+                            "indexed": false,
+                            "internalType": "uint256",
+                            "name": "tokens",
+                            "type": "uint256"
+                        }
+                    ],
+                    "name": "TokensConsumed",
+                    "type": "event"
+                },
+                {
+                    "inputs": [],
+                    "name": "acceptOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "currentRateLimiterState",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint128",
+                                    "name": "tokens",
+                                    "type": "uint128"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "lastUpdated",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "isEnabled",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "capacity",
+                                    "type": "uint128"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "rate",
+                                    "type": "uint128"
+                                }
+                            ],
+                            "internalType": "struct RateLimiter.TokenBucket",
+                            "name": "",
+                            "type": "tuple"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes",
+                                    "name": "receiver",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "tokenAmounts",
+                                    "type": "tuple[]"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "feeToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "extraArgs",
+                                    "type": "bytes"
+                                }
+                            ],
+                            "internalType": "struct Client.EVM2AnyMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "feeTokenAmount",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "originalSender",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "forwardFromRouter",
+                    "outputs": [
+                        {
+                            "internalType": "bytes32",
+                            "name": "",
+                            "type": "bytes32"
+                        }
+                    ],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getDynamicConfig",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "router",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "maxNumberOfTokensPerMsg",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerPayloadByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destDataAvailabilityOverheadGas",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerDataAvailabilityByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destDataAvailabilityMultiplierBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "priceRegistry",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxDataBytes",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxPerMsgGasLimit",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "defaultTokenFeeUSDCents",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "defaultTokenDestGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enforceOutOfOrder",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.DynamicConfig",
+                            "name": "dynamicConfig",
+                            "type": "tuple"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getExpectedNextSequenceNumber",
+                    "outputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "",
+                            "type": "uint64"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "destChainSelector",
+                            "type": "uint64"
+                        },
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bytes",
+                                    "name": "receiver",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "data",
+                                    "type": "bytes"
+                                },
+                                {
+                                    "components": [
+                                        {
+                                            "internalType": "address",
+                                            "name": "token",
+                                            "type": "address"
+                                        },
+                                        {
+                                            "internalType": "uint256",
+                                            "name": "amount",
+                                            "type": "uint256"
+                                        }
+                                    ],
+                                    "internalType": "struct Client.EVMTokenAmount[]",
+                                    "name": "tokenAmounts",
+                                    "type": "tuple[]"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "feeToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "bytes",
+                                    "name": "extraArgs",
+                                    "type": "bytes"
+                                }
+                            ],
+                            "internalType": "struct Client.EVM2AnyMessage",
+                            "name": "message",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "getFee",
+                    "outputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "feeTokenAmount",
+                            "type": "uint256"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "getFeeTokenConfig",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint32",
+                                    "name": "networkFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "gasMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "premiumMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.FeeTokenConfig",
+                            "name": "feeTokenConfig",
+                            "type": "tuple"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getNopFeesJuels",
+                    "outputs": [
+                        {
+                            "internalType": "uint96",
+                            "name": "",
+                            "type": "uint96"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getNops",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "nop",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "weight",
+                                    "type": "uint16"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.NopAndWeight[]",
+                            "name": "nopsAndWeights",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "weightsTotal",
+                            "type": "uint256"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "",
+                            "type": "uint64"
+                        },
+                        {
+                            "internalType": "contract IERC20",
+                            "name": "sourceToken",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "getPoolBySourceToken",
+                    "outputs": [
+                        {
+                            "internalType": "contract IPoolV1",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "sender",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "getSenderNonce",
+                    "outputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "",
+                            "type": "uint64"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getStaticConfig",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "linkToken",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "chainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "destChainSelector",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "defaultTxGasLimit",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint96",
+                                    "name": "maxNopFeesJuels",
+                                    "type": "uint96"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "prevOnRamp",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "rmnProxy",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "tokenAdminRegistry",
+                                    "type": "address"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.StaticConfig",
+                            "name": "",
+                            "type": "tuple"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "uint64",
+                            "name": "",
+                            "type": "uint64"
+                        }
+                    ],
+                    "name": "getSupportedTokens",
+                    "outputs": [
+                        {
+                            "internalType": "address[]",
+                            "name": "",
+                            "type": "address[]"
+                        }
+                    ],
+                    "stateMutability": "pure",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "getTokenLimitAdmin",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "token",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "getTokenTransferFeeConfig",
+                    "outputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "uint32",
+                                    "name": "minFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "deciBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destBytesOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "aggregateRateLimitEnabled",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "isEnabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.TokenTransferFeeConfig",
+                            "name": "tokenTransferFeeConfig",
+                            "type": "tuple"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "linkAvailableForPayment",
+                    "outputs": [
+                        {
+                            "internalType": "int256",
+                            "name": "",
+                            "type": "int256"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "owner",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "payNops",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "newAdmin",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "setAdmin",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "router",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "maxNumberOfTokensPerMsg",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerPayloadByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destDataAvailabilityOverheadGas",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destGasPerDataAvailabilityByte",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "destDataAvailabilityMultiplierBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "address",
+                                    "name": "priceRegistry",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxDataBytes",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxPerMsgGasLimit",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "defaultTokenFeeUSDCents",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "defaultTokenDestGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enforceOutOfOrder",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.DynamicConfig",
+                            "name": "dynamicConfig",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "setDynamicConfig",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "networkFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "gasMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "uint64",
+                                    "name": "premiumMultiplierWeiPerEth",
+                                    "type": "uint64"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "enabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.FeeTokenConfigArgs[]",
+                            "name": "feeTokenConfigArgs",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "setFeeTokenConfig",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "nop",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "weight",
+                                    "type": "uint16"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.NopAndWeight[]",
+                            "name": "nopsAndWeights",
+                            "type": "tuple[]"
+                        }
+                    ],
+                    "name": "setNops",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "bool",
+                                    "name": "isEnabled",
+                                    "type": "bool"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "capacity",
+                                    "type": "uint128"
+                                },
+                                {
+                                    "internalType": "uint128",
+                                    "name": "rate",
+                                    "type": "uint128"
+                                }
+                            ],
+                            "internalType": "struct RateLimiter.Config",
+                            "name": "config",
+                            "type": "tuple"
+                        }
+                    ],
+                    "name": "setRateLimiterConfig",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "components": [
+                                {
+                                    "internalType": "address",
+                                    "name": "token",
+                                    "type": "address"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "minFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "maxFeeUSDCents",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint16",
+                                    "name": "deciBps",
+                                    "type": "uint16"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destGasOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "uint32",
+                                    "name": "destBytesOverhead",
+                                    "type": "uint32"
+                                },
+                                {
+                                    "internalType": "bool",
+                                    "name": "aggregateRateLimitEnabled",
+                                    "type": "bool"
+                                }
+                            ],
+                            "internalType": "struct EVM2EVMOnRamp.TokenTransferFeeConfigArgs[]",
+                            "name": "tokenTransferFeeConfigArgs",
+                            "type": "tuple[]"
+                        },
+                        {
+                            "internalType": "address[]",
+                            "name": "tokensToUseDefaultFeeConfigs",
+                            "type": "address[]"
+                        }
+                    ],
+                    "name": "setTokenTransferFeeConfig",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "transferOwnership",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [],
+                    "name": "typeAndVersion",
+                    "outputs": [
+                        {
+                            "internalType": "string",
+                            "name": "",
+                            "type": "string"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "feeToken",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "to",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "withdrawNonLinkFees",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                }
+            ],
+            "onRampBin": "6080806040526004361015610012575f80fd5b5f3560e01c90816306285c6914613145575080631772047e14613041578063181f5a7714612fea57806320487ded146128765780634120fccd1461282c5780634816f4f7146123f257806348a98aa4146123b0578063504bffe014611f56578063546719cd14611e70578063549e946f14611d5e57806354b7146814611d38578063599f643114611d10578063704b6c0214611c8b5780637437ff9f14611b6357806376f6ae76146118ae57806379ba509714611809578063856c8247146117d55780638da5cb5b146117ae5780639a113c36146116fa578063b06d41bc14611613578063c92b28321461142b578063d09dc33914611409578063df0aa9e914610495578063eff7cc481461047b578063f25561fd1461022b578063f2fde38b146101755763fbca3b7414610145575f80fd5b346101715760203660031901126101715761015e6134b4565b506040516313ce2ef960e31b8152600490fd5b5f80fd5b346101715760203660031901126101715761018e613364565b610196613e6a565b6001600160a01b03908116903382146101e657816001600160601b0360a01b60015416176001555f54167fed8889f560326eb138920d842192f0eb3dd22b4f139c87a2c57538e05bae12785f80a3005b60405162461bcd60e51b815260206004820152601760248201527f43616e6e6f74207472616e7366657220746f2073656c660000000000000000006044820152606490fd5b3461017157602080600319360112610171576004356001600160401b03808211610171573660238301121561017157816004013592610269846134de565b6102766040519182613432565b8481528181019384602460a08098028301019136831161017157602401905b82821061040b575050506102a7613e36565b5f5b815181101561036d57806102bf6001928461386a565b5163ffffffff808683015116918760408201511691606090898284015116906080840151151593604051966102f3886133c5565b87528a87019586526040808801938452848801958652905160a08a901b8a9003165f908152600b8c5220955186549551925194516001600160a81b031990961691161790891b6bffffffffffffffff00000000161791901b67ffffffffffffffff60601b1617901515891b60ff60a01b16179055016102a9565b5084916040519381850192828652518093526040850195935f915b8483106103b7577f067924bf9277d905a9a4631a06d959bc032ace86b3caa835ae7e403d4f39010e87890388a1005b855180516001600160a01b031689528085015163ffffffff16898601526040808201518316908a01526060808201518316908a01526080908101511515908901529681019694830194600190920191610388565b878236031261017157848891604051610423816133fc565b61042c8561337a565b81526104398386016134f5565b83820152610449604086016134ca565b6040820152606061045b8187016134ca565b90820152608061046c818701613515565b90820152815201910190610295565b34610171575f36600319011261017157610493613ae3565b005b3461017157600319608036820112610171576104af6134b4565b906001600160401b03602435116101715760a0906024353603011261017157606435906001600160a01b038216820361017157604051632cbc26bb60e01b8152608082901b67ffffffffffffffff60801b1660048201526020816024817f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03165afa908115610ed0575f916113ea575b506113d8576001600160a01b038216156113c6576005546001600160a01b031633036113b4576001600160401b037f0000000000000000000000000000000000000000000000000000000000000000166001600160401b0382160361139257506105c36105bd60846024350160243560040161361a565b90613c54565b906105d860446024350160243560040161364c565b90506106026105f0602480350160243560040161361a565b90508285516020870151151592613d85565b806111bb575b610616606460243501613681565b6001600160a01b037f00000000000000000000000000000000000000000000000000000000000000008116911681036110fe5750600e546001600160601b036106656044358216838316613995565b16906001600160601b03191617600e555b6001600160601b0380600e5416907f000000000000000000000000000000000000000000000000000000000000000016106110ec57602083015115610fdd575b6106d76106d26106cb6004602435018061361a565b36916139b0565b614021565b92600e54906106f16001600160401b038360801c166139e6565b67ffffffffffffffff60801b19909216608083901b67ffffffffffffffff60801b1617600e5580516020919091015115610f92575f5b610735606460243501613681565b610748602480350160243560040161361a565b909161075e60446024350160243560040161364c565b94909561076a896134de565b97610778604051998a613432565b898952601f196107878b6134de565b01895f5b828110610f80575050506040519b6107a28d6133e0565b7f00000000000000000000000000000000000000000000000000000000000000006001600160401b03168d528c600160a01b600190038d169060200152600160a01b600190031660408d01526001600160401b031660608c015260808b015260a08a015f90526001600160401b031660c08a0152600160a01b600190031660e08901526044356101008901523690610839926139b0565b610120870152610848816134de565b91604051926108579084613432565b8183526020830190368360061b8201116101715780915b8360061b82018310610f6657505050506101408501526101608401525f6101808401525f5b818110610b61578360018060a01b0360208201511660018060a01b036040830151166001600160401b03606084015116608084015160a085015115156001600160401b0360c0870151169160018060a01b0360e088015116936101008801519560405197602089015260408801526060870152608086015260a085015260c084015260e08301526101008201526101008152806101208101106001600160401b0361012083011117610b4d5760209181610120610180930160405280518482012090610120830151858151910120906101206101408501519161099f816109876101408201958b8752610160830190613a40565b0361013f1981018484015261011f1901838301613432565b015190206101608401516040516109d2816109c48a8201948b86526040830190613a87565b03601f198101835282613432565b5190209060405192878401945f86527f000000000000000000000000000000000000000000000000000000000000000060408601526060850152608084015260a083015260c082015260c08152610a28816133aa565b519020828201527fd0c3c799bf9e2639de44391e7f524d229b2b55f5b1ea94b2bf7da42f7243dddd6040518481526001600160401b038351168582015260018060a01b038584015116604082015260018060a01b0360408401511660608201526001600160401b036060840151166080820152608083015160a082015260a0830151151560c08201526001600160401b0360c08401511660e082015260018060a01b0360e08401511661010082015261010083015161012082015280610120840151610b37610b21610b096101a093846101408701526101c086019061348f565b610140880151858203601f1901610160870152613a40565b610160870151848203601f190189860152613a87565b9086860151908301520390a10151604051908152f35b634e487b7160e01b5f52604160045260245ffd5b610b8981610b84610b7c60446024350160243560040161364c565b369391613956565b613966565b80516001600160a01b0390610b9f9082166136e7565b169081158015610efe575b610edb57610bbd6004602435018061361a565b91906020820151610bdf60018060a01b0384511692604051956106cb876133fc565b84526001600160401b037f000000000000000000000000000000000000000000000000000000000000000016602085015260018060a01b0388166040850152606084015260808301525f604051808094639a4575b960e01b825260206004830152610c56815160a0602485015260c484019061348f565b60208201516001600160401b0316604484015260408201516001600160a01b0390811660648501526060830151608485015260809092015190911660a4830152038183875af1918215610ed0575f92610e41575b5060208201515160208111610df1575b5092610d80610dbd829484600197610cd5610dd49751614021565b5060405192602084015260208352610cec83613417565b6020825192015190898060a01b038151165f52600c60205260ff60405f205460981c165f14610ddb57898060a01b039051165f52610da763ffffffff60405f205460501c16915b60405194610d40866133c5565b85526020850193845260408501908152606085019363ffffffff8094168552610d966040519889976020808a015251608060408a015260c089019061348f565b915191603f1992838983030160608a015261348f565b91519086830301608087015261348f565b91511660a083015203601f198101835282613432565b61016088015190610dce838361386a565b5261386a565b5001610893565b50610da763ffffffff60075460101c1691610d33565b81516001600160a01b03165f908152600c602052604090205460701c63ffffffff1610610e1e5787610cba565b51604051631b7a9b6560e11b81526001600160a01b039091166004820152602490fd5b9091503d805f833e610e538183613432565b810190602081830312610171578051906001600160401b03821161017157016040818303126101715760405191610e8983613417565b81516001600160401b0381116101715781610ea59184016139fe565b835260208201516001600160401b03811161017157610ec492016139fe565b60208201529087610caa565b6040513d5f823e3d90fd5b51604051635f8b555b60e11b81526001600160a01b039091166004820152602490fd5b506040516301ffc9a760e01b815263aff2afbf60e01b6004820152602081602481865afa908115610ed0575f91610f37575b5015610baa565b610f59915060203d602011610f5f575b610f518183613432565b81019061393e565b87610f30565b503d610f47565b6020604091610f753686613966565b81520192019161086e565b60606020828194010152018a9061078b565b6001600160a01b0384165f908152600d60205260409020805490610fbe6001600160401b0383166139e6565b67ffffffffffffffff199092166001600160401b038316179055610727565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b0316156106b6576001600160a01b0382165f908152600d60205260409020546001600160401b03166106b65760405163856c824760e01b81526001600160a01b038381166004830152602090829060249082907f0000000000000000000000000000000000000000000000000000000000000000165afa908115610ed0575f916110bd575b5060018060a01b0383165f52600d6020526001600160401b0360405f2091166001600160401b03198254161790556106b6565b6110df915060203d6020116110e5575b6110d78183613432565b8101906137a4565b8461108a565b503d6110cd565b60405163e5c7a49160e01b8152600490fd5b600654602090811c6001600160a01b031691606461111f6024358201613681565b60405194859384926220f2df60e11b845260018060a01b03166004840152604435602484015260448301525afa908115610ed0575f91611189575b506001600160601b0361117481600e549316828416613995565b16906001600160601b03191617600e55610676565b90506020813d6020116111b3575b816111a460209383613432565b8101031261017157518461115a565b3d9150611197565b5f805b8281106111e15750806111d2575b50610608565b6111db9061408c565b836111cc565b6020611201826111fb60446024350160243560040161364c565b90613956565b013515611380578061123761123261122360446024350160243560040161364c565b6001600160a01b039491613956565b613681565b165f52600c60205260ff60405f205460901c16611257575b6001016111be565b90611270826111fb60446024350160243560040161364c565b60065460201c6001600160a01b03169061128b903690613966565b90604060018060a01b038351166024825180948193630681320d60e51b835260048301525afa908115610ed0575f91611321575b50516001600160e01b03169081156112fe5791670de0b6b3a76400006112ef6112f69360206001960151906136a9565b04906136bc565b91905061124f565b51604051639a655f7b60e01b81526001600160a01b039091166004820152602490fd5b90506040813d604011611378575b8161133c60409383613432565b810103126101715760206040519161135383613417565b61135c81613695565b8352015163ffffffff81168103610171576020820152876112bf565b3d915061132f565b604051635cf0444960e01b8152600490fd5b604051631b3539ad60e31b81526001600160401b039091166004820152602490fd5b604051631c0a352960e01b8152600490fd5b60405163a4ec747960e01b8152600490fd5b604051630a75a23b60e31b8152600490fd5b611403915060203d602011610f5f57610f518183613432565b83610546565b34610171575f366003190112610171576020611423613892565b604051908152f35b3461017157606036600319011261017157604051606081018181106001600160401b03821117610b4d5760405260043580151581036101715781526024356001600160801b03918282168203610171576020810191825260443592808416840361017157604082019384525f54336001600160a01b0391821614159081611604575b506115f2577f9ea3374b67bf275e6bb9c8ae68f9cae023e1c528b4b27e092f0bb209d3531c1993816060946003948554836114f163ffffffff8360801c1642613ebb565b8061157e575b5090508251169083875416848184105f14611575576115309150835b166001600160801b03166001600160801b03196003541617600355565b51151595805460ff60a01b8860a01b169060ff60a01b19161790556001600160801b0319845160801b16176004556040519485525116602084015251166040820152a1005b61153091611513565b6115a16115c7938361159a600454948286169560801c906136a9565b91166136bc565b808210156115eb5750166001600160801b03166001600160801b03196003541617600355565b855463ffffffff60801b19164260801b63ffffffff60801b161786558883816114f7565b9050611513565b6040516307b66ab160e51b8152600490fd5b905060025416331415856114ad565b34610171575f3660031901126101715760085461162f816134de565b9061163d6040519283613432565b808252601f1961164c826134de565b015f5b8181106116d75750505f5b81811061168f576116858363ffffffff600e5460601c166040519283926040845260408401906135cf565b9060208301520390f35b8061ffff61169e600193613ff3565b60405192916116ac84613417565b858060a01b031683521660208201526116c5828661386a565b526116d0818561386a565b500161165a565b6020906040516116e681613417565b5f8152825f8183015282870101520161164f565b346101715760208060031936011261017157608090611717613364565b5f6060604051611726816133c5565b8281528285820152826040820152015260018060a01b03165f52600b815260405f209060405191611756836133c5565b549063ffffffff8216928381526001600160401b0391828183018186841c16815260ff606060408601958489831c168752019660a01c1615158652604051968752511690850152511660408301525115156060820152f35b34610171575f366003190112610171575f546040516001600160a01b039091168152602090f35b346101715760203660031901126101715760206117f86117f3613364565b6137c3565b6001600160401b0360405191168152f35b34610171575f366003190112610171576001546001600160a01b038082163303611870575f54916001600160601b0360a01b9033828516175f55166001553391167f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e05f80a3005b60405162461bcd60e51b815260206004820152601660248201527526bab9ba10313290383937b837b9b2b21037bbb732b960511b6044820152606490fd5b3461017157602080600319360112610171576001600160401b039060043582811161017157366023820112156101715780600401359283116101715760249060248460061b82010136811161017157611905613e36565b61190e856134de565b9461191c6040519687613432565b855260248486019201915b818310611b255750505082519260408411611b1357600e549263ffffffff93848160601c169081611aef575b5050600894929454805b611a8057506001600160a01b037f00000000000000000000000000000000000000000000000000000000000000008116955f9485929091905b828410611a0057600e805463ffffffff60601b1916606089901b63ffffffff60601b1617905560408051888a1681528087018290527f8c337bff38141c507abd25c547606bdde78fe8c12e941ab613f3a565fea6cd249181906119fb9082018a6135cf565b0390a1005b9091929581611a0f888861386a565b5151169061ffff86611a218a8a61386a565b51015116918a81148015611a78575b611a615791611a5791611a51846001955f52600a8a528360405f205561439e565b50613e1e565b9601929190611996565b849060405190634de938d160e01b82526004820152fd5b508015611a30565b9294925f198101818111611adc57611a9a611ab691613ff3565b506001600160a01b03165f818152600a855260408120556142c9565b508015611ac9579294925f19018061195d565b83634e487b7160e01b5f5260116004525ffd5b84634e487b7160e01b5f5260116004525ffd5b6001600160601b03161015611b06575b8580611953565b611b0e613ae3565b611aff565b604051635ad0867d60e11b8152600490fd5b60408336031261017157846040918251611b3e81613417565b611b478661337a565b8152611b54838701613506565b83820152815201920191611927565b34610171575f366003190112610171576101a0604051611b82816133e0565b5f81525f60208201525f60408201525f60608201525f60808201525f60a08201525f60c08201525f60e0820152610100905f8282015260ff610120925f84840152610140935f85850152610160905f828601525f6101808096015260405195611bea876133e0565b6005549160018060a01b03808416895261ffff95868560a01c1660208b015263ffffffff94858160b01c1660408c0152878160d01c1660608c015260e01c60808b01526006549187831660a08c0152878360101c1660c08c01528260201c1660e08b0152848260c01c16908a015260e01c90880152600754938416908701528260101c169085015260301c16151590820152611c896040518092613522565bf35b3461017157602036600319011261017157611ca4613364565b5f546001600160a01b039190821633141580611d02575b6115f2577f8fe72c3e0020beb3234e76ae6676fa576fbfcae600af1c4fea44784cf0db329c9160209116806001600160601b0360a01b6002541617600255604051908152a1005b508160025416331415611cbb565b34610171575f366003190112610171576002546040516001600160a01b039091168152602090f35b34610171575f3660031901126101715760206001600160601b03600e5416604051908152f35b3461017157604036600319011261017157611d77613364565b602435906001600160a01b0380831680840361017157611d95613e36565b15611e5e57611da2613892565b915f8312611e4d578116907f0000000000000000000000000000000000000000000000000000000000000000168103611ddf579161049392613ec8565b6040516370a0823160e01b815230600482015292909150602083602481855afa918215610ed0575f92611e17575b6104939350613ec8565b91506020833d602011611e45575b81611e3260209383613432565b8101031261017157610493925191611e0d565b3d9150611e25565b604051620103af60e91b8152600490fd5b60405163232cb97f60e01b8152600490fd5b34610171575f36600319011261017157611e8861377a565b5060a0604051611e97816133fc565b6003546001600160801b039081811683528163ffffffff916020850190838160801c16825260ff6040870191881c16151581526004549360608701928486168452608088019560801c8652611eea61377a565b508480855116611f17828b5116611f11611f078787511642613ebb565b858c5116906136a9565b906136bc565b80821015611f4f57505b1680985281421681526040519788525116602087015251151560408601525116606084015251166080820152f35b9050611f21565b34610171576101a036600319011261017157604051611f74816133e0565b611f7c613364565b815260243561ffff8116810361017157602082015260443563ffffffff8116810361017157604082015260643561ffff8116810361017157606082015260843563ffffffff8116810361017157608082015260a43561ffff811681036101715760a082015260c43561ffff811681036101715760c082015260e4356001600160a01b03811681036101715760e08201526101043563ffffffff811681036101715761010082015263ffffffff6101243516610124350361017157610124356101208201526101443561ffff81168103610171576101408201526101643563ffffffff811681036101715761016082015261018435801515810361017157610180820152612087613e6a565b60e08101516001600160a01b03161561239e576102a07f45b5ad483aa608464c2c7f278bd413d284d7790cdc836e40652e23a0277082209160018060a01b0381511661ffff60a01b602083015160a01b1663ffffffff60b01b604084015160b01b1661ffff60d01b606085015160d01b169063ffffffff60e01b9384608087015160e01b16931717171760055561ffff60a0830151169060c083015191640100000000600160c01b0360e085015160201b169063ffff000063ffffffff60c01b61010087015160c01b169361012087015160e01b169460101b161717171760065561ffff610140820151166007549065ffffffff000061016084015160101b169066ff000000000000610180850151151560301b169266ffffffffffffff191617171760075561239b604051916121bd8361338e565b6001600160a01b037f0000000000000000000000000000000000000000000000000000000000000000811684526001600160401b037f0000000000000000000000000000000000000000000000000000000000000000811660208601527f000000000000000000000000000000000000000000000000000000000000000081166040808701919091527f000000000000000000000000000000000000000000000000000000000000000090911660608601526001600160601b037f00000000000000000000000000000000000000000000000000000000000000001660808601527f0000000000000000000000000000000000000000000000000000000000000000821660a08601527f0000000000000000000000000000000000000000000000000000000000000000821660c08601527f000000000000000000000000000000000000000000000000000000000000000090911660e0850152519261239090849060e0908160018060a01b039182815116855260208101516001600160401b03809116602087015280604083015116604087015260608201511660608601526001600160601b0360808201511660808601528260a08201511660a08601528260c08201511660c0860152015116910152565b610100830190613522565ba1005b6040516306b7c75960e31b8152600490fd5b34610171576040366003190112610171576123c96134b4565b506024356001600160a01b038082168203610171576123e96020926136e7565b60405191168152f35b34610171576040366003190112610171576001600160401b03600435818111610171573660238201121561017157806004013590602492612432836134de565b906124406040519283613432565b838252602092838301908660e083970282010190368211610171578701915b81831061279857505050843590811161017157366023820112156101715780600401359061248c826134de565b9061249a6040519283613432565b82825284820187819460051b830101913683116101715788879101915b83831061278057505050506124ca613e36565b5f5b835181101561261d576124df818561386a565b5160a0908181019063ffffffff808351168981106125f2575090816001959493928a830151169381604084015116936060928c69ffff000000000000000067ffffffff0000000061ffff87890151169360808180828c0151169751169760c091828c015115159a6040519e8f90612555826133aa565b81528881019e8f5260408101998a52019889528d019889528c019889528b01988d8a528d8060a01b039051165f52600c845260405f209a5116928a549951901b16925160401b169263ffffffff60501b905160501b169363ffffffff60701b905160701b169460ff60901b9051151560901b169560ff60981b9051151560981b16966001600160601b0360a01b16171717171717179055016124cc565b82516040516312766e0160e11b81526001600160a01b0390911660048201528c810191909152604490fd5b509190936040519184830190858452518091526040830191905f5b86828210612710575050505090807ff5791bc457b3bb990493cf5f655db46c25ccf5764c9b99b8969b4c72ea7df9d0920390a15f5b815181101561269f576001906001600160a01b0361268b828561386a565b51165f52600c84525f60408120550161266d565b5080516126a857005b906040519181830190828452518091526040830193915f5b8281106126f35750505050807ffb95a0042158e60a33e7b5bec100f3d95407b1a71bee6633bd54b8887449750b920390a1005b83516001600160a01b0316865294810194928101926001016126c0565b835180516001600160a01b031686528181015163ffffffff9081168388015260408083015182169088015260608083015161ffff169088015260808083015182169088015260a0808301519091169087015260c09081015115159086015260e09094019390920191600101612638565b819061278b8461337a565b81520191019086906124b7565b60e083360312610171578560e0916040516127b2816133aa565b6127bb8661337a565b81526127c88387016134f5565b838201526127d8604087016134f5565b604082015260606127ea818801613506565b9082015260806127fb8188016134f5565b9082015260a061280c8188016134f5565b9082015260c061281d818801613515565b9082015281520192019161245f565b34610171575f366003190112610171576001600160401b03600181600e5460801c16018181116128625760209160405191168152f35b634e487b7160e01b5f52601160045260245ffd5b3461017157600319604036820112610171576128906134b4565b906001600160401b03602435116101715760a09060243536030112610171576001600160401b037f0000000000000000000000000000000000000000000000000000000000000000166001600160401b03821603611392576128ff6105bd60846024350160243560040161361a565b9061293e612916602480350160243560040161361a565b9050835161292e60446024350160243560040161364c565b9190506020860151151592613d85565b6001600160a01b03612954602435606401613681565b165f52600b60205260405f2060ff6040519161296f836133c5565b5463ffffffff811683526001600160401b038160201c1660208401526001600160401b038160601c16604084015260a01c161580156060830152612fbc57600654906001600160401b036129c7606460243501613681565b6040805160016224b4c960e01b031981526001600160a01b03928316600482015295909216602486015284906044908290602087901c165afa8015610ed0575f935f91612f75575b505f80612a2660446024350160243560040161364c565b159050612f4b57505093612a3e606460243501613681565b94612a5360446024350160243560040161364c565b9290965f975f945f925f925b828410612bfc57505050509296925b5f9561ffff8160101c16612b2d575b505092612b176114239695936001600160401b036040612b0d612b01612b17976001600160701b03612afa60209f63ffffffff612af2612b1c9f51611f11612ace60055492858460b01c16906136bc565b9161ffff612ae5602480350160243560040161361a565b92905060d01c16906136a9565b9116906136bc565b91166136a9565b838d88015116906136a9565b94015116906136a9565b6136bc565b6001600160e01b03909116906136c9565b909193969550612b46602480350160243560040161361a565b9050612b5c60446024350160243560040161364c565b905061022082810181116128625761018092828481020484148315171561286257612bd29563ffffffff612af2612baa94612ba194612bcd9861ffff980291016136bc565b828516906136a9565b9260101c1691612bcd6001600160701b038660701c169160055460e01c906136bc565b6136a9565b92655af3107a40009384810294818604149015171561286257612b17611423969391949596612a7d565b9091929a612c138c610b8499969936918786613956565b80519091906001600160a01b0390612c2c9082166136e7565b1615612f275760018060a01b038251165f52600c60205260405f209560ff60405197612c57896133aa565b5463ffffffff8116895263ffffffff8160201c1660208a015261ffff8160401c1660408a015263ffffffff8160501c1660608a015263ffffffff8160701c1660808a0152818160901c16151560a08a015260981c1615801560c0890152612ec6575f9261ffff604089015116612d9e575b50612ce1612cf39163ffffffff60608a01511690613e1e565b9963ffffffff60808901511690613e1e565b9563ffffffff81511680662386f26fc10000810204662386f26fc10000148115171561286257662386f26fc1000081028410612d855750602063ffffffff9101511691662386f26fc10000830292808404662386f26fc10000149015171561286257826001938211612d745750612d69916136bc565b9b5b01929190612a5f565b9050612d7f916136bc565b9b612d6b565b60019350612d7f929150662386f26fc1000002906136bc565b8051919350908c906001600160a01b03908116908f9088168214612e9f5750604051634ab35b0b60e01b815260048101919091529060209082906024908290841c6001600160a01b03165afa908115610ed0575f91612e42575b50620186a0612e39670de0b6b3a7640000612e29612cf3956020612ce196915b0151906001600160e01b03166136a9565b0461ffff60408c015116906136a9565b04939150612cc8565b90506020813d602011612e97575b81612e5d60209383613432565b8101031261017157620186a0612e39670de0b6b3a7640000612e29612cf3956020612e8a612ce197613695565b9650509550505050612df8565b3d9150612e50565b612ce19250620186a09150670de0b6b3a7640000612e29612cf3956020612e399491612e18565b91509b94506007549b61ffff8d1690662386f26fc100009282848102048414831517156128625763ffffffff612f05612f1093602096839602906136bc565b9f60101c1690613e1e565b98160163ffffffff81116128625760019094612d6b565b8151604051635f8b555b60e11b81526001600160a01b039091166004820152602490fd5b91909563ffffffff845116662386f26fc10000908181029181830414901517156128625792612a6e565b9350506040833d604011612fb4575b81612f9160409383613432565b8101031261017157612fae6020612fa785613695565b9401613695565b85612a0f565b3d9150612f84565b6024612fcb6064823501613681565b60405163053a4ce960e51b81526001600160a01b039091166004820152fd5b34610171575f3660031901126101715761303d60405161300981613417565b6013815272045564d3245564d4f6e52616d7020312e352e3606c1b602082015260405191829160208352602083019061348f565b0390f35b34610171576020806003193601126101715760e09061305e613364565b5f60c060405161306d816133aa565b82815282858201528260408201528260608201528260808201528260a0820152015260018060a01b03165f52600c815260405f20604051906130ae826133aa565b54809163ffffffff908180841695868352808301908286821c16825261ffff906040850190828860401c168252846060870194818a60501c16865260ff60c060808a0199848d60701c168b528260a082019d60901c1615158d52019b60981c1615158b526040519b8c525116908a015251166040880152511660608601525116608084015251151560a083015251151560c0820152f35b34610171575f3660031901126101715760e0816131625f9361338e565b8281528260208201528260408201528260608201528260808201528260a08201528260c0820152015261010060405161319a8161338e565b60018060a01b03807f00000000000000000000000000000000000000000000000000000000000000001682526001600160401b03807f0000000000000000000000000000000000000000000000000000000000000000166020840152807f00000000000000000000000000000000000000000000000000000000000000001660408401527f00000000000000000000000000000000000000000000000000000000000000001660608301526001600160601b037f0000000000000000000000000000000000000000000000000000000000000000166080830152807f00000000000000000000000000000000000000000000000000000000000000001660a0830152807f00000000000000000000000000000000000000000000000000000000000000001660c08301527f00000000000000000000000000000000000000000000000000000000000000001660e0820152611c89604051809260e0908160018060a01b039182815116855260208101516001600160401b03809116602087015280604083015116604087015260608201511660608601526001600160601b0360808201511660808601528260a08201511660a08601528260c08201511660c0860152015116910152565b600435906001600160a01b038216820361017157565b35906001600160a01b038216820361017157565b61010081019081106001600160401b03821117610b4d57604052565b60e081019081106001600160401b03821117610b4d57604052565b608081019081106001600160401b03821117610b4d57604052565b6101a081019081106001600160401b03821117610b4d57604052565b60a081019081106001600160401b03821117610b4d57604052565b604081019081106001600160401b03821117610b4d57604052565b90601f801991011681019081106001600160401b03821117610b4d57604052565b6001600160401b038111610b4d57601f01601f191660200190565b5f5b83811061347f5750505f910152565b8181015183820152602001613470565b906020916134a88151809281855285808601910161346e565b601f01601f1916010190565b600435906001600160401b038216820361017157565b35906001600160401b038216820361017157565b6001600160401b038111610b4d5760051b60200190565b359063ffffffff8216820361017157565b359061ffff8216820361017157565b3590811515820361017157565b60018060a01b03808251168352602082015161ffff809116602085015260408301519163ffffffff80931660408601528160608501511660608601528260808501511660808601528160a08501511660a08601528160c08501511660c086015260e08401511660e085015261010082818501511690850152610120828185015116908501526101409081840151169084015261016090818301511690830152610180809101511515910152565b9081518082526020808093019301915f5b8281106135ee575050505090565b835180516001600160a01b0316865282015161ffff1685830152604090940193928101926001016135e0565b903590601e198136030182121561017157018035906001600160401b0382116101715760200191813603831361017157565b903590601e198136030182121561017157018035906001600160401b03821161017157602001918160061b3603831361017157565b356001600160a01b03811681036101715790565b51906001600160e01b038216820361017157565b8181029291811591840414171561286257565b9190820180921161286257565b81156136d3570490565b634e487b7160e01b5f52601260045260245ffd5b60405163bbe4f6db60e01b81526001600160a01b0391821660048201526020816024817f000000000000000000000000000000000000000000000000000000000000000086165afa908115610ed0575f9161374157501690565b90506020813d602011613772575b8161375c60209383613432565b8101031261017157518181168103610171571690565b3d915061374f565b60405190613787826133fc565b5f6080838281528260208201528260408201528260608201520152565b9081602091031261017157516001600160401b03811681036101715790565b6001600160a01b039081165f818152600d60205260409020546001600160401b0316917f000000000000000000000000000000000000000000000000000000000000000016908161381357505090565b821561381e57505090565b602091925060246040518094819363856c824760e01b835260048301525afa908115610ed0575f9161384e575090565b613867915060203d6020116110e5576110d78183613432565b90565b805182101561387e5760209160051b010190565b634e487b7160e01b5f52603260045260245ffd5b6040516370a0823160e01b81523060048201526020816024817f00000000000000000000000000000000000000000000000000000000000000006001600160a01b03165afa908115610ed0575f9161390c575b506001600160601b03600e5416905f82820392128183128116918313901516176128625790565b90506020813d602011613936575b8161392760209383613432565b8101031261017157515f6138e5565b3d915061391a565b90816020910312610171575180151581036101715790565b919081101561387e5760061b0190565b91908260409103126101715760405161397e81613417565b602080829461398c8161337a565b84520135910152565b9190916001600160601b038080941691160191821161286257565b9291926139bc82613453565b916139ca6040519384613432565b829481845281830111610171578281602093845f960137010152565b6001600160401b038091169081146128625760010190565b81601f82011215610171578051613a1481613453565b92613a226040519485613432565b8184526020828401011161017157613867916020808501910161346e565b9081518082526020808093019301915f5b828110613a5f575050505090565b835180516001600160a01b031686528201518583015260409094019392810192600101613a51565b90808251908181526020809101926020808460051b8301019501935f915b848310613ab55750505050505090565b9091929394958480613ad3600193601f198682030187528a5161348f565b9801930193019194939290613aa5565b5f546001600160a01b039081163303613c25575b600e549063ffffffff8260601c168015613c13576001600160601b0380931690808210613c01575f613b27613892565b12613bef57918192600854915f9186827f000000000000000000000000000000000000000000000000000000000000000016935b858110613b7d5750505050505050166001600160601b0319600e541617600e55565b613b989782613b9d85613b8f85613ff3565b8c9d919d6136a9565b6136c9565b16928391160391898311612862577f55fdec2aab60a41fa5abb106670eb1006f5aeaee1ba7afea2bc89b5b3ec7678f6020866001959b613bde85828c613ec8565b6040519485521692a2018790613b5b565b604051631e9acf1760e31b8152600490fd5b6040516311a1ee3b60e31b8152600490fd5b60405163990e30bf60e01b8152600490fd5b8060025416330315613af757335f52600960205260405f2054613af75760405163032bb72b60e31b8152600490fd5b60405f60208251613c6481613417565b82815201528215613d43576004926001600160e01b03198335818116908290878510613d2f575b505016630181dcf160e41b8103613cd8575080841161017157820182900360031901811361017157613cd0916024915193613cc585613417565b810135845201613515565b602082015290565b6397a657c960e096949395961b14613cfa5750505051632923fee760e11b8152fd5b80859395949294116101715760209084018490036003190112610171575191613d2283613417565b013581525f602082015290565b9080925084880360031b1b1616815f613c8b565b91505051613d5081613417565b6001600160401b037f00000000000000000000000000000000000000000000000000000000000000001681525f602082015290565b6006549063ffffffff8260c01c1690818111613e0057505060e01c10613dee5761ffff60055460a01c1610613ddc5715613dbb57565b60ff60075460301c16613dca57565b60405163ee433e9960e01b8152600490fd5b604051632602b5b560e11b8152600490fd5b604051632627e49d60e11b8152600490fd5b6044925060405191638693378960e01b835260048301526024820152fd5b91909163ffffffff8080941691160191821161286257565b5f546001600160a01b039081163303613e4c5750565b600254163303613e5857565b604051637dedc72b60e11b8152600490fd5b5f546001600160a01b03163303613e7d57565b60405162461bcd60e51b815260206004820152601660248201527527b7363c9031b0b63630b1363290313c9037bbb732b960511b6044820152606490fd5b9190820391821161286257565b9190613f6f915f80604051936020968786019463a9059cbb60e01b865260018060a01b038093166024880152604487015260448652613f06866133c5565b169260405194613f1586613417565b8786527f5361666545524332303a206c6f772d6c6576656c2063616c6c206661696c656488870152519082855af13d15613feb573d91613f5483613453565b92613f626040519485613432565b83523d5f8785013e614230565b80519081613f7c57505050565b8280613f8c93830101910161393e565b15613f945750565b6084906040519062461bcd60e51b82526004820152602a60248201527f5361666545524332303a204552433230206f7065726174696f6e20646964206e6044820152691bdd081cdd58d8d9595960b21b6064820152fd5b606091614230565b613ffc906141fb565b905460039190911b1c5f818152600a60205260409020546001600160a01b0390911691565b6020815103614058576020818051810103126101715760208101516001600160a01b03918282118015614081575b61405857501690565b60405163046b337b60e51b81526020600482015290819061407d90602483019061348f565b0390fd5b50610400821061404f565b60035460ff8160a01c161580156141f3575b6141ef576001600160801b03908181169060045490838216906140ca63ffffffff8260801c1642613ebb565b8061418f575b5050848110614171575083821061412c575091602091614111827f1871cdf8010e63f2eb8384381a68dfa7416dc571a5517e66e88b2d2d0c0a690a95613ebb565b166001600160801b03196003541617600355604051908152a1565b60801c9061413a8185613ebb565b915f1981019080821161286257613b98614156926044956136bc565b90604051916302a4f38160e31b835260048301526024820152fd5b604490856040519163f94ebcd160e01b835260048301526024820152fd5b90938281116141dd57611f116141a9928560801c906136a9565b808210156141d85750805b63ffffffff60801b199093164260801b63ffffffff60801b16176003555f806140d0565b6141b4565b604051634b92ca1560e11b8152600490fd5b5050565b50811561409e565b60085481101561387e5760085f527ff3f7a9fe364faab93b216da50a3214154f22a0a2b415b23a84c8169e8b636ee301905f90565b919290156142925750815115614244575090565b3b1561424d5790565b60405162461bcd60e51b815260206004820152601d60248201527f416464726573733a2063616c6c20746f206e6f6e2d636f6e74726163740000006044820152606490fd5b8251909150156142a55750805190602001fd5b60405162461bcd60e51b81526020600482015290819061407d90602483019061348f565b5f818152600960205260409020548015614398575f199080820181811161286257600854908382019182116128625781810361434e575b505050600854801561433a57810190614318826141fb565b909182549160031b1b191690556008555f5260096020525f6040812055600190565b634e487b7160e01b5f52603160045260245ffd5b61438261435d61436c936141fb565b90549060031b1c9283926141fb565b819391549060031b91821b915f19901b19161790565b90555f52600960205260405f20555f8080614300565b50505f90565b805f52600960205260405f2054155f146143f15760085468010000000000000000811015610b4d576143da61436c8260018594016008556141fb565b9055600854905f52600960205260405f2055600190565b505f9056fea2646970667358221220dfda2baf02b16e43c5cb3e636720a48099e3c7fe623e4377be8e74214836d13464736f6c63430008180033"
+        }
+    },
+    "version": "0.8.24+commit.e11b9ed9"
+}

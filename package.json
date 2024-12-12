@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "pnpm run build-ccip-js && pnpm run build-components",
+    "build-ccip-js": "pnpm --filter ccip-js run build",
+    "build-components": "pnpm --filter ccip-react-components run build",
+    "dev-example": "pnpm --filter example-nextjs run dev",
+    "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist examples/nextjs/node_modules examples/nextjs/.next",
+    "test-ccip-js": "pnpm --filter ccip-js run test",
+    "test-components": "pnpm --filter ccip-react-components run test"
+  },
+  "devDependencies": {
+    "c8": "^10.1.2",
+    "tsx": "^4.17.0"
+  },
+  "dependencies": {
+    "typescript": "^5.6.3"
+  }
+}
