@@ -1,3 +1,4 @@
+import { Chain } from 'wagmi/chains';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ContextProvider } from '@/AppContext';
@@ -8,13 +9,17 @@ const queryClient = new QueryClient();
 
 export function Providers({
   config,
-  tokensList,
+  networkConfig,
   children,
 }: React.PropsWithChildren<ConfigProps>) {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider
+      config={wagmiConfig(
+        networkConfig.chains.map(({ chain }) => chain) as [Chain, ...Chain[]]
+      )}
+    >
       <QueryClientProvider client={queryClient}>
-        <ContextProvider config={config} tokensList={tokensList}>
+        <ContextProvider config={config} networkConfig={networkConfig}>
           {children}
         </ContextProvider>
       </QueryClientProvider>

@@ -5,12 +5,13 @@ import { WagmiProvider } from 'wagmi';
 import { config as wagmiConfig } from '@/utils/config';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import { optimismSepolia, sepolia } from 'viem/chains';
 
 const queryClient = new QueryClient();
 
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
-    <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig([sepolia, optimismSepolia])}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );

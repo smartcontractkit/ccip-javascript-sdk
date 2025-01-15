@@ -1,9 +1,9 @@
-import { useAppContext } from "@/hooks/useAppContext";
-import { ccipClient } from "@/utils/ccip-client";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { IERC20ABI } from "@chainlink/ccip-js";
-import { useEffect } from "react";
-import { Address, Chain, parseUnits, WalletClient } from "viem";
+import { useAppContext } from '@/hooks/useAppContext';
+import { ccipClient } from '@/utils/ccip-client';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { IERC20ABI } from '@chainlink/ccip-js';
+import { useEffect } from 'react';
+import { Address, Chain, parseUnits, WalletClient } from 'viem';
 import {
   useAccount,
   useBalance,
@@ -11,10 +11,12 @@ import {
   useWaitForTransactionReceipt,
   useWalletClient,
   useWriteContract,
-} from "wagmi";
-import { Button } from "@/components/ui/button";
-import { cn, getChainSelector, getRouterAddress } from "@/utils";
-import { Error } from "@/components/Error";
+} from 'wagmi';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/utils';
+import { Error } from '@/components/Error';
+import { useRouters } from '@/hooks/useRouters';
+import { useChainSelectors } from '@/hooks/useChainSelectors';
 
 export function SendButton({
   sourceChain,
@@ -50,35 +52,45 @@ export function SendButton({
     token: tokenAddress,
   });
 
+  const { getRouterAddress } = useRouters();
+  const { getChainSelector } = useChainSelectors();
+
   const routerAddress = getRouterAddress(sourceChain);
   const destinationChainSelector = getChainSelector(destinationChain);
 
-  const { data: tokenAllowance, refetch: refetchTokenAllowance } = useReadContract({
-    abi: IERC20ABI,
-    address: tokenAddress,
-    functionName: "allowance",
-    args: [destinationAccount, routerAddress],
-  });
+  const { data: tokenAllowance, refetch: refetchTokenAllowance } =
+    useReadContract({
+      abi: IERC20ABI,
+      address: tokenAddress,
+      functionName: 'allowance',
+      args: [destinationAccount, routerAddress],
+    });
 
   const { data: feeAllowance, refetch: refetchFeeAllowance } = useReadContract({
     abi: IERC20ABI,
     address: feeTokenAddress,
-    functionName: "allowance",
+    functionName: 'allowance',
     args: [destinationAccount, routerAddress],
-    query: { enabled: feeTokenSymbol === "LINK" },
+    query: { enabled: feeTokenSymbol === 'LINK' },
   });
 
-  const { data: isTokenSupported, isPending: isTokenSupportedPending } = useQuery({
-    queryKey: ["isTokenSupported", tokenAddress, sourceChain, destinationChain],
-    queryFn: async () =>
-      await ccipClient.isTokenSupported({
-        client: walletClient!,
-        routerAddress,
+  const { data: isTokenSupported, isPending: isTokenSupportedPending } =
+    useQuery({
+      queryKey: [
+        'isTokenSupported',
         tokenAddress,
-        destinationChainSelector,
-      }),
-    enabled: !!walletClient,
-  });
+        sourceChain,
+        destinationChain,
+      ],
+      queryFn: async () =>
+        await ccipClient.isTokenSupported({
+          client: walletClient!,
+          routerAddress,
+          tokenAddress,
+          destinationChainSelector,
+        }),
+      enabled: !!walletClient,
+    });
 
   const {
     mutate: approve,
@@ -131,22 +143,30 @@ export function SendButton({
     isError: isApproveFeeError,
     error: approveFeeError,
   } = useWriteContract({ mutation: { onError: console.error } });
-  const { isSuccess: waitForFeeAllowanceIsSuccess, isLoading: waitForFeeAllowanceIsLoading } =
-    useWaitForTransactionReceipt({
-      hash: approveFeeTxHash,
-      confirmations: 2,
-      query: { enabled: !!approveFeeTxHash },
-    });
+  const {
+    isSuccess: waitForFeeAllowanceIsSuccess,
+    isLoading: waitForFeeAllowanceIsLoading,
+  } = useWaitForTransactionReceipt({
+    hash: approveFeeTxHash,
+    confirmations: 2,
+    query: { enabled: !!approveFeeTxHash },
+  });
 
   useEffect(() => {
     if (waitForFeeAllowanceIsSuccess) refetchFeeAllowance();
   }, [waitForFeeAllowanceIsSuccess, refetchFeeAllowance]);
 
-  const insufficientBalance = balance && balance.value < parseUnits(amount, balance.decimals);
-  const insufficientFeeBalance = feeAmount && feeTokenBalance && feeTokenBalance < feeAmount;
-  const needsFeeApproval = feeTokenAddress && feeAmount && (feeAllowance as bigint) < feeAmount;
+  const insufficientBalance =
+    balance && balance.value < parseUnits(amount, balance.decimals);
+  const insufficientFeeBalance =
+    feeAmount && feeTokenBalance && feeTokenBalance < feeAmount;
+  const needsFeeApproval =
+    feeTokenAddress && feeAmount && (feeAllowance as bigint) < feeAmount;
   const needsTokenApproval =
-    balance && amount && parseUnits(amount, balance.decimals) > ((tokenAllowance as bigint) || BigInt(0));
+    balance &&
+    amount &&
+    parseUnits(amount, balance.decimals) >
+      ((tokenAllowance as bigint) || BigInt(0));
 
   if (!isTokenSupportedPending && !isTokenSupported) {
     return <Error message="Token is not supported on destination chain" />;
@@ -163,7 +183,9 @@ export function SendButton({
   if (needsFeeApproval) {
     return (
       <>
-        {isApproveFeeError && <Error message={approveFeeError.message.split(".")[0]} />}
+        {isApproveFeeError && (
+          <Error message={approveFeeError.message.split('.')[0]} />
+        )}
         <Button
           className="w-full text-xl leading-6 h-[52px]"
           disabled={approveFeeIsPending || waitForFeeAllowanceIsLoading}
@@ -171,7 +193,7 @@ export function SendButton({
             approveFee({
               abi: IERC20ABI,
               address: feeTokenAddress,
-              functionName: "approve",
+              functionName: 'approve',
               args: [routerAddress, feeAmount],
             })
           }
@@ -185,10 +207,17 @@ export function SendButton({
   if (needsTokenApproval) {
     return (
       <>
-        {isApproveTokenError && <Error message={approveTokenError.message.split(".")[0]} />}
+        {isApproveTokenError && (
+          <Error message={approveTokenError.message.split('.')[0]} />
+        )}
         <Button
-          className={cn("w-full text-xl leading-6 h-[52px]", approveTokenIsPending && "animate-pulse")}
-          disabled={approveTokenIsPending || !walletClient || !chain || !address}
+          className={cn(
+            'w-full text-xl leading-6 h-[52px]',
+            approveTokenIsPending && 'animate-pulse'
+          )}
+          disabled={
+            approveTokenIsPending || !walletClient || !chain || !address
+          }
           onClick={() =>
             walletClient &&
             chain &&
@@ -212,7 +241,9 @@ export function SendButton({
 
   return (
     <>
-      {isTransferError && <Error message={transferError.message.split(".")[0]} />}
+      {isTransferError && (
+        <Error message={transferError.message.split('.')[0]} />
+      )}
       <Button
         className="w-full text-xl leading-6 h-[52px]"
         disabled={
