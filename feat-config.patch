@@ -1,0 +1,2096 @@
+From e5c85bb590adae84f19176d287ee5b29b0fb472f Mon Sep 17 00:00:00 2001
+From: Emmanuel Jacquier <emmanuel.jacquier@smartcontract.com>
+Date: Wed, 11 Dec 2024 10:42:33 -0500
+Subject: [PATCH] Updated config mechanism so that all configuration elements
+ are externalized from the ccip-reac-components package and provided by the
+ main npm project.
+
+---
+ .gitignore                                    |   1 +
+ examples/nextjs/components/client-only.tsx    |   6 +-
+ examples/nextjs/components/default-widget.tsx |   4 +-
+ examples/nextjs/components/drawer-widget.tsx  |   4 +-
+ examples/nextjs/config/index.ts               |   1 +
+ examples/nextjs/config/networkConfig.ts       | 153 +++++++++++++++
+ examples/nextjs/config/tokensList.ts          |  73 -------
+ examples/nextjs/package.json                  |   4 +-
+ packages/ccip-react-components/.prettierrc    |   7 +
+ packages/ccip-react-components/README.md      | 179 ++++++++++--------
+ .../ccip-react-components/lib/App.test.tsx    |  41 ++--
+ packages/ccip-react-components/lib/App.tsx    |   6 +-
+ .../ccip-react-components/lib/AppContext.tsx  |  54 +++++-
+ .../lib/AppDefault.test.tsx                   |   8 +-
+ .../ccip-react-components/lib/AppDefault.tsx  |  67 ++++---
+ .../lib/AppProviders.tsx                      |  11 +-
+ .../lib/components/ActionButton.test.tsx      |   3 +-
+ .../lib/components/ActionButton.tsx           |   5 +-
+ .../lib/components/Fees.tsx                   |   7 +-
+ .../lib/components/Logos.tsx                  |  28 ---
+ .../lib/components/RateLimit.tsx              |   6 +-
+ .../lib/components/SendButton.test.tsx        |   5 +
+ .../lib/components/SendButton.tsx             | 119 +++++++-----
+ .../lib/components/svg/arbitrum.tsx           |  35 ----
+ .../lib/components/svg/avalanche.tsx          |  30 ---
+ .../lib/components/svg/base.tsx               |  24 ---
+ .../lib/components/svg/bnb.tsx                |  34 ----
+ .../lib/components/svg/ethereum.tsx           |  43 -----
+ .../lib/components/svg/optimism.tsx           |  26 ---
+ .../lib/components/svg/polygon.tsx            |  22 ---
+ .../lib/hooks/useChainSelectors.ts            |  15 ++
+ .../lib/hooks/useChains.ts                    |  15 +-
+ .../lib/hooks/useRouters.ts                   |  15 ++
+ packages/ccip-react-components/lib/index.ts   |   2 +-
+ .../lib/pages/BridgeForm.tsx                  |  48 ++++-
+ .../lib/pages/TxProgress.tsx                  |   7 +-
+ packages/ccip-react-components/lib/types.ts   |  33 +++-
+ .../ccip-react-components/lib/utils/config.ts |  66 +------
+ .../ccip-react-components/lib/utils/index.ts  |  17 --
+ packages/ccip-react-components/package.json   |   4 +-
+ .../ccip-react-components/tailwind.config.js  |   6 +-
+ 41 files changed, 630 insertions(+), 604 deletions(-)
+ create mode 100644 examples/nextjs/config/networkConfig.ts
+ delete mode 100644 examples/nextjs/config/tokensList.ts
+ create mode 100644 packages/ccip-react-components/.prettierrc
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/arbitrum.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/avalanche.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/base.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/bnb.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/ethereum.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/optimism.tsx
+ delete mode 100644 packages/ccip-react-components/lib/components/svg/polygon.tsx
+ create mode 100644 packages/ccip-react-components/lib/hooks/useChainSelectors.ts
+ create mode 100644 packages/ccip-react-components/lib/hooks/useRouters.ts
+
+diff --git a/.gitignore b/.gitignore
+index 5c4bf65..1715450 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,3 +8,4 @@ dist/
+ .env
+ *.tsbuildinfo
+ bin
++.codegpt
+diff --git a/examples/nextjs/components/client-only.tsx b/examples/nextjs/components/client-only.tsx
+index ae38ba4..a3dd48e 100644
+--- a/examples/nextjs/components/client-only.tsx
++++ b/examples/nextjs/components/client-only.tsx
+@@ -1,6 +1,6 @@
+-"use client";
++'use client';
+ 
+-import React, { useState, useEffect } from "react";
++import React, { useState, useEffect } from 'react';
+ 
+ type ClientOnlyProps = {
+   children: React.ReactNode;
+@@ -14,7 +14,7 @@ export function ClientOnly({ children, fallback }: ClientOnlyProps) {
+     setHasMounted(true);
+   }, []);
+ 
+-  if (!hasMounted) return <>{fallback}</> ?? null;
++  if (!hasMounted) return fallback ? <>{fallback}</> : null;
+ 
+   return <>{children}</>;
+ }
+diff --git a/examples/nextjs/components/default-widget.tsx b/examples/nextjs/components/default-widget.tsx
+index a3d923e..8dbd5ec 100644
+--- a/examples/nextjs/components/default-widget.tsx
++++ b/examples/nextjs/components/default-widget.tsx
+@@ -3,9 +3,9 @@
+ import '@chainlink/ccip-react-components/dist/style.css';
+ import { CCIPWidget } from '@chainlink/ccip-react-components';
+ 
+-import { tokensList } from '@/config/tokensList';
+ import { config } from '@/config';
++import { networkConfig } from '@/config/networkConfig';
+ 
+ export function DefaultWidget() {
+-  return <CCIPWidget config={config} tokensList={tokensList} />;
++  return <CCIPWidget config={config} networkConfig={networkConfig} />;
+ }
+diff --git a/examples/nextjs/components/drawer-widget.tsx b/examples/nextjs/components/drawer-widget.tsx
+index a91fd72..9e3cce3 100644
+--- a/examples/nextjs/components/drawer-widget.tsx
++++ b/examples/nextjs/components/drawer-widget.tsx
+@@ -4,8 +4,8 @@ import '@chainlink/ccip-react-components/dist/style.css';
+ import { TDrawer, CCIPWidget } from '@chainlink/ccip-react-components';
+ 
+ import { useRef } from 'react';
+-import { tokensList } from '@/config/tokensList';
+ import { config } from '@/config';
++import { networkConfig } from '@/config/networkConfig';
+ 
+ export function DrawerWidget() {
+   const drawerRef = useRef<TDrawer>(null);
+@@ -23,7 +23,7 @@ export function DrawerWidget() {
+       </button>
+       <CCIPWidget
+         config={{ ...config, variant: 'drawer' }}
+-        tokensList={tokensList}
++        networkConfig={networkConfig}
+         ref={drawerRef}
+       />
+     </>
+diff --git a/examples/nextjs/config/index.ts b/examples/nextjs/config/index.ts
+index 366a426..751c6db 100644
+--- a/examples/nextjs/config/index.ts
++++ b/examples/nextjs/config/index.ts
+@@ -25,4 +25,5 @@ export const config: Config = {
+     },
+     shape: { radius: 4 },
+   },
++  showFaucet: true,
+ };
+diff --git a/examples/nextjs/config/networkConfig.ts b/examples/nextjs/config/networkConfig.ts
+new file mode 100644
+index 0000000..cf74053
+--- /dev/null
++++ b/examples/nextjs/config/networkConfig.ts
+@@ -0,0 +1,153 @@
++import {
++  AddressMap,
++  NetworkConfig,
++  Token,
++} from '@chainlink/ccip-react-components';
++import {
++  arbitrumSepolia,
++  avalancheFuji,
++  baseSepolia,
++  bscTestnet,
++  optimismSepolia,
++  polygonAmoy,
++  sepolia,
++} from 'viem/chains';
++
++const tokensList: Token[] = [
++  {
++    symbol: 'CCIP-BnM',
++    address: {
++      [arbitrumSepolia.id]: '0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
++      [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
++      [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
++      [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
++      [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
++      [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
++      [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
++    },
++    logoURL:
++      'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
++    tags: ['chainlink', 'default'],
++  },
++  {
++    symbol: 'CCIP-LnM',
++    address: {
++      [arbitrumSepolia.id]: '0x139E99f0ab4084E14e6bb7DacA289a91a2d92927',
++      [avalancheFuji.id]: '0x70F5c5C40b873EA597776DA2C21929A8282A3b35',
++      [baseSepolia.id]: '0xA98FA8A008371b9408195e52734b1768c0d1Cb5c',
++      [bscTestnet.id]: '0x79a4Fc27f69323660f5Bfc12dEe21c3cC14f5901',
++      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
++      [polygonAmoy.id]: '0x3d357fb52253e86c8Ee0f80F5FfE438fD9503FF2',
++      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1',
++    },
++    logoURL:
++      'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
++    tags: ['chainlink', 'default'],
++  },
++  {
++    symbol: 'GHO',
++    address: {
++      [arbitrumSepolia.id]: '0xb13Cfa6f8B2Eed2C37fB00fF0c1A59807C585810',
++      [avalancheFuji.id]: '0x9c04928Cc678776eC1C1C0E46ecC03a5F47A7723',
++      [baseSepolia.id]: '0x7CFa3f3d1cded0Da930881c609D4Dbf0012c14Bb',
++      [bscTestnet.id]: undefined,
++      [optimismSepolia.id]: undefined,
++      [polygonAmoy.id]: undefined,
++      [sepolia.id]: '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60',
++    },
++    logoURL:
++      'https://smartcontract.imgix.net/tokens/gho.webp?auto=compress%2Cformat',
++    tags: ['stablecoin', 'default'],
++  },
++  {
++    symbol: 'USDC',
++    address: {
++      [arbitrumSepolia.id]: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
++      [avalancheFuji.id]: '0x5425890298aed601595a70AB815c96711a31Bc65',
++      [baseSepolia.id]: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
++      [bscTestnet.id]: undefined,
++      [optimismSepolia.id]: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
++      [polygonAmoy.id]: '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
++      [sepolia.id]: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
++    },
++    logoURL:
++      'https://smartcontract.imgix.net/tokens/usdc.webp?auto=compress%2Cformat',
++    tags: ['stablecoin', 'default'],
++  },
++];
++
++const chains = [
++  {
++    chain: arbitrumSepolia,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/arbitrum.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: avalancheFuji,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/avalanche.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: baseSepolia,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/base.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: bscTestnet,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/bsc.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: sepolia,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/ethereum.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: optimismSepolia,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/optimism.svg?auto=compress%2Cformat',
++  },
++  {
++    chain: polygonAmoy,
++    logoURL:
++      'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/polygon.svg?auto=compress%2Cformat',
++  },
++];
++
++const linkContracts: AddressMap = {
++  [arbitrumSepolia.id]: '0xb1D4538B4571d411F07960EF2838Ce337FE1E80E',
++  [avalancheFuji.id]: '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846',
++  [baseSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
++  [bscTestnet.id]: '0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06',
++  [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
++  [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
++  [polygonAmoy.id]: '0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904',
++};
++
++const routerAddresses: AddressMap = {
++  [arbitrumSepolia.id]: '0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165',
++  [avalancheFuji.id]: '0xF694E193200268f9a4868e4Aa017A0118C9a8177',
++  [baseSepolia.id]: '0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93',
++  [bscTestnet.id]: '0xE1053aE1857476f36A3C62580FF9b016E8EE8F6f',
++  [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
++  [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
++  [polygonAmoy.id]: '0x9C32fCB86BF0f4a1A8921a9Fe46de3198bb884B2',
++};
++
++const chainSelectors = {
++  [arbitrumSepolia.id]: '3478487238524512106',
++  [avalancheFuji.id]: '14767482510784806043',
++  [baseSepolia.id]: '10344971235874465080',
++  [bscTestnet.id]: '13264668187771770619',
++  [sepolia.id]: '16015286601757825753',
++  [optimismSepolia.id]: '5224473277236331295',
++  [polygonAmoy.id]: '16281711391670634445',
++};
++
++export const networkConfig: NetworkConfig = {
++  chains,
++  linkContracts,
++  routerAddresses,
++  chainSelectors,
++  tokensList,
++};
+diff --git a/examples/nextjs/config/tokensList.ts b/examples/nextjs/config/tokensList.ts
+deleted file mode 100644
+index 5641109..0000000
+--- a/examples/nextjs/config/tokensList.ts
++++ /dev/null
+@@ -1,73 +0,0 @@
+-import { Token } from '@chainlink/ccip-react-components';
+-import {
+-  arbitrumSepolia,
+-  avalancheFuji,
+-  baseSepolia,
+-  bscTestnet,
+-  optimismSepolia,
+-  polygonAmoy,
+-  sepolia,
+-} from 'viem/chains';
+-
+-export const tokensList: Token[] = [
+-  {
+-    symbol: 'CCIP-BnM',
+-    address: { 
+-        [arbitrumSepolia.id]:'0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
+-        [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
+-        [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
+-        [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
+-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+-        [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
+-        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05'
+-    },
+-    logoURL:
+-      'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
+-  },
+-  {
+-    symbol: 'CCIP-LnM',
+-    address: {
+-      [arbitrumSepolia.id]:'0x139E99f0ab4084E14e6bb7DacA289a91a2d92927',
+-      [avalancheFuji.id]: '0x70F5c5C40b873EA597776DA2C21929A8282A3b35',
+-      [baseSepolia.id]: '0xA98FA8A008371b9408195e52734b1768c0d1Cb5c',
+-      [bscTestnet.id]: '0x79a4Fc27f69323660f5Bfc12dEe21c3cC14f5901',
+-      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
+-      [polygonAmoy.id]: '0x3d357fb52253e86c8Ee0f80F5FfE438fD9503FF2',
+-      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1'
+-    },
+-    logoURL:
+-    'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
+-  },
+-  {
+-    symbol: 'GHO',
+-    address: {
+-      [arbitrumSepolia.id]: '0xb13Cfa6f8B2Eed2C37fB00fF0c1A59807C585810',
+-      [avalancheFuji.id]: '0x9c04928Cc678776eC1C1C0E46ecC03a5F47A7723',
+-      [baseSepolia.id]: '0x7CFa3f3d1cded0Da930881c609D4Dbf0012c14Bb',
+-      [bscTestnet.id]: undefined,
+-      [optimismSepolia.id]: undefined,
+-      [polygonAmoy.id]: undefined,
+-      [sepolia.id]: '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60'
+-    },
+-    logoURL:
+-      'https://smartcontract.imgix.net/tokens/gho.webp?auto=compress%2Cformat',
+-    tags: ['stablecoin', 'default']
+-  },
+-  {
+-    symbol: 'USDC',
+-    address: {
+-      [arbitrumSepolia.id]: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+-      [avalancheFuji.id]: '0x5425890298aed601595a70AB815c96711a31Bc65',
+-      [baseSepolia.id]: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+-      [bscTestnet.id]: undefined,
+-      [optimismSepolia.id]: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+-      [polygonAmoy.id]: '0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582',
+-      [sepolia.id]: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+-    },
+-    logoURL:
+-      'https://smartcontract.imgix.net/tokens/usdc.webp?auto=compress%2Cformat',
+-    tags: ['stablecoin', 'default']
+-  }
+-];
+diff --git a/examples/nextjs/package.json b/examples/nextjs/package.json
+index e44d4b5..5d9500a 100644
+--- a/examples/nextjs/package.json
++++ b/examples/nextjs/package.json
+@@ -13,8 +13,8 @@
+     "lint": "next lint"
+   },
+   "dependencies": {
+-    "@chainlink/ccip-js": "0.2.1",
+-    "@chainlink/ccip-react-components": "0.2.1",
++    "@chainlink/ccip-js": "^0.2.1",
++    "@chainlink/ccip-react-components": "^0.2.1",
+     "@tanstack/react-query": "^5.37.1",
+     "next": "14.2.3",
+     "react": "18",
+diff --git a/packages/ccip-react-components/.prettierrc b/packages/ccip-react-components/.prettierrc
+new file mode 100644
+index 0000000..cab3094
+--- /dev/null
++++ b/packages/ccip-react-components/.prettierrc
+@@ -0,0 +1,7 @@
++{
++  "singleQuote": true,
++  "jsxSingleQuote": true,
++  "trailingComma": "all",
++  "tabWidth": 2,
++  "printWidth": 120
++}
+diff --git a/packages/ccip-react-components/README.md b/packages/ccip-react-components/README.md
+index 722a55e..34dd5cd 100644
+--- a/packages/ccip-react-components/README.md
++++ b/packages/ccip-react-components/README.md
+@@ -5,22 +5,21 @@ The CCIP-REACT-COMPONENTS package is a set of prebuilt ready-to-use UI component
+ ## Table of contents
+ 
+ - [CCIP-REACT-COMPONENTS](#ccip-react-components)
+-   - [Table of contents](#table-of-contents)
+-   - [Installation](#installation)
+-   - [Quick start](#quick-start)
+-   - [Tokens](#tokens)
+-   - [Config](#config)
+-      - [Chains](#chains)
+-         - [Preselected chains](#preselected-chains)
+-         - [Preselect token](#preselect-token)
+-
+-      - [Wallets](#wallets)
+-      - [Theme](#theme)
+-      - [Variants](#variants)
+-         - [Drawer](#drawer)
+-
+-   - [Contributing](#contributing)
+-   - [License](#license)
++  - [Table of contents](#table-of-contents)
++  - [Installation](#installation)
++  - [Example Usage](#example-usage)
++  - [Network config](#network-config)
++    - [Tokens list](#tokens-list)
++  - [Config](#config)
++    - [Chains](#chains)
++      - [Preselected chains](#preselected-chains)
++      - [Preselect Token](#preselect-token)
++    - [Wallets](#wallets)
++    - [Theme](#theme)
++    - [Variants](#variants)
++      - [Drawer](#drawer)
++  - [Contributing](#contributing)
++  - [License](#license)
+ 
+ ## Installation
+ 
+@@ -44,38 +43,41 @@ Using PNPM:
+ pnpm add @chainlink/ccip-react-components
+ ```
+ 
+-## Quick start
++## Example Usage
++
++For a working example of how to store, manage and use the NetworkConfig parameters, please refer to the example app here: in the [NextJS Example](../../examples/nextjs/config/networkConfig.ts)
+ 
+ ```tsx
+ import 'ccip-react-components/dist/style.css';
+-import { CCIPWidget, Config, Token } from 'ccip-react-components';
++import { CCIPWidget, Config, NetworkConfig } from 'ccip-react-components';
+ import { sepolia, optimismSepolia } from 'viem/chains';
+ 
+-const tokensList: Token[] = [
+-  {
+-    symbol: 'CCIP-BnM',
+-    address: { 
+-        [arbitrumSepolia.id]:'0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
+-        [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
+-        [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
+-        [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
+-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+-        [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
+-        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05'
+-    },
+-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
++const networkConfing: NetworkConfig = {
++  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
++  linkContracts: {
++    [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
++    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
++  },
++  routerAddresses: {
++    [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
++    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+   },
+-  {
+-    symbol: 'CCIP-LnM',
+-    address: {
+-      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
+-      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1'
++  chainSelectors: {
++    [sepolia.id]: '16015286601757825753',
++    [optimismSepolia.id]: '5224473277236331295',
++  },
++  tokensList: [
++    {
++      symbol: 'CCIP-BnM',
++      address: {
++        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
++        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
++      },
++      logoURL:
++        'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+     },
+-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
+-  }
+-];
++  ],
++};
+ 
+ const config: Config = {
+     theme: {
+@@ -90,73 +92,96 @@ const config: Config = {
+     }
+ };
+ 
+-<CCIPWidget config={config} tokensList={tokensList} />;
++<CCIPWidget config={config} networkConfig={networkConfig} />;
+ ```
+ 
+-## Tokens
++## Network config
+ 
+-You should provide a list of tokens that your app will support transferring. For a list of all currently supported tokens, refer to the [CCIP Supported Networks](https://docs.chain.link/ccip/supported-networks) page. Learn [how to get CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
++```ts
++/** Configure the networks, tokens and contracts that should be supported.
++ * List of all supported networks, transfer tokens, and their configurations: https://docs.chain.link/ccip/directory */
++export type NetworkConfig = {
++  /** List of all chains that should be supported */
++  chains: { chain: Chain; logoURL?: string }[];
++  /** You should provide a list of tokens that your app will support transfering.
++   * Refer to https://docs.chain.link/ccip/supported-networks for list of all currently supported
++   * tokens. For instructions on acquiring testnet tokens, refer to the documentation on
++   * https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer.
++   */
++  tokensList: Token[];
++  /** Addresses for the LINK token contract on the corresponding chains */
++  linkContracts: AddressMap;
++  /** Addresses for the router contracts on the corresponding chains */
++  routerAddresses: AddressMap;
++  /** Selectors for the chains that should be supported */
++  chainSelectors: {
++    [chainId: number]: string | undefined;
++  };
++};
++```
++
++You should provide configuration for the networks and tokens that your app will support. Refer to [CCIP documentation](https://docs.chain.link/ccip/supported-networks) for list of all currently supported chains and tokens. For instructions on acquiring testnet tokens, refer to the documentation on [CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
+ 
+-```tsx 
+-import { CCIPWidget, Token } from 'ccip-react-components';
++```tsx
++import { CCIPWidget, NetworkConfig } from 'ccip-react-components';
+ import { sepolia, optimismSepolia } from 'viem/chains';
+ 
+-const tokensList: Token[] = [
+-  {
+-    symbol: 'CCIP-BnM',
+-    address: { 
+-        [arbitrumSepolia.id]:'0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
+-        [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
+-        [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
+-        [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
+-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+-        [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
+-        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05'
+-    },
+-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
++const networkConfing: NetworkConfig = {
++  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
++  linkContracts: {
++    [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
++    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+   },
+-  {
+-    symbol: 'CCIP-LnM',
+-    address: {
+-      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
+-      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1',
+-    },
+-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
+-    tags: ['chainlink', 'default']
++  routerAddresses: {
++    [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
++    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
++  },
++  chainSelectors: {
++    [sepolia.id]: '16015286601757825753',
++    [optimismSepolia.id]: '5224473277236331295',
+   },
+-];
++  tokensList: [
++    {
++      symbol: 'CCIP-BnM',
++      address: {
++        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
++        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
++      },
++      logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
++    },
++  ],
++};
+ 
+-<CCIPWidget tokensList={tokensList} />
++<CCIPWidget networkConfig={networkConfig} />;
+ ```
+ 
++### Tokens list
++
+ `tokensList` accepts an array of `Token` objects
+ 
+ ```ts
+-export declare type TokenMap = {
++export declare type AddressMap = {
+   [chainId: number]: Address | undefined;
+-}
++};
+ 
+ export declare type Token = {
+   /** The token's symbol that will be shown in the UI  */
+   symbol: string;
+   /** The token's address, represented as a mapping by chainId */
+-  address: TokenMap;
++  address: AddressMap;
+   /** URL of the token's logo that will be shown in the UI */
+   logoURL: string;
+   /** A list of meta information tags for organizing and sorting (optional) */
+   tags?: string[];
+ };
+ 
+-type TokenMap = {
++type AddressMap = {
+   [chainId: number]: Address | undefined;
+ };
+ ```
+ 
+ ## Config
+ 
+-All `Config` properties are optional.
+-
+ ```tsx
+ import { CCIPWidget, Config } from 'ccip-react-components';
+ 
+@@ -265,7 +290,7 @@ import { Config } from 'ccip-react-components';
+ const config: Config = { walletConfig: {
+   /** Configure the connection options for Injected Connectors
+    * More info: https://wagmi.sh/react/api/connectors/injected
+-   */ 
++   */
+   injected?: InjectedParameters;
+   /** Configure the connection options for MetaMask
+    * More info: https://wagmi.sh/react/api/connectors/metaMask
+diff --git a/packages/ccip-react-components/lib/App.test.tsx b/packages/ccip-react-components/lib/App.test.tsx
+index 187106f..5c36964 100644
+--- a/packages/ccip-react-components/lib/App.test.tsx
++++ b/packages/ccip-react-components/lib/App.test.tsx
+@@ -2,23 +2,38 @@ import { render, screen, waitFor } from '@testing-library/react';
+ import { App } from './App';
+ import { describe, expect, test } from 'vitest';
+ import { optimismSepolia, sepolia } from 'viem/chains';
+-import { Token } from './types';
++import { NetworkConfig } from './types';
+ 
+-const tokensList: Token[] = [
+-  {
+-    symbol: 'CCIP-BnM',
+-    address: { 
++const networkConfing: NetworkConfig = {
++  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
++  linkContracts: {
++    [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
++    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
++  },
++  routerAddresses: {
++    [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
++    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
++  },
++  chainSelectors: {
++    [sepolia.id]: '16015286601757825753',
++    [optimismSepolia.id]: '5224473277236331295',
++  },
++  tokensList: [
++    {
++      symbol: 'CCIP-BnM',
++      address: {
+         [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+         [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
++      },
++      logoURL:
++        'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+     },
+-    logoURL:
+-      'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
+-  }
+-];
++  ],
++};
+ 
+ describe('App', () => {
+   test('renders the default App component', () => {
+-    render(<App tokensList={tokensList} />);
++    render(<App networkConfig={networkConfing} />);
+     waitFor(() => {
+       expect(screen.getByText('Detecting...')).toBeNull();
+     });
+@@ -28,7 +43,9 @@ describe('App', () => {
+     expect(heading).toHaveTextContent('Transfer');
+   });
+   test('renders the App in compact variant', () => {
+-    render(<App tokensList={tokensList} config={{ variant: 'compact' }} />);
++    render(
++      <App config={{ variant: 'compact' }} networkConfig={networkConfing} />
++    );
+     waitFor(() => {
+       expect(screen.getByText('Detecting...')).toBeNull();
+     });
+@@ -40,9 +57,9 @@ describe('App', () => {
+   test('renders the App in drawer variant', () => {
+     render(
+       <App
+-        tokensList={tokensList}
+         config={{ variant: 'drawer' }}
+         drawer={{ open: true }}
++        networkConfig={networkConfing}
+       />
+     );
+     waitFor(() => {
+diff --git a/packages/ccip-react-components/lib/App.tsx b/packages/ccip-react-components/lib/App.tsx
+index 9a69fb7..a87cfa9 100644
+--- a/packages/ccip-react-components/lib/App.tsx
++++ b/packages/ccip-react-components/lib/App.tsx
+@@ -10,10 +10,10 @@ import { cn } from '@/utils';
+ import { ConfigProps, TDrawer } from '@/types';
+ 
+ export const App = forwardRef<TDrawer, ConfigProps>(
+-  ({ config, drawer, tokensList }, ref) => {
++  ({ config, drawer, networkConfig }, ref) => {
+     if (config?.variant === 'drawer') {
+       return (
+-        <Providers config={config} tokensList={tokensList}>
++        <Providers config={config} networkConfig={networkConfig}>
+           <Drawer open={drawer?.open} ref={ref}>
+             <Container>
+               <Default />
+@@ -24,7 +24,7 @@ export const App = forwardRef<TDrawer, ConfigProps>(
+     }
+ 
+     return (
+-      <Providers config={config} tokensList={tokensList}>
++      <Providers config={config} networkConfig={networkConfig}>
+         <Container>
+           <Default />
+         </Container>
+diff --git a/packages/ccip-react-components/lib/AppContext.tsx b/packages/ccip-react-components/lib/AppContext.tsx
+index 5fa7012..e361823 100644
+--- a/packages/ccip-react-components/lib/AppContext.tsx
++++ b/packages/ccip-react-components/lib/AppContext.tsx
+@@ -1,5 +1,5 @@
+-import { DEFAULT_CONFIG, LINK_CONTRACTS } from '@/utils/config';
+-import { Config, ConfigProps, Token } from '@/types';
++import { DEFAULT_CONFIG } from '@/utils/config';
++import { AddressMap, Config, ConfigProps, Token } from '@/types';
+ import {
+   createContext,
+   PropsWithChildren,
+@@ -9,11 +9,19 @@ import {
+   useState,
+ } from 'react';
+ import { Address } from 'viem';
++import { Chain } from 'wagmi/chains';
+ import { useAccount, useBalance } from 'wagmi';
+ 
+ export const Context = createContext<{
+   config?: Config;
+   tokensList: Token[];
++  chains: Chain[];
++  chainsInfo: { [chainId: number]: { logoURL?: string; name: string } };
++  linkContracts: AddressMap;
++  routerAddresses: AddressMap;
++  chainSelectors: {
++    [chainId: number]: string | undefined;
++  };
+   transferHash?: Address;
+   messageId?: Address;
+   sourceChainId?: number;
+@@ -31,7 +39,12 @@ export const Context = createContext<{
+   isConnectOpen?: boolean;
+   setIsConnectOpen: (open: boolean) => void;
+ }>({
++  chains: [],
++  chainsInfo: [],
+   tokensList: [],
++  linkContracts: {},
++  routerAddresses: {},
++  chainSelectors: {},
+   setTransferHash: () => null,
+   setMessageId: () => null,
+   setSourceChainId: () => null,
+@@ -43,7 +56,7 @@ export const Context = createContext<{
+ 
+ export const ContextProvider = ({
+   config: configProp,
+-  tokensList,
++  networkConfig,
+   children,
+ }: PropsWithChildren<ConfigProps>) => {
+   const [transferHash, setTransferHash] = useState<Address | undefined>();
+@@ -71,10 +84,36 @@ export const ContextProvider = ({
+       chains: configProp?.chains,
+       variant: configProp?.variant,
+       walletConfig: configProp?.walletConfig,
++      showFaucet: configProp?.showFaucet,
+     }),
+     [configProp]
+   );
+ 
++  const {
++    linkContracts,
++    routerAddresses,
++    chainSelectors,
++    chains: chainsProp,
++    tokensList,
++  } = networkConfig;
++
++  const chains = useMemo(
++    () => chainsProp.map(({ chain }) => chain),
++    [chainsProp]
++  );
++
++  const chainsInfo = useMemo(
++    () =>
++      chainsProp.reduce(
++        (a, v) => ({
++          ...a,
++          [v.chain.id]: { logoURL: v.logoURL, name: v.chain.name },
++        }),
++        {}
++      ),
++    [chainsProp]
++  );
++
+   const { chain, chainId, address } = useAccount();
+   const { data: feeTokenBalanceResult } = useBalance({
+     address,
+@@ -90,10 +129,10 @@ export const ContextProvider = ({
+   useEffect(() => {
+     if (chainId) {
+       feeTokenSymbol === 'LINK'
+-        ? setFeeTokenAddress(LINK_CONTRACTS[chainId])
++        ? setFeeTokenAddress(linkContracts[chainId])
+         : setFeeTokenAddress(undefined);
+     }
+-  }, [chainId, feeTokenSymbol]);
++  }, [chainId, feeTokenSymbol, linkContracts]);
+ 
+   useEffect(() => {
+     if (feeTokenBalanceResult?.value) {
+@@ -113,7 +152,12 @@ export const ContextProvider = ({
+     <Context.Provider
+       value={{
+         config,
++        chains,
++        chainsInfo,
+         tokensList,
++        linkContracts,
++        routerAddresses,
++        chainSelectors,
+         transferHash,
+         setTransferHash: (tx: Address | undefined) => setTransferHash(tx),
+         messageId,
+diff --git a/packages/ccip-react-components/lib/AppDefault.test.tsx b/packages/ccip-react-components/lib/AppDefault.test.tsx
+index 553040c..1124790 100644
+--- a/packages/ccip-react-components/lib/AppDefault.test.tsx
++++ b/packages/ccip-react-components/lib/AppDefault.test.tsx
+@@ -5,17 +5,23 @@ import { Context } from './AppContext';
+ import { WagmiProvider } from 'wagmi';
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+ import { config as wagmiConfig } from '@/utils/config';
++import { optimismSepolia, sepolia } from 'viem/chains';
+ 
+ const queryClient = new QueryClient();
+ 
+ describe('AppDefault', () => {
+   test('render transfer status page', () => {
+     render(
+-      <WagmiProvider config={wagmiConfig}>
++      <WagmiProvider config={wagmiConfig([sepolia, optimismSepolia])}>
+         <QueryClientProvider client={queryClient}>
+           <Context.Provider
+             value={{
++              chains: [],
++              chainsInfo: {},
+               tokensList: [],
++              linkContracts: {},
++              routerAddresses: {},
++              chainSelectors: {},
+               setTransferHash: () => null,
+               setMessageId: () => null,
+               setSourceChainId: () => null,
+diff --git a/packages/ccip-react-components/lib/AppDefault.tsx b/packages/ccip-react-components/lib/AppDefault.tsx
+index 46d158d..36d43b9 100644
+--- a/packages/ccip-react-components/lib/AppDefault.tsx
++++ b/packages/ccip-react-components/lib/AppDefault.tsx
+@@ -5,7 +5,7 @@ import { BridgeForm } from '@/pages/BridgeForm';
+ import { TxProgress } from '@/pages/TxProgress';
+ import { ConnectWallet, ChooseWallet } from '@/components/ConnectWallet';
+ import { CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+-import { Button, buttonVariants } from '@/components/ui/button';
++import { buttonVariants } from '@/components/ui/button';
+ import { ChainlinkSVG } from '@/components/svg/chainlink';
+ import { cn } from '@/utils';
+ 
+@@ -40,34 +40,43 @@ const Header = () => (
+   </CardHeader>
+ );
+ 
+-const Footer = () => (
+-  <CardFooter
+-    style={{
+-      display: 'flex',
+-      alignItems: 'center',
+-      justifyContent: 'center',
+-      flexDirection: 'column',
+-      gap: '16px',
+-    }}
+-  >
+-    <Button 
+-      className="flex w-full text-xl h-[36px] bg-[#8AA6F9] hover:no-underline space-x-2 text-xs font-bold text-white group hover:bg-[#0847F7] h-8"
+-      onClick={() => window.open('https://faucets.chain.link', '_blank')}
++const Footer = () => {
++  const { config } = useAppContext();
++  return (
++    <CardFooter
++      style={{
++        display: 'flex',
++        alignItems: 'center',
++        justifyContent: 'center',
++        flexDirection: 'column',
++        gap: '16px',
++      }}
+     >
+-        <span>GET TESTNET TOKENS</span>
+-    </Button>
+-
+-    <a
+-      href="https://chain.link/cross-chain"
+-      target="_blank"
+-      className={cn(
+-        buttonVariants({ variant: 'link' }),
+-        'hover:no-underline space-x-2 text-xs font-bold text-ccip-muted group hover:text-[#0847F7] p-0 h-4'
++      {config?.showFaucet && (
++        <a
++          href="https://faucets.chain.link"
++          target="_blank"
++          className={cn(
++            buttonVariants({ variant: 'default' }),
++            'flex w-full bg-[#8AA6F9] hover:no-underline space-x-2 text-xs font-bold text-white group hover:bg-[#0847F7] h-8'
++          )}
++          onClick={() => window.open('https://faucets.chain.link', '_blank')}
++        >
++          <span>GET TESTNET TOKENS</span>
++        </a>
+       )}
+-    >
+-      <ChainlinkSVG className="fill-ccip-muted group-hover:fill-ccip-text transition-colors" />
+-      <span>CHAINLINK CCIP</span>
+-    </a>
+ 
+-  </CardFooter>
+-);
++      <a
++        href="https://chain.link/cross-chain"
++        target="_blank"
++        className={cn(
++          buttonVariants({ variant: 'link' }),
++          'hover:no-underline space-x-2 text-xs font-bold text-ccip-muted group hover:text-[#0847F7] p-0 h-4'
++        )}
++      >
++        <ChainlinkSVG className="fill-ccip-muted group-hover:fill-ccip-text transition-colors" />
++        <span>CHAINLINK CCIP</span>
++      </a>
++    </CardFooter>
++  );
++};
+diff --git a/packages/ccip-react-components/lib/AppProviders.tsx b/packages/ccip-react-components/lib/AppProviders.tsx
+index fd2bd42..6480f3f 100644
+--- a/packages/ccip-react-components/lib/AppProviders.tsx
++++ b/packages/ccip-react-components/lib/AppProviders.tsx
+@@ -1,3 +1,4 @@
++import { Chain } from 'wagmi/chains';
+ import { WagmiProvider } from 'wagmi';
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+ import { ContextProvider } from '@/AppContext';
+@@ -8,13 +9,17 @@ const queryClient = new QueryClient();
+ 
+ export function Providers({
+   config,
+-  tokensList,
++  networkConfig,
+   children,
+ }: React.PropsWithChildren<ConfigProps>) {
+   return (
+-    <WagmiProvider config={wagmiConfig}>
++    <WagmiProvider
++      config={wagmiConfig(
++        networkConfig.chains.map(({ chain }) => chain) as [Chain, ...Chain[]]
++      )}
++    >
+       <QueryClientProvider client={queryClient}>
+-        <ContextProvider config={config} tokensList={tokensList}>
++        <ContextProvider config={config} networkConfig={networkConfig}>
+           {children}
+         </ContextProvider>
+       </QueryClientProvider>
+diff --git a/packages/ccip-react-components/lib/components/ActionButton.test.tsx b/packages/ccip-react-components/lib/components/ActionButton.test.tsx
+index 6faa343..52857d2 100644
+--- a/packages/ccip-react-components/lib/components/ActionButton.test.tsx
++++ b/packages/ccip-react-components/lib/components/ActionButton.test.tsx
+@@ -5,12 +5,13 @@ import { WagmiProvider } from 'wagmi';
+ import { config as wagmiConfig } from '@/utils/config';
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+ import { ReactNode } from 'react';
++import { optimismSepolia, sepolia } from 'viem/chains';
+ 
+ const queryClient = new QueryClient();
+ 
+ const Providers = ({ children }: { children: ReactNode }) => {
+   return (
+-    <WagmiProvider config={wagmiConfig}>
++    <WagmiProvider config={wagmiConfig([sepolia, optimismSepolia])}>
+       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+     </WagmiProvider>
+   );
+diff --git a/packages/ccip-react-components/lib/components/ActionButton.tsx b/packages/ccip-react-components/lib/components/ActionButton.tsx
+index 2526385..1716dde 100644
+--- a/packages/ccip-react-components/lib/components/ActionButton.tsx
++++ b/packages/ccip-react-components/lib/components/ActionButton.tsx
+@@ -5,9 +5,9 @@ import { Address } from 'viem';
+ 
+ import { useAppContext } from '@/hooks/useAppContext';
+ import { Button } from '@/components/ui/button';
+-import { NETWORK_INFO } from '@/components/Logos';
+ import { SendButton } from '@/components/SendButton';
+ import { Error } from '@/components/Error';
++import { useChains } from '@/hooks/useChains';
+ 
+ export function ActionButton({
+   sourceChain,
+@@ -54,6 +54,7 @@ export function ActionButton({
+ 
+ function SwitchNetworkButton({ chainId }: { chainId: number }) {
+   const { switchChain, isPending, error, isError } = useSwitchChain();
++  const { chainsInfo } = useChains();
+   return (
+     <>
+       {isError && <Error message={error.message.split('.')[0]} />}
+@@ -62,7 +63,7 @@ function SwitchNetworkButton({ chainId }: { chainId: number }) {
+         className="w-full text-xl leading-6 h-[52px]"
+         onClick={() => switchChain({ chainId })}
+       >
+-        Switch to {`${NETWORK_INFO[chainId].name ?? 'Unknown'}`}
++        Switch to {`${chainsInfo[chainId].name ?? 'Unknown'}`}
+       </Button>
+     </>
+   );
+diff --git a/packages/ccip-react-components/lib/components/Fees.tsx b/packages/ccip-react-components/lib/components/Fees.tsx
+index 4ca398f..373bc01 100644
+--- a/packages/ccip-react-components/lib/components/Fees.tsx
++++ b/packages/ccip-react-components/lib/components/Fees.tsx
+@@ -3,7 +3,7 @@ import { useAccount, usePublicClient, useReadContract } from 'wagmi';
+ import { Address, formatEther, parseUnits } from 'viem';
+ import { useQuery } from '@tanstack/react-query';
+ import { IERC20ABI } from '@chainlink/ccip-js';
+-import { cn, getChainSelector, getRouterAddress } from '@/utils';
++import { cn } from '@/utils';
+ import { ccipClient } from '@/utils/ccip-client';
+ import { useAppContext } from '@/hooks/useAppContext';
+ import {
+@@ -17,6 +17,8 @@ import { Error } from '@/components/Error';
+ import { InfoSVG } from '@/components/svg/info';
+ import { InfoTooltipSVG } from '@/components/svg/info-tooltip';
+ import { ChevronSVG } from '@/components/svg/chevron';
++import { useRouters } from '@/hooks/useRouters';
++import { useChainSelectors } from '@/hooks/useChainSelectors';
+ 
+ export const Fees = ({
+   sourceChain,
+@@ -48,6 +50,9 @@ export const Fees = ({
+     functionName: 'decimals',
+   });
+ 
++  const { getRouterAddress } = useRouters();
++  const { getChainSelector } = useChainSelectors();
++
+   const routerAddress = getRouterAddress(sourceChain);
+   const destinationChainSelector = getChainSelector(destinationChain);
+ 
+diff --git a/packages/ccip-react-components/lib/components/Logos.tsx b/packages/ccip-react-components/lib/components/Logos.tsx
+index f44afca..04cfc37 100644
+--- a/packages/ccip-react-components/lib/components/Logos.tsx
++++ b/packages/ccip-react-components/lib/components/Logos.tsx
+@@ -1,36 +1,8 @@
+-import {
+-  arbitrumSepolia,
+-  avalancheFuji,
+-  baseSepolia,
+-  bscTestnet,
+-  optimismSepolia,
+-  polygonAmoy,
+-  sepolia,
+-} from 'wagmi/chains';
+ import { MetaMaskSVG } from '@/components/svg/metamask';
+ import { WalletConnectSVG } from '@/components/svg/walletconnect';
+ import { CoinbaseSVG } from '@/components/svg/coinbase';
+ import { BrowserSVG } from '@/components/svg/browser';
+ 
+-import { ArbitrumSVG } from '@/components/svg/arbitrum';
+-import { AvalancheSVG } from '@/components/svg/avalanche';
+-import { BaseSVG } from '@/components/svg/base';
+-import { BnbSVG } from '@/components/svg/bnb';
+-import { EthereumSVG } from '@/components/svg/ethereum';
+-import { OptimismSVG } from '@/components/svg/optimism';
+-import { PolygonSVG } from '@/components/svg/polygon';
+-
+-export const NETWORK_INFO: Record<string, { logo: JSX.Element; name: string }> =
+-  {
+-    [arbitrumSepolia.id]: { logo: <ArbitrumSVG />, name: arbitrumSepolia.name },
+-    [avalancheFuji.id]: { logo: <AvalancheSVG />, name: avalancheFuji.name },
+-    [baseSepolia.id]: { logo: <BaseSVG />, name: baseSepolia.name },
+-    [bscTestnet.id]: { logo: <BnbSVG />, name: bscTestnet.name },
+-    [sepolia.id]: { logo: <EthereumSVG />, name: sepolia.name },
+-    [optimismSepolia.id]: { logo: <OptimismSVG />, name: optimismSepolia.name },
+-    [polygonAmoy.id]: { logo: <PolygonSVG />, name: polygonAmoy.name },
+-  };
+-
+ export const WALLET_LOGOS: Record<string, JSX.Element> = {
+   ['Injected']: <BrowserSVG width={32} height={32} />,
+   ['MetaMask']: <MetaMaskSVG width={32} height={32} />,
+diff --git a/packages/ccip-react-components/lib/components/RateLimit.tsx b/packages/ccip-react-components/lib/components/RateLimit.tsx
+index 4598416..31df059 100644
+--- a/packages/ccip-react-components/lib/components/RateLimit.tsx
++++ b/packages/ccip-react-components/lib/components/RateLimit.tsx
+@@ -9,8 +9,9 @@ import {
+   useReadContract,
+ } from 'wagmi';
+ import { useAppContext } from '@/hooks/useAppContext';
+-import { getRouterAddress, getChainSelector } from '@/utils';
+ import { Error } from '@/components/Error';
++import { useRouters } from '@/hooks/useRouters';
++import { useChainSelectors } from '@/hooks/useChainSelectors';
+ 
+ export const RateLimit = ({
+   sourceChain,
+@@ -40,6 +41,9 @@ export const RateLimit = ({
+     functionName: 'decimals',
+   });
+ 
++  const { getRouterAddress } = useRouters();
++  const { getChainSelector } = useChainSelectors();
++
+   const routerAddress = getRouterAddress(sourceChain);
+   const destinationChainSelector = getChainSelector(destinationChain);
+ 
+diff --git a/packages/ccip-react-components/lib/components/SendButton.test.tsx b/packages/ccip-react-components/lib/components/SendButton.test.tsx
+index bcc47c1..fbcb142 100644
+--- a/packages/ccip-react-components/lib/components/SendButton.test.tsx
++++ b/packages/ccip-react-components/lib/components/SendButton.test.tsx
+@@ -149,7 +149,12 @@ describe('SendButton', () => {
+     render(
+       <Context.Provider
+         value={{
++          chains: [],
++          chainsInfo: {},
+           tokensList: [],
++          linkContracts: {},
++          routerAddresses: {},
++          chainSelectors: {},
+           setTransferHash: () => null,
+           setMessageId: () => null,
+           setSourceChainId: () => null,
+diff --git a/packages/ccip-react-components/lib/components/SendButton.tsx b/packages/ccip-react-components/lib/components/SendButton.tsx
+index c69dfe2..657b4d8 100644
+--- a/packages/ccip-react-components/lib/components/SendButton.tsx
++++ b/packages/ccip-react-components/lib/components/SendButton.tsx
+@@ -1,9 +1,9 @@
+-import { useAppContext } from "@/hooks/useAppContext";
+-import { ccipClient } from "@/utils/ccip-client";
+-import { useMutation, useQuery } from "@tanstack/react-query";
+-import { IERC20ABI } from "@chainlink/ccip-js";
+-import { useEffect } from "react";
+-import { Address, Chain, parseUnits, WalletClient } from "viem";
++import { useAppContext } from '@/hooks/useAppContext';
++import { ccipClient } from '@/utils/ccip-client';
++import { useMutation, useQuery } from '@tanstack/react-query';
++import { IERC20ABI } from '@chainlink/ccip-js';
++import { useEffect } from 'react';
++import { Address, Chain, parseUnits, WalletClient } from 'viem';
+ import {
+   useAccount,
+   useBalance,
+@@ -11,10 +11,12 @@ import {
+   useWaitForTransactionReceipt,
+   useWalletClient,
+   useWriteContract,
+-} from "wagmi";
+-import { Button } from "@/components/ui/button";
+-import { cn, getChainSelector, getRouterAddress } from "@/utils";
+-import { Error } from "@/components/Error";
++} from 'wagmi';
++import { Button } from '@/components/ui/button';
++import { cn } from '@/utils';
++import { Error } from '@/components/Error';
++import { useRouters } from '@/hooks/useRouters';
++import { useChainSelectors } from '@/hooks/useChainSelectors';
+ 
+ export function SendButton({
+   sourceChain,
+@@ -50,35 +52,45 @@ export function SendButton({
+     token: tokenAddress,
+   });
+ 
++  const { getRouterAddress } = useRouters();
++  const { getChainSelector } = useChainSelectors();
++
+   const routerAddress = getRouterAddress(sourceChain);
+   const destinationChainSelector = getChainSelector(destinationChain);
+ 
+-  const { data: tokenAllowance, refetch: refetchTokenAllowance } = useReadContract({
+-    abi: IERC20ABI,
+-    address: tokenAddress,
+-    functionName: "allowance",
+-    args: [destinationAccount, routerAddress],
+-  });
++  const { data: tokenAllowance, refetch: refetchTokenAllowance } =
++    useReadContract({
++      abi: IERC20ABI,
++      address: tokenAddress,
++      functionName: 'allowance',
++      args: [destinationAccount, routerAddress],
++    });
+ 
+   const { data: feeAllowance, refetch: refetchFeeAllowance } = useReadContract({
+     abi: IERC20ABI,
+     address: feeTokenAddress,
+-    functionName: "allowance",
++    functionName: 'allowance',
+     args: [destinationAccount, routerAddress],
+-    query: { enabled: feeTokenSymbol === "LINK" },
++    query: { enabled: feeTokenSymbol === 'LINK' },
+   });
+ 
+-  const { data: isTokenSupported, isPending: isTokenSupportedPending } = useQuery({
+-    queryKey: ["isTokenSupported", tokenAddress, sourceChain, destinationChain],
+-    queryFn: async () =>
+-      await ccipClient.isTokenSupported({
+-        client: walletClient!,
+-        routerAddress,
++  const { data: isTokenSupported, isPending: isTokenSupportedPending } =
++    useQuery({
++      queryKey: [
++        'isTokenSupported',
+         tokenAddress,
+-        destinationChainSelector,
+-      }),
+-    enabled: !!walletClient,
+-  });
++        sourceChain,
++        destinationChain,
++      ],
++      queryFn: async () =>
++        await ccipClient.isTokenSupported({
++          client: walletClient!,
++          routerAddress,
++          tokenAddress,
++          destinationChainSelector,
++        }),
++      enabled: !!walletClient,
++    });
+ 
+   const {
+     mutate: approve,
+@@ -131,22 +143,30 @@ export function SendButton({
+     isError: isApproveFeeError,
+     error: approveFeeError,
+   } = useWriteContract({ mutation: { onError: console.error } });
+-  const { isSuccess: waitForFeeAllowanceIsSuccess, isLoading: waitForFeeAllowanceIsLoading } =
+-    useWaitForTransactionReceipt({
+-      hash: approveFeeTxHash,
+-      confirmations: 2,
+-      query: { enabled: !!approveFeeTxHash },
+-    });
++  const {
++    isSuccess: waitForFeeAllowanceIsSuccess,
++    isLoading: waitForFeeAllowanceIsLoading,
++  } = useWaitForTransactionReceipt({
++    hash: approveFeeTxHash,
++    confirmations: 2,
++    query: { enabled: !!approveFeeTxHash },
++  });
+ 
+   useEffect(() => {
+     if (waitForFeeAllowanceIsSuccess) refetchFeeAllowance();
+   }, [waitForFeeAllowanceIsSuccess, refetchFeeAllowance]);
+ 
+-  const insufficientBalance = balance && balance.value < parseUnits(amount, balance.decimals);
+-  const insufficientFeeBalance = feeAmount && feeTokenBalance && feeTokenBalance < feeAmount;
+-  const needsFeeApproval = feeTokenAddress && feeAmount && (feeAllowance as bigint) < feeAmount;
++  const insufficientBalance =
++    balance && balance.value < parseUnits(amount, balance.decimals);
++  const insufficientFeeBalance =
++    feeAmount && feeTokenBalance && feeTokenBalance < feeAmount;
++  const needsFeeApproval =
++    feeTokenAddress && feeAmount && (feeAllowance as bigint) < feeAmount;
+   const needsTokenApproval =
+-    balance && amount && parseUnits(amount, balance.decimals) > ((tokenAllowance as bigint) || BigInt(0));
++    balance &&
++    amount &&
++    parseUnits(amount, balance.decimals) >
++      ((tokenAllowance as bigint) || BigInt(0));
+ 
+   if (!isTokenSupportedPending && !isTokenSupported) {
+     return <Error message="Token is not supported on destination chain" />;
+@@ -163,7 +183,9 @@ export function SendButton({
+   if (needsFeeApproval) {
+     return (
+       <>
+-        {isApproveFeeError && <Error message={approveFeeError.message.split(".")[0]} />}
++        {isApproveFeeError && (
++          <Error message={approveFeeError.message.split('.')[0]} />
++        )}
+         <Button
+           className="w-full text-xl leading-6 h-[52px]"
+           disabled={approveFeeIsPending || waitForFeeAllowanceIsLoading}
+@@ -171,7 +193,7 @@ export function SendButton({
+             approveFee({
+               abi: IERC20ABI,
+               address: feeTokenAddress,
+-              functionName: "approve",
++              functionName: 'approve',
+               args: [routerAddress, feeAmount],
+             })
+           }
+@@ -185,10 +207,17 @@ export function SendButton({
+   if (needsTokenApproval) {
+     return (
+       <>
+-        {isApproveTokenError && <Error message={approveTokenError.message.split(".")[0]} />}
++        {isApproveTokenError && (
++          <Error message={approveTokenError.message.split('.')[0]} />
++        )}
+         <Button
+-          className={cn("w-full text-xl leading-6 h-[52px]", approveTokenIsPending && "animate-pulse")}
+-          disabled={approveTokenIsPending || !walletClient || !chain || !address}
++          className={cn(
++            'w-full text-xl leading-6 h-[52px]',
++            approveTokenIsPending && 'animate-pulse'
++          )}
++          disabled={
++            approveTokenIsPending || !walletClient || !chain || !address
++          }
+           onClick={() =>
+             walletClient &&
+             chain &&
+@@ -212,7 +241,9 @@ export function SendButton({
+ 
+   return (
+     <>
+-      {isTransferError && <Error message={transferError.message.split(".")[0]} />}
++      {isTransferError && (
++        <Error message={transferError.message.split('.')[0]} />
++      )}
+       <Button
+         className="w-full text-xl leading-6 h-[52px]"
+         disabled={
+diff --git a/packages/ccip-react-components/lib/components/svg/arbitrum.tsx b/packages/ccip-react-components/lib/components/svg/arbitrum.tsx
+deleted file mode 100644
+index df011d0..0000000
+--- a/packages/ccip-react-components/lib/components/svg/arbitrum.tsx
++++ /dev/null
+@@ -1,35 +0,0 @@
+-export const ArbitrumSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <rect width="32" height="32" rx="4" fill="#2F374A" />
+-    <path
+-      d="M18.6313 15.1919L20.4253 12.1478L25.2608 19.6793L25.2631 21.1248L25.2474 11.1787C25.2359 10.9356 25.1068 10.7132 24.9008 10.582L16.195 5.57428C15.9915 5.47415 15.7331 5.4753 15.5299 5.57745C15.5024 5.59113 15.4765 5.60613 15.452 5.62248L15.4216 5.64155L6.9713 10.5384L6.93855 10.5533C6.89638 10.5727 6.85371 10.5973 6.81376 10.626C6.65351 10.7408 6.54714 10.9108 6.51272 11.1013C6.50754 11.1302 6.50371 11.1596 6.50195 11.1894L6.51524 19.2944L11.0193 12.3133C11.5864 11.3876 12.8219 11.0895 13.9688 11.1057L15.3149 11.1412L7.38334 23.8612L8.31831 24.3994L16.3448 11.1541L19.8926 11.1412L11.8868 24.7208L15.223 26.6398L15.6216 26.869C15.7903 26.9375 15.9891 26.941 16.1591 26.8796L24.9872 21.7635L23.2994 22.7416L18.6313 15.1919ZM19.3157 25.0502L15.9461 19.7616L18.0031 16.2711L22.4285 23.2463L19.3157 25.0502Z"
+-      fill="#2D374B"
+-    />
+-    <path
+-      d="M15.9463 19.7639L19.3159 25.0526L22.4287 23.2487L18.0032 16.2734L15.9463 19.7639Z"
+-      fill="#28A0F0"
+-    />
+-    <path
+-      d="M25.2636 21.1254L25.2613 19.68L20.4258 12.1484L18.6318 15.1926L23.2999 22.7422L24.9877 21.7641C25.1532 21.6296 25.2534 21.4323 25.2639 21.2194L25.2636 21.1254Z"
+-      fill="#28A0F0"
+-    />
+-    <path
+-      d="M5 22.4882L7.38342 23.8616L15.315 11.1416L13.9688 11.1061C12.8219 11.0899 11.5864 11.3881 11.0193 12.3137L6.51527 19.2948L5 21.623V22.4882Z"
+-      fill="white"
+-    />
+-    <path
+-      d="M19.8927 11.1406L16.3449 11.1535L8.31836 24.3988L11.1239 26.0141L11.8868 24.7202L19.8927 11.1406Z"
+-      fill="white"
+-    />
+-    <path
+-      d="M26.7583 11.124C26.7286 10.382 26.3269 9.70279 25.6976 9.30735L16.8777 4.23524C16.2553 3.92182 15.4777 3.92142 14.8541 4.23504C14.7804 4.27222 6.27697 9.20385 6.27697 9.20385C6.15928 9.26031 6.04592 9.32753 5.9393 9.40386C5.37757 9.80644 5.03517 10.4321 5 11.1194V21.6236L6.51527 19.2955L6.50204 11.1904C6.5038 11.1607 6.50752 11.1316 6.5128 11.1028C6.54707 10.9121 6.65354 10.742 6.81385 10.627C6.85385 10.5984 15.5025 5.59216 15.53 5.57843C15.7333 5.47634 15.9917 5.47513 16.1952 5.57526L24.901 10.5829C25.1069 10.714 25.236 10.9364 25.2475 11.1796V21.2197C25.237 21.4326 25.1528 21.6299 24.9873 21.7644L23.2995 22.7425L22.4286 23.2472L19.3158 25.0511L16.1592 26.8805C15.9891 26.9419 15.7903 26.9384 15.6217 26.8699L11.8869 24.7217L11.1239 26.0157L14.4803 27.9482C14.5913 28.0113 14.6902 28.0673 14.7713 28.1128C14.897 28.1832 14.9826 28.2304 15.0129 28.2451C15.2514 28.361 15.5947 28.4284 15.904 28.4284C16.1875 28.4284 16.4641 28.3763 16.7257 28.2738L25.8946 22.9639C26.4208 22.5561 26.7304 21.9412 26.7583 21.2751V11.124Z"
+-      fill="#96BEDC"
+-    />
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/avalanche.tsx b/packages/ccip-react-components/lib/components/svg/avalanche.tsx
+deleted file mode 100644
+index 5c0e60f..0000000
+--- a/packages/ccip-react-components/lib/components/svg/avalanche.tsx
++++ /dev/null
+@@ -1,30 +0,0 @@
+-export const AvalancheSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57378)">
+-      <rect width="32" height="32" rx="4" fill="#E84142" />
+-      <g clipPath="url(#clip1_1460_57378)">
+-        <path d="M26 4H6V25H26V4Z" fill="white" />
+-        <path
+-          fillRule="evenodd"
+-          clipRule="evenodd"
+-          d="M31.9574 15.9787C31.9574 24.8036 24.8036 31.9574 15.9787 31.9574C7.15392 31.9574 0 24.8036 0 15.9787C0 7.15392 7.15392 0 15.9787 0C24.8036 0 31.9574 7.15392 31.9574 15.9787ZM11.4508 22.3374H8.34979C7.69817 22.3374 7.3763 22.3374 7.18004 22.2119C6.96806 22.0745 6.83853 21.8468 6.82283 21.5955C6.81104 21.364 6.972 21.0813 7.29387 20.5161L14.9507 7.01989C15.2765 6.44679 15.4413 6.16023 15.6494 6.05426C15.8731 5.94043 16.1401 5.94043 16.3638 6.05426C16.5719 6.16023 16.7367 6.44679 17.0625 7.01989L18.6366 9.76764L18.6446 9.78166C18.9965 10.3965 19.175 10.7083 19.2529 11.0355C19.3392 11.3927 19.3392 11.7696 19.2529 12.1268C19.1744 12.4565 18.9977 12.7705 18.6405 13.3947L14.6186 20.5043L14.6082 20.5225C14.254 21.1424 14.0744 21.4566 13.8257 21.6936C13.5548 21.9528 13.229 22.1411 12.8718 22.2472C12.546 22.3374 12.1809 22.3374 11.4508 22.3374ZM19.2819 22.3374H23.7253C24.3809 22.3374 24.7106 22.3374 24.907 22.2081C25.1189 22.0706 25.2523 21.8389 25.2643 21.5879C25.2755 21.3638 25.1181 21.0921 24.8096 20.5597C24.7989 20.5416 24.7883 20.5231 24.7774 20.5044L22.5517 16.6968L22.5264 16.6539C22.2136 16.125 22.0557 15.858 21.853 15.7547C21.6294 15.6409 21.3662 15.6409 21.1425 15.7547C20.9384 15.8607 20.7736 16.1394 20.4477 16.7007L18.2299 20.5083L18.2223 20.5214C17.8977 21.0819 17.7354 21.3619 17.7471 21.5917C17.7628 21.843 17.8923 22.0745 18.1043 22.2119C18.2967 22.3374 18.6264 22.3374 19.2819 22.3374Z"
+-          fill="#E84142"
+-        />
+-      </g>
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57378">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-      <clipPath id="clip1_1460_57378">
+-        <rect width="32" height="32" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/base.tsx b/packages/ccip-react-components/lib/components/svg/base.tsx
+deleted file mode 100644
+index ce6b77f..0000000
+--- a/packages/ccip-react-components/lib/components/svg/base.tsx
++++ /dev/null
+@@ -1,24 +0,0 @@
+-export const BaseSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57405)">
+-      <rect width="32" height="32" rx="4" fill="#0052FF" />
+-      <path
+-        fillRule="evenodd"
+-        clipRule="evenodd"
+-        d="M16.23 27.5352C22.4529 27.5352 27.4976 22.4906 27.4976 16.2676C27.4976 10.0447 22.4529 5 16.23 5C10.3264 5 5.4832 9.5402 5.00167 15.3194H21.722V17.1957H5C5.47193 22.9845 10.3195 27.5352 16.23 27.5352Z"
+-        fill="white"
+-      />
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57405">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/bnb.tsx b/packages/ccip-react-components/lib/components/svg/bnb.tsx
+deleted file mode 100644
+index 59f43c9..0000000
+--- a/packages/ccip-react-components/lib/components/svg/bnb.tsx
++++ /dev/null
+@@ -1,34 +0,0 @@
+-export const BnbSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57417)">
+-      <rect width="32" height="32" rx="4" fill="#F0B90B" />
+-      <path
+-        d="M8.25679 15.7892L8.26923 20.3497L12.1443 22.63V25.3L6.00138 21.6972V14.4556L8.25679 15.7892ZM8.25679 11.2286V13.8862L6 12.5512V9.8936L8.25679 8.55859L10.5246 9.8936L8.25679 11.2286ZM13.7626 9.8936L16.0194 8.55859L18.2873 9.8936L16.0194 11.2286L13.7626 9.8936Z"
+-        fill="white"
+-      />
+-      <path
+-        d="M9.8877 19.4045V16.7345L12.1445 18.0695V20.727L9.8877 19.4045ZM13.7628 23.5864L16.0196 24.9214L18.2874 23.5864V26.2439L16.0196 27.5789L13.7628 26.2439V23.5864ZM21.5241 9.8936L23.7809 8.55859L26.0487 9.8936V12.5512L23.7809 13.8862V11.2286L21.5241 9.8936ZM23.7809 20.3497L23.7933 15.7892L26.0501 14.4542V21.6958L19.9071 25.2987V22.6287L23.7809 20.3497Z"
+-        fill="white"
+-      />
+-      <path
+-        d="M22.1621 19.4044L19.9053 20.7269V18.0694L22.1621 16.7344V19.4044Z"
+-        fill="white"
+-      />
+-      <path
+-        d="M22.1625 12.1745L22.175 14.8445L18.2888 17.1248V21.6964L16.032 23.019L13.7752 21.6964V17.1248L9.88908 14.8445V12.1745L12.1555 10.8395L16.0182 13.1308L19.9044 10.8395L22.1722 12.1745H22.1625ZM9.8877 7.61529L16.0196 4L22.1625 7.61529L19.9058 8.95029L16.0196 6.65895L12.1445 8.95029L9.8877 7.61529Z"
+-        fill="white"
+-      />
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57417">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/ethereum.tsx b/packages/ccip-react-components/lib/components/svg/ethereum.tsx
+deleted file mode 100644
+index 730a58a..0000000
+--- a/packages/ccip-react-components/lib/components/svg/ethereum.tsx
++++ /dev/null
+@@ -1,43 +0,0 @@
+-export const EthereumSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57425)">
+-      <rect width="32" height="32" rx="4" fill="#627EEA" />
+-      <path
+-        d="M16.498 4V12.8699L23.9949 16.2199L16.498 4Z"
+-        fill="white"
+-        fillOpacity="0.602"
+-      />
+-      <path d="M16.4981 4L9 16.2199L16.4981 12.8699V4Z" fill="white" />
+-      <path
+-        d="M16.498 21.9693V27.9964L24 17.6172L16.498 21.9693Z"
+-        fill="white"
+-        fillOpacity="0.602"
+-      />
+-      <path
+-        d="M16.4981 27.9964V21.9683L9 17.6172L16.4981 27.9964Z"
+-        fill="white"
+-      />
+-      <path
+-        d="M16.498 20.5721L23.9949 16.2191L16.498 12.8711V20.5721Z"
+-        fill="white"
+-        fillOpacity="0.2"
+-      />
+-      <path
+-        d="M9 16.2191L16.4981 20.5721V12.8711L9 16.2191Z"
+-        fill="white"
+-        fillOpacity="0.602"
+-      />
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57425">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/optimism.tsx b/packages/ccip-react-components/lib/components/svg/optimism.tsx
+deleted file mode 100644
+index 1618d6a..0000000
+--- a/packages/ccip-react-components/lib/components/svg/optimism.tsx
++++ /dev/null
+@@ -1,26 +0,0 @@
+-export const OptimismSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57439)">
+-      <rect width="32" height="32" rx="4" fill="#FF0420" />
+-      <path
+-        d="M11.3318 20.2445C10.4994 20.28 9.67788 20.0441 8.99112 19.5722C8.69443 19.3456 8.45741 19.0501 8.30056 18.7114C8.14371 18.3726 8.07176 18.0007 8.09092 17.6278C8.09458 17.4106 8.11466 17.1939 8.15099 16.9797C8.25503 16.4027 8.40305 15.7105 8.59505 14.9031C9.13923 12.7025 10.5436 11.6021 12.808 11.6021C13.3756 11.5928 13.9392 11.699 14.4644 11.9143C14.9307 12.097 15.3319 12.4146 15.6167 12.8265C15.9039 13.2509 16.0507 13.7548 16.0364 14.267C16.0322 14.4803 16.0122 14.6929 15.9763 14.9031C15.8562 15.6153 15.7122 16.3075 15.5443 16.9797C15.2645 18.0759 14.7804 18.8961 14.092 19.4403C13.4042 19.9764 12.4842 20.2445 11.3318 20.2445ZM11.5 18.516C11.9157 18.5275 12.3213 18.3866 12.6404 18.1199C12.9931 17.8 13.233 17.3748 13.3245 16.9076C13.5086 16.1557 13.6485 15.4995 13.7442 14.939C13.7764 14.7689 13.7924 14.596 13.7922 14.4228C13.7922 13.6945 13.4121 13.3305 12.652 13.3307C12.2329 13.3206 11.8241 13.4611 11.4997 13.7267C11.1535 14.0499 10.9183 14.4742 10.8274 14.939C10.6834 15.4752 10.5394 16.1314 10.3954 16.9076C10.3629 17.0736 10.3468 17.2425 10.3474 17.4117C10.3474 18.1479 10.7316 18.516 11.5 18.516Z"
+-        fill="white"
+-      />
+-      <path
+-        d="M16.5891 20.1256C16.5509 20.1278 16.5128 20.1214 16.4774 20.1069C16.4421 20.0923 16.4105 20.0701 16.385 20.0416C16.3451 19.9771 16.3321 19.8995 16.3491 19.8255L18.0054 12.0233C18.0201 11.9372 18.067 11.8599 18.1366 11.8071C18.2009 11.7541 18.2814 11.7245 18.3648 11.7232H21.5577C22.3094 11.6863 23.0546 11.8789 23.6944 12.2753C23.9574 12.4476 24.171 12.6855 24.3141 12.9654C24.4573 13.2454 24.525 13.5578 24.5106 13.8719C24.5095 14.082 24.4853 14.2914 24.4385 14.4962C24.3061 15.3049 23.8731 16.0338 23.2262 16.5368C22.626 16.977 21.8018 17.197 20.7535 17.197H19.1333L18.5812 19.8258C18.5665 19.9118 18.5196 19.9891 18.45 20.0419C18.3858 20.0949 18.3054 20.1245 18.2221 20.1258L16.5891 20.1256ZM20.8382 15.5401C21.1527 15.5471 21.4608 15.4501 21.7146 15.2642C21.9757 15.0724 22.1555 14.7898 22.2187 14.4721C22.241 14.3533 22.253 14.2328 22.2546 14.1119C22.2615 14.0143 22.2467 13.9164 22.2114 13.8251C22.1762 13.7338 22.1212 13.6514 22.0506 13.5837C21.8503 13.4357 21.6022 13.3673 21.3544 13.3917H19.9142L19.458 15.5401H20.8382Z"
+-        fill="white"
+-      />
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57439">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/components/svg/polygon.tsx b/packages/ccip-react-components/lib/components/svg/polygon.tsx
+deleted file mode 100644
+index d02dee7..0000000
+--- a/packages/ccip-react-components/lib/components/svg/polygon.tsx
++++ /dev/null
+@@ -1,22 +0,0 @@
+-export const PolygonSVG = () => (
+-  <svg
+-    width="32"
+-    height="32"
+-    viewBox="0 0 32 32"
+-    fill="none"
+-    xmlns="http://www.w3.org/2000/svg"
+-  >
+-    <g clipPath="url(#clip0_1460_57450)">
+-      <rect width="32" height="32" rx="4" fill="#8247E5" />
+-      <path
+-        d="M21.6959 12.3767C21.3122 12.1535 20.8133 12.1535 20.3912 12.3767L17.3978 14.0884L15.3638 15.2047L12.3705 16.9163C11.9867 17.1395 11.4878 17.1395 11.0657 16.9163L8.68634 15.5767C8.30259 15.3535 8.03397 14.9442 8.03397 14.4977V11.8558C8.03397 11.4093 8.26422 11 8.68634 10.7768L11.0273 9.47441C11.4111 9.25116 11.91 9.25116 12.3321 9.47441L14.6731 10.7768C15.0568 11 15.3255 11.4093 15.3255 11.8558V13.5674L17.3594 12.414V10.7023C17.3594 10.2558 17.1292 9.8465 16.707 9.62325L12.3705 7.16744C11.9867 6.94419 11.4878 6.94419 11.0657 7.16744L6.65241 9.62325C6.23025 9.8465 6 10.2558 6 10.7023V15.6512C6 16.0977 6.23025 16.507 6.65241 16.7302L11.0657 19.1861C11.4495 19.4093 11.9483 19.4093 12.3705 19.1861L15.3638 17.5116L17.3978 16.3581L20.3912 14.6837C20.7749 14.4605 21.2738 14.4605 21.6959 14.6837L24.0369 15.9861C24.4207 16.2093 24.6893 16.6186 24.6893 17.0651V19.707C24.6893 20.1535 24.459 20.5628 24.0369 20.7861L21.6959 22.1256C21.3122 22.3488 20.8133 22.3488 20.3912 22.1256L18.0502 20.8232C17.6664 20.6 17.3978 20.1907 17.3978 19.7442V18.0326L15.3638 19.1861V20.8977C15.3638 21.3442 15.5941 21.7535 16.0163 21.9767L20.4295 24.4326C20.8133 24.6558 21.3122 24.6558 21.7343 24.4326L26.1476 21.9767C26.5314 21.7535 26.8 21.3442 26.8 20.8977V15.9488C26.8 15.5023 26.5698 15.093 26.1476 14.8698L21.6959 12.3767Z"
+-        fill="white"
+-      />
+-    </g>
+-    <defs>
+-      <clipPath id="clip0_1460_57450">
+-        <rect width="32" height="32" rx="4" fill="white" />
+-      </clipPath>
+-    </defs>
+-  </svg>
+-);
+diff --git a/packages/ccip-react-components/lib/hooks/useChainSelectors.ts b/packages/ccip-react-components/lib/hooks/useChainSelectors.ts
+new file mode 100644
+index 0000000..b541ed2
+--- /dev/null
++++ b/packages/ccip-react-components/lib/hooks/useChainSelectors.ts
+@@ -0,0 +1,15 @@
++import { useAppContext } from '@/hooks/useAppContext';
++
++export const useChainSelectors = () => {
++  const { chainSelectors } = useAppContext();
++
++  const getChainSelector = (chainId: number) => {
++    const chainSelector = chainSelectors[chainId];
++    if (!chainSelector) {
++      throw new Error(`Chain selector not found for chainId: ${chainId}`);
++    }
++    return chainSelector;
++  };
++
++  return { chainSelectors, getChainSelector };
++};
+diff --git a/packages/ccip-react-components/lib/hooks/useChains.ts b/packages/ccip-react-components/lib/hooks/useChains.ts
+index 75a44ac..fc36b6a 100644
+--- a/packages/ccip-react-components/lib/hooks/useChains.ts
++++ b/packages/ccip-react-components/lib/hooks/useChains.ts
+@@ -1,14 +1,12 @@
+-import { NETWORK_INFO } from '@/components/Logos';
+ import { useAppContext } from '@/hooks/useAppContext';
+-import { chains } from '@/utils/config';
+ import { isItemAllowed } from '@/utils';
+ import { useMemo } from 'react';
+ 
+ export const useChains = () => {
+-  const { config } = useAppContext();
++  const { config, chains, chainsInfo } = useAppContext();
+   const filteredChains = useMemo(
+     () => chains.filter((chain) => isItemAllowed(chain.id, config?.chains)),
+-    [config?.chains]
++    [chains, config?.chains]
+   );
+ 
+   const fromChains = useMemo(
+@@ -32,9 +30,9 @@ export const useChains = () => {
+       fromChains.map((chain) => ({
+         chainId: `${chain.id}`,
+         label: chain.name,
+-        logo: NETWORK_INFO[chain.id]?.logo,
++        logo: chainsInfo[chain.id]?.logoURL,
+       })),
+-    [fromChains]
++    [chainsInfo, fromChains]
+   );
+ 
+   const toNetworks = useMemo(
+@@ -42,9 +40,9 @@ export const useChains = () => {
+       toChains.map((chain) => ({
+         chainId: `${chain.id}`,
+         label: chain.name,
+-        logo: NETWORK_INFO[chain.id]?.logo,
++        logo: chainsInfo[chain.id]?.logoURL,
+       })),
+-    [toChains]
++    [chainsInfo, toChains]
+   );
+ 
+   const fromChain = useMemo(
+@@ -75,5 +73,6 @@ export const useChains = () => {
+     toNetworks,
+     fromChain,
+     toChain,
++    chainsInfo,
+   };
+ };
+diff --git a/packages/ccip-react-components/lib/hooks/useRouters.ts b/packages/ccip-react-components/lib/hooks/useRouters.ts
+new file mode 100644
+index 0000000..0c2feae
+--- /dev/null
++++ b/packages/ccip-react-components/lib/hooks/useRouters.ts
+@@ -0,0 +1,15 @@
++import { useAppContext } from '@/hooks/useAppContext';
++
++export const useRouters = () => {
++  const { routerAddresses } = useAppContext();
++
++  const getRouterAddress = (chainId: number) => {
++    const routerAddress = routerAddresses[chainId];
++    if (!routerAddress) {
++      throw new Error(`Router address not found for chainId: ${chainId}`);
++    }
++    return routerAddress;
++  };
++
++  return { routerAddresses, getRouterAddress };
++};
+diff --git a/packages/ccip-react-components/lib/index.ts b/packages/ccip-react-components/lib/index.ts
+index 3374ca3..87e0a78 100644
+--- a/packages/ccip-react-components/lib/index.ts
++++ b/packages/ccip-react-components/lib/index.ts
+@@ -1,4 +1,4 @@
+ import './index.css';
+ 
+ export { App as CCIPWidget } from '@/App';
+-export * from '@/types';
++export * from '@/types';
+\ No newline at end of file
+diff --git a/packages/ccip-react-components/lib/pages/BridgeForm.tsx b/packages/ccip-react-components/lib/pages/BridgeForm.tsx
+index ceca225..a745f29 100644
+--- a/packages/ccip-react-components/lib/pages/BridgeForm.tsx
++++ b/packages/ccip-react-components/lib/pages/BridgeForm.tsx
+@@ -13,7 +13,6 @@ import { ActionButton } from '@/components/ActionButton';
+ import { Balance, MaxButon } from '@/components/Balance';
+ import { Fees } from '@/components/Fees';
+ import { RateLimit } from '@/components/RateLimit';
+-import { NETWORK_INFO } from '@/components/Logos';
+ import { SquareSVG } from '@/components/svg/square';
+ import { SwapSVG } from '@/components/svg/swap';
+ import { CircleSVG } from '@/components/svg/circle';
+@@ -39,7 +38,8 @@ const formSchema = z.object({
+ 
+ export function BridgeForm() {
+   const { style, variant } = useTheme();
+-  const { fromNetworks, toNetworks, fromChain, toChain } = useChains();
++  const { fromNetworks, toNetworks, fromChain, toChain, chainsInfo } =
++    useChains();
+   const { tokenBySymbol, tokensList, preselectedToken } = useTokens();
+ 
+   const { address, chainId } = useAccount();
+@@ -92,8 +92,16 @@ export function BridgeForm() {
+                           asChild
+                         >
+                           <div className="flex items-center space-x-3">
+-                            {NETWORK_INFO[sourceChainId]?.logo}
+-                            <span>{NETWORK_INFO[sourceChainId]?.name}</span>
++                            {chainsInfo[Number(sourceChainId)]?.logoURL && (
++                              <img
++                                className="size-8"
++                                src={chainsInfo[Number(sourceChainId)]?.logoURL}
++                                alt={chainsInfo[Number(sourceChainId)]?.name}
++                              />
++                            )}
++                            <span>
++                              {chainsInfo[Number(sourceChainId)]?.name}
++                            </span>
+                           </div>
+                         </SelectValue>
+                       </SelectTrigger>
+@@ -123,7 +131,13 @@ export function BridgeForm() {
+                             className="py-3 text-ccip-text"
+                           >
+                             <div className="flex items-center space-x-3">
+-                              {logo}
++                              {logo && (
++                                <img
++                                  className="size-8"
++                                  src={logo}
++                                  alt={label}
++                                />
++                              )}
+                               <span>{label}</span>
+                             </div>
+                           </SelectItem>
+@@ -165,9 +179,21 @@ export function BridgeForm() {
+                           asChild
+                         >
+                           <div className="flex items-center space-x-3">
+-                            {NETWORK_INFO[destinationChainId]?.logo}
++                            {chainsInfo[Number(destinationChainId)]
++                              ?.logoURL && (
++                              <img
++                                className="size-8"
++                                src={
++                                  chainsInfo[Number(destinationChainId)]
++                                    ?.logoURL
++                                }
++                                alt={
++                                  chainsInfo[Number(destinationChainId)]?.name
++                                }
++                              />
++                            )}
+                             <span>
+-                              {NETWORK_INFO[destinationChainId]?.name}
++                              {chainsInfo[Number(destinationChainId)]?.name}
+                             </span>
+                           </div>
+                         </SelectValue>
+@@ -198,7 +224,13 @@ export function BridgeForm() {
+                             className="py-3 text-ccip-text"
+                           >
+                             <div className="flex items-center space-x-3">
+-                              {logo}
++                              {logo && (
++                                <img
++                                  className="size-8"
++                                  src={logo}
++                                  alt={label}
++                                />
++                              )}
+                               <span>{label}</span>
+                             </div>
+                           </SelectItem>
+diff --git a/packages/ccip-react-components/lib/pages/TxProgress.tsx b/packages/ccip-react-components/lib/pages/TxProgress.tsx
+index 4be5dc6..5b616cb 100644
+--- a/packages/ccip-react-components/lib/pages/TxProgress.tsx
++++ b/packages/ccip-react-components/lib/pages/TxProgress.tsx
+@@ -8,11 +8,13 @@ import {
+ } from 'wagmi';
+ import { TransferStatus } from '@chainlink/ccip-js';
+ import { ccipClient } from '@/utils/ccip-client';
+-import { cn, getChainSelector, getRouterAddress } from '@/utils';
++import { cn } from '@/utils';
+ import { useAppContext } from '@/hooks/useAppContext';
+ import { Button, buttonVariants } from '@/components/ui/button';
+ import { Badge } from '@/components/ui/badge';
+ import { CardContent } from '@/components/ui/card';
++import { useRouters } from '@/hooks/useRouters';
++import { useChainSelectors } from '@/hooks/useChainSelectors';
+ 
+ const STATUS_POLL_INTERVAL = 10000; // 10 seconds
+ 
+@@ -37,6 +39,9 @@ export const TxProgress = () => {
+     hash: transferHash,
+   });
+ 
++  const { getRouterAddress } = useRouters();
++  const { getChainSelector } = useChainSelectors();
++
+   const { data: transferStatus } = useQuery({
+     queryKey: ['transferStatus', messageId, destinationChainId, sourceChainId],
+     queryFn: () =>
+diff --git a/packages/ccip-react-components/lib/types.ts b/packages/ccip-react-components/lib/types.ts
+index bc9977d..6aa1d4d 100644
+--- a/packages/ccip-react-components/lib/types.ts
++++ b/packages/ccip-react-components/lib/types.ts
+@@ -1,4 +1,5 @@
+ import { Address } from 'viem';
++import { Chain } from 'wagmi/chains';
+ import {
+   CoinbaseWalletParameters,
+   MetaMaskParameters,
+@@ -116,6 +117,8 @@ export type Config = {
+   token?: string;
+   /** Configure the wallet connection options */
+   walletConfig?: WalletConfig;
++  /** Display faucet button for testnet chains */
++  showFaucet?: boolean;
+ };
+ 
+ export type WalletConfig = {
+@@ -138,11 +141,31 @@ export type WalletConfig = {
+   coinbaseWallet?: CoinbaseWalletParameters;
+ };
+ 
++/** Configure the networks, tokens and contracts that should be supported.
++ * List of all supported networks, transfer tokens, and their configurations: https://docs.chain.link/ccip/directory */
++export type NetworkConfig = {
++  /** List of all chains that should be supported */
++  chains: { chain: Chain; logoURL?: string }[];
++  /** You should provide a list of tokens that your app will support transfering.
++   * Refer to [CCIP documentation](https://docs.chain.link/ccip/supported-networks) for list of all currently supported
++   * tokens. For instructions on acquiring testnet tokens, refer to the documentation on
++   *  [CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
++   */
++  tokensList: Token[];
++  /** Addresses for the LINK token contract on the corresponding chains */
++  linkContracts: AddressMap;
++  /** Addresses for the router contracts on the corresponding chains */
++  routerAddresses: AddressMap;
++  /** Selectors for the chains that should be supported */
++  chainSelectors: {
++    [chainId: number]: string | undefined;
++  };
++};
++
+ export type ConfigProps = {
+   config?: Config;
+   drawer?: DrawerProps;
+-  /** Refer to CCIP docs for a list of the supported tokens: https://docs.chain.link/ccip/supported-networks */
+-  tokensList: Token[];
++  networkConfig: NetworkConfig;
+ };
+ 
+ export type DrawerProps = {
+@@ -163,15 +186,15 @@ export type TDrawer = {
+   closeDrawer(): void;
+ };
+ 
+-export declare type TokenMap = {
++export declare type AddressMap = {
+   [chainId: number]: Address | undefined;
+-}
++};
+ 
+ export declare type Token = {
+   /** The token's symbol that will be shown in the UI  */
+   symbol: string;
+   /** The token's address, represented as a mapping by chainId */
+-  address: TokenMap;
++  address: AddressMap;
+   /** URL of the token's logo that will be shown in the UI */
+   logoURL: string;
+   /** A list of meta information tags for organizing and sorting */
+diff --git a/packages/ccip-react-components/lib/utils/config.ts b/packages/ccip-react-components/lib/utils/config.ts
+index d617f34..b1b7eb7 100644
+--- a/packages/ccip-react-components/lib/utils/config.ts
++++ b/packages/ccip-react-components/lib/utils/config.ts
+@@ -1,63 +1,15 @@
+-import { Address, createClient } from 'viem';
++import { createClient } from 'viem';
+ import { http, createConfig, Config as WagmiConfig } from 'wagmi';
+-import {
+-  arbitrumSepolia,
+-  avalancheFuji,
+-  baseSepolia,
+-  Chain,
+-  bscTestnet,
+-  optimismSepolia,
+-  polygonAmoy,
+-  sepolia,
+-} from 'wagmi/chains';
++import { Chain } from 'wagmi/chains';
+ import { Config } from '@/types';
+ 
+-export const chains: readonly [Chain, ...Chain[]] = [
+-  arbitrumSepolia,
+-  avalancheFuji,
+-  baseSepolia,
+-  bscTestnet,
+-  sepolia,
+-  optimismSepolia,
+-  polygonAmoy,
+-];
+-
+-export const config: WagmiConfig = createConfig({
+-  chains,
+-  client({ chain }) {
+-    return createClient({ chain, transport: http() });
+-  },
+-});
+-
+-export const LINK_CONTRACTS: Record<string, Address> = {
+-  [arbitrumSepolia.id]: '0xb1D4538B4571d411F07960EF2838Ce337FE1E80E',
+-  [avalancheFuji.id]: '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846',
+-  [baseSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+-  [bscTestnet.id]: '0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06',
+-  [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+-  [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+-  [polygonAmoy.id]: '0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904',
+-};
+-
+-export const ROUTER_ADDRESSES: Record<string, Address> = {
+-  [arbitrumSepolia.id]: '0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165',
+-  [avalancheFuji.id]: '0xF694E193200268f9a4868e4Aa017A0118C9a8177',
+-  [baseSepolia.id]: '0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93',
+-  [bscTestnet.id]: '0xE1053aE1857476f36A3C62580FF9b016E8EE8F6f',
+-  [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
+-  [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+-  [polygonAmoy.id]: '0x9C32fCB86BF0f4a1A8921a9Fe46de3198bb884B2',
+-};
+-
+-export const CHAIN_SELECTORS: Record<string, string> = {
+-  [arbitrumSepolia.id]: '3478487238524512106',
+-  [avalancheFuji.id]: '14767482510784806043',
+-  [baseSepolia.id]: '10344971235874465080',
+-  [bscTestnet.id]: '13264668187771770619',
+-  [sepolia.id]: '16015286601757825753',
+-  [optimismSepolia.id]: '5224473277236331295',
+-  [polygonAmoy.id]: '16281711391670634445',
+-};
++export const config = (chains: [Chain, ...Chain[]]): WagmiConfig =>
++  createConfig({
++    chains,
++    client({ chain }) {
++      return createClient({ chain, transport: http() });
++    },
++  });
+ 
+ export const DEFAULT_CONFIG: Config = {
+   theme: {
+diff --git a/packages/ccip-react-components/lib/utils/index.ts b/packages/ccip-react-components/lib/utils/index.ts
+index 2830da6..6a92210 100644
+--- a/packages/ccip-react-components/lib/utils/index.ts
++++ b/packages/ccip-react-components/lib/utils/index.ts
+@@ -1,7 +1,6 @@
+ import { AllowDeny, Token } from '@/types';
+ import { type ClassValue, clsx } from 'clsx';
+ import { twMerge } from 'tailwind-merge';
+-import { CHAIN_SELECTORS, ROUTER_ADDRESSES } from './config';
+ 
+ export function cn(...inputs: ClassValue[]) {
+   return twMerge(clsx(inputs));
+@@ -14,22 +13,6 @@ export const isItemAllowed = <T>(itemId: T, items?: AllowDeny<T>) => {
+   return !items?.deny?.includes(itemId);
+ };
+ 
+-export const getRouterAddress = (chainId: number) => {
+-  const routerAddress = ROUTER_ADDRESSES[chainId];
+-  if (!routerAddress) {
+-    throw new Error(`Router address not found for chainId: ${chainId}`);
+-  }
+-  return routerAddress;
+-};
+-
+-export const getChainSelector = (chainId: number) => {
+-  const chainSelector = CHAIN_SELECTORS[chainId];
+-  if (!chainSelector) {
+-    throw new Error(`Chain selector not found for chainId: ${chainId}`);
+-  }
+-  return chainSelector;
+-};
+-
+ export const isTokenOnChain = ({
+   tokensList,
+   symbol,
+diff --git a/packages/ccip-react-components/package.json b/packages/ccip-react-components/package.json
+index 8c274ec..275179a 100644
+--- a/packages/ccip-react-components/package.json
++++ b/packages/ccip-react-components/package.json
+@@ -1,7 +1,7 @@
+ {
+   "name": "@chainlink/ccip-react-components",
+   "private": false,
+-  "version": "0.2.1",
++  "version": "0.2.2",
+   "type": "module",
+   "main": "./dist/index.umd.js",
+   "module": "./dist/index.es.js",
+@@ -27,7 +27,7 @@
+     "coverage": "vitest --environment jsdom run --coverage"
+   },
+   "dependencies": {
+-    "@chainlink/ccip-js": "0.2.1",
++    "@chainlink/ccip-js": "^0.2.1",
+     "@hookform/resolvers": "^3.9.0",
+     "@radix-ui/react-dialog": "^1.1.1",
+     "@radix-ui/react-label": "^2.1.0",
+diff --git a/packages/ccip-react-components/tailwind.config.js b/packages/ccip-react-components/tailwind.config.js
+index 5019e13..15b959a 100644
+--- a/packages/ccip-react-components/tailwind.config.js
++++ b/packages/ccip-react-components/tailwind.config.js
+@@ -1,5 +1,7 @@
++import tailwindAnimate from "tailwindcss-animate"
++
+ /** @type {import('tailwindcss').Config} */
+-module.exports = {
++export default {
+   darkMode: ["class"],
+   content: ["./lib/**/*.{js,ts,jsx,tsx}"],
+   prefix: "",
+@@ -79,5 +81,5 @@ module.exports = {
+       },
+     },
+   },
+-  plugins: [require("tailwindcss-animate")],
++  plugins: [tailwindAnimate],
+ }
+\ No newline at end of file
+-- 
+2.39.5 (Apple Git-154)
+

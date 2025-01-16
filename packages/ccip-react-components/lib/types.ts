@@ -1,4 +1,5 @@
 import { Address } from 'viem';
+import { Chain } from 'wagmi/chains';
 import {
   CoinbaseWalletParameters,
   MetaMaskParameters,
@@ -116,6 +117,8 @@ export type Config = {
   token?: string;
   /** Configure the wallet connection options */
   walletConfig?: WalletConfig;
+  /** Display faucet button for testnet chains */
+  showFaucet?: boolean;
 };
 
 export type WalletConfig = {
@@ -138,11 +141,31 @@ export type WalletConfig = {
   coinbaseWallet?: CoinbaseWalletParameters;
 };
 
+/** Configure the networks, tokens and contracts that should be supported.
+ * List of all supported networks, transfer tokens, and their configurations: https://docs.chain.link/ccip/directory */
+export type NetworkConfig = {
+  /** List of all chains that should be supported */
+  chains: { chain: Chain; logoURL?: string }[];
+  /** You should provide a list of tokens that your app will support transfering.
+   * Refer to [CCIP documentation](https://docs.chain.link/ccip/supported-networks) for list of all currently supported
+   * tokens. For instructions on acquiring testnet tokens, refer to the documentation on
+   *  [CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
+   */
+  tokensList: Token[];
+  /** Addresses for the LINK token contract on the corresponding chains */
+  linkContracts: AddressMap;
+  /** Addresses for the router contracts on the corresponding chains */
+  routerAddresses: AddressMap;
+  /** Selectors for the chains that should be supported */
+  chainSelectors: {
+    [chainId: number]: string | undefined;
+  };
+};
+
 export type ConfigProps = {
   config?: Config;
   drawer?: DrawerProps;
-  /** Refer to CCIP docs for a list of the supported tokens: https://docs.chain.link/ccip/supported-networks */
-  tokensList: Token[];
+  networkConfig: NetworkConfig;
 };
 
 export type DrawerProps = {
@@ -163,15 +186,15 @@ export type TDrawer = {
   closeDrawer(): void;
 };
 
-export declare type TokenMap = {
+export declare type AddressMap = {
   [chainId: number]: Address | undefined;
-}
+};
 
 export declare type Token = {
   /** The token's symbol that will be shown in the UI  */
   symbol: string;
   /** The token's address, represented as a mapping by chainId */
-  address: TokenMap;
+  address: AddressMap;
   /** URL of the token's logo that will be shown in the UI */
   logoURL: string;
   /** A list of meta information tags for organizing and sorting */

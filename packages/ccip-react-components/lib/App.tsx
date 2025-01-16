@@ -10,10 +10,10 @@ import { cn } from '@/utils';
 import { ConfigProps, TDrawer } from '@/types';
 
 export const App = forwardRef<TDrawer, ConfigProps>(
-  ({ config, drawer, tokensList }, ref) => {
+  ({ config, drawer, networkConfig }, ref) => {
     if (config?.variant === 'drawer') {
       return (
-        <Providers config={config} tokensList={tokensList}>
+        <Providers config={config} networkConfig={networkConfig}>
           <Drawer open={drawer?.open} ref={ref}>
             <Container>
               <Default />
@@ -24,7 +24,7 @@ export const App = forwardRef<TDrawer, ConfigProps>(
     }
 
     return (
-      <Providers config={config} tokensList={tokensList}>
+      <Providers config={config} networkConfig={networkConfig}>
         <Container>
           <Default />
         </Container>

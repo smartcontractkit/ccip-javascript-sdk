@@ -1,7 +1,6 @@
 import { AllowDeny, Token } from '@/types';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { CHAIN_SELECTORS, ROUTER_ADDRESSES } from './config';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,22 +11,6 @@ export const isItemAllowed = <T>(itemId: T, items?: AllowDeny<T>) => {
     return items.allow.includes(itemId);
   }
   return !items?.deny?.includes(itemId);
-};
-
-export const getRouterAddress = (chainId: number) => {
-  const routerAddress = ROUTER_ADDRESSES[chainId];
-  if (!routerAddress) {
-    throw new Error(`Router address not found for chainId: ${chainId}`);
-  }
-  return routerAddress;
-};
-
-export const getChainSelector = (chainId: number) => {
-  const chainSelector = CHAIN_SELECTORS[chainId];
-  if (!chainSelector) {
-    throw new Error(`Chain selector not found for chainId: ${chainId}`);
-  }
-  return chainSelector;
 };
 
 export const isTokenOnChain = ({

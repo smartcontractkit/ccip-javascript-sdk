@@ -9,8 +9,9 @@ import {
   useReadContract,
 } from 'wagmi';
 import { useAppContext } from '@/hooks/useAppContext';
-import { getRouterAddress, getChainSelector } from '@/utils';
 import { Error } from '@/components/Error';
+import { useRouters } from '@/hooks/useRouters';
+import { useChainSelectors } from '@/hooks/useChainSelectors';
 
 export const RateLimit = ({
   sourceChain,
@@ -39,6 +40,9 @@ export const RateLimit = ({
     abi: IERC20ABI,
     functionName: 'decimals',
   });
+
+  const { getRouterAddress } = useRouters();
+  const { getChainSelector } = useChainSelectors();
 
   const routerAddress = getRouterAddress(sourceChain);
   const destinationChainSelector = getChainSelector(destinationChain);

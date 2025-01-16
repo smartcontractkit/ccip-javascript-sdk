@@ -149,7 +149,12 @@ describe('SendButton', () => {
     render(
       <Context.Provider
         value={{
+          chains: [],
+          chainsInfo: {},
           tokensList: [],
+          linkContracts: {},
+          routerAddresses: {},
+          chainSelectors: {},
           setTransferHash: () => null,
           setMessageId: () => null,
           setSourceChainId: () => null,
