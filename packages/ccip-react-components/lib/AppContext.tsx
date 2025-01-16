@@ -1,5 +1,5 @@
-import { DEFAULT_CONFIG, LINK_CONTRACTS } from '@/utils/config';
-import { Config, ConfigProps, Token } from '@/types';
+import { DEFAULT_CONFIG } from '@/utils/config';
+import { AddressMap, Config, ConfigProps, Token } from '@/types';
 import {
   createContext,
   PropsWithChildren,
@@ -9,11 +9,19 @@ import {
   useState,
 } from 'react';
 import { Address } from 'viem';
+import { Chain } from 'wagmi/chains';
 import { useAccount, useBalance } from 'wagmi';
 
 export const Context = createContext<{
   config?: Config;
   tokensList: Token[];
+  chains: Chain[];
+  chainsInfo: { [chainId: number]: { logoURL?: string; name: string } };
+  linkContracts: AddressMap;
+  routerAddresses: AddressMap;
+  chainSelectors: {
+    [chainId: number]: string | undefined;
+  };
   transferHash?: Address;
   messageId?: Address;
   sourceChainId?: number;
@@ -31,7 +39,12 @@ export const Context = createContext<{
   isConnectOpen?: boolean;
   setIsConnectOpen: (open: boolean) => void;
 }>({
+  chains: [],
+  chainsInfo: [],
   tokensList: [],
+  linkContracts: {},
+  routerAddresses: {},
+  chainSelectors: {},
   setTransferHash: () => null,
   setMessageId: () => null,
   setSourceChainId: () => null,
@@ -43,7 +56,7 @@ export const Context = createContext<{
 
 export const ContextProvider = ({
   config: configProp,
-  tokensList,
+  networkConfig,
   children,
 }: PropsWithChildren<ConfigProps>) => {
   const [transferHash, setTransferHash] = useState<Address | undefined>();
@@ -71,8 +84,34 @@ export const ContextProvider = ({
       chains: configProp?.chains,
       variant: configProp?.variant,
       walletConfig: configProp?.walletConfig,
+      showFaucet: configProp?.showFaucet,
     }),
     [configProp]
+  );
+
+  const {
+    linkContracts,
+    routerAddresses,
+    chainSelectors,
+    chains: chainsProp,
+    tokensList,
+  } = networkConfig;
+
+  const chains = useMemo(
+    () => chainsProp.map(({ chain }) => chain),
+    [chainsProp]
+  );
+
+  const chainsInfo = useMemo(
+    () =>
+      chainsProp.reduce(
+        (a, v) => ({
+          ...a,
+          [v.chain.id]: { logoURL: v.logoURL, name: v.chain.name },
+        }),
+        {}
+      ),
+    [chainsProp]
   );
 
   const { chain, chainId, address } = useAccount();
@@ -90,10 +129,10 @@ export const ContextProvider = ({
   useEffect(() => {
     if (chainId) {
       feeTokenSymbol === 'LINK'
-        ? setFeeTokenAddress(LINK_CONTRACTS[chainId])
+        ? setFeeTokenAddress(linkContracts[chainId])
         : setFeeTokenAddress(undefined);
     }
-  }, [chainId, feeTokenSymbol]);
+  }, [chainId, feeTokenSymbol, linkContracts]);
 
   useEffect(() => {
     if (feeTokenBalanceResult?.value) {
@@ -113,7 +152,12 @@ export const ContextProvider = ({
     <Context.Provider
       value={{
         config,
+        chains,
+        chainsInfo,
         tokensList,
+        linkContracts,
+        routerAddresses,
+        chainSelectors,
         transferHash,
         setTransferHash: (tx: Address | undefined) => setTransferHash(tx),
         messageId,

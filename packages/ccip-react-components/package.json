@@ -1,7 +1,7 @@
 {
   "name": "@chainlink/ccip-react-components",
   "private": false,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.es.js",
@@ -27,7 +27,7 @@
     "coverage": "vitest --environment jsdom run --coverage"
   },
   "dependencies": {
-    "@chainlink/ccip-js": "0.2.1",
+    "@chainlink/ccip-js": "^0.2.1",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",

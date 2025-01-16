@@ -13,7 +13,6 @@ import { ActionButton } from '@/components/ActionButton';
 import { Balance, MaxButon } from '@/components/Balance';
 import { Fees } from '@/components/Fees';
 import { RateLimit } from '@/components/RateLimit';
-import { NETWORK_INFO } from '@/components/Logos';
 import { SquareSVG } from '@/components/svg/square';
 import { SwapSVG } from '@/components/svg/swap';
 import { CircleSVG } from '@/components/svg/circle';
@@ -39,7 +38,8 @@ const formSchema = z.object({
 
 export function BridgeForm() {
   const { style, variant } = useTheme();
-  const { fromNetworks, toNetworks, fromChain, toChain } = useChains();
+  const { fromNetworks, toNetworks, fromChain, toChain, chainsInfo } =
+    useChains();
   const { tokenBySymbol, tokensList, preselectedToken } = useTokens();
 
   const { address, chainId } = useAccount();
@@ -92,8 +92,16 @@ export function BridgeForm() {
                           asChild
                         >
                           <div className="flex items-center space-x-3">
-                            {NETWORK_INFO[sourceChainId]?.logo}
-                            <span>{NETWORK_INFO[sourceChainId]?.name}</span>
+                            {chainsInfo[Number(sourceChainId)]?.logoURL && (
+                              <img
+                                className="size-8"
+                                src={chainsInfo[Number(sourceChainId)]?.logoURL}
+                                alt={chainsInfo[Number(sourceChainId)]?.name}
+                              />
+                            )}
+                            <span>
+                              {chainsInfo[Number(sourceChainId)]?.name}
+                            </span>
                           </div>
                         </SelectValue>
                       </SelectTrigger>
@@ -123,7 +131,13 @@ export function BridgeForm() {
                             className="py-3 text-ccip-text"
                           >
                             <div className="flex items-center space-x-3">
-                              {logo}
+                              {logo && (
+                                <img
+                                  className="size-8"
+                                  src={logo}
+                                  alt={label}
+                                />
+                              )}
                               <span>{label}</span>
                             </div>
                           </SelectItem>
@@ -165,9 +179,21 @@ export function BridgeForm() {
                           asChild
                         >
                           <div className="flex items-center space-x-3">
-                            {NETWORK_INFO[destinationChainId]?.logo}
+                            {chainsInfo[Number(destinationChainId)]
+                              ?.logoURL && (
+                              <img
+                                className="size-8"
+                                src={
+                                  chainsInfo[Number(destinationChainId)]
+                                    ?.logoURL
+                                }
+                                alt={
+                                  chainsInfo[Number(destinationChainId)]?.name
+                                }
+                              />
+                            )}
                             <span>
-                              {NETWORK_INFO[destinationChainId]?.name}
+                              {chainsInfo[Number(destinationChainId)]?.name}
                             </span>
                           </div>
                         </SelectValue>
@@ -198,7 +224,13 @@ export function BridgeForm() {
                             className="py-3 text-ccip-text"
                           >
                             <div className="flex items-center space-x-3">
-                              {logo}
+                              {logo && (
+                                <img
+                                  className="size-8"
+                                  src={logo}
+                                  alt={label}
+                                />
+                              )}
                               <span>{label}</span>
                             </div>
                           </SelectItem>
