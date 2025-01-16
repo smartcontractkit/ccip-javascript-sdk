@@ -5,22 +5,21 @@ The CCIP-REACT-COMPONENTS package is a set of prebuilt ready-to-use UI component
 ## Table of contents
 
 - [CCIP-REACT-COMPONENTS](#ccip-react-components)
-   - [Table of contents](#table-of-contents)
-   - [Installation](#installation)
-   - [Quick start](#quick-start)
-   - [Tokens](#tokens)
-   - [Config](#config)
-      - [Chains](#chains)
-         - [Preselected chains](#preselected-chains)
-         - [Preselect token](#preselect-token)
-
-      - [Wallets](#wallets)
-      - [Theme](#theme)
-      - [Variants](#variants)
-         - [Drawer](#drawer)
-
-   - [Contributing](#contributing)
-   - [License](#license)
+  - [Table of contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Example Usage](#example-usage)
+  - [Network config](#network-config)
+    - [Tokens list](#tokens-list)
+  - [Config](#config)
+    - [Chains](#chains)
+      - [Preselected chains](#preselected-chains)
+      - [Preselect Token](#preselect-token)
+    - [Wallets](#wallets)
+    - [Theme](#theme)
+    - [Variants](#variants)
+      - [Drawer](#drawer)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Installation
 
@@ -44,38 +43,41 @@ Using PNPM:
 pnpm add @chainlink/ccip-react-components
 ```
 
-## Quick start
+## Example Usage
+
+For a working example of how to store, manage and use the NetworkConfig parameters, please refer to the example app here: in the [NextJS Example](../../examples/nextjs/config/networkConfig.ts)
 
 ```tsx
 import 'ccip-react-components/dist/style.css';
-import { CCIPWidget, Config, Token } from 'ccip-react-components';
+import { CCIPWidget, Config, NetworkConfig } from 'ccip-react-components';
 import { sepolia, optimismSepolia } from 'viem/chains';
 
-const tokensList: Token[] = [
-  {
-    symbol: 'CCIP-BnM',
-    address: { 
-        [arbitrumSepolia.id]:'0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
-        [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
-        [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
-        [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
-        [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
-        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05'
-    },
-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
-    tags: ['chainlink', 'default']
+const networkConfing: NetworkConfig = {
+  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
+  linkContracts: {
+    [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
   },
-  {
-    symbol: 'CCIP-LnM',
-    address: {
-      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
-      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1'
+  routerAddresses: {
+    [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
+    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+  },
+  chainSelectors: {
+    [sepolia.id]: '16015286601757825753',
+    [optimismSepolia.id]: '5224473277236331295',
+  },
+  tokensList: [
+    {
+      symbol: 'CCIP-BnM',
+      address: {
+        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+      },
+      logoURL:
+        'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
     },
-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
-    tags: ['chainlink', 'default']
-  }
-];
+  ],
+};
 
 const config: Config = {
     theme: {
@@ -90,72 +92,95 @@ const config: Config = {
     }
 };
 
-<CCIPWidget config={config} tokensList={tokensList} />;
+<CCIPWidget config={config} networkConfig={networkConfig} />;
 ```
 
-## Tokens
+## Network config
 
-You should provide a list of tokens that your app will support transferring. For a list of all currently supported tokens, refer to the [CCIP Supported Networks](https://docs.chain.link/ccip/supported-networks) page. Learn [how to get CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
+```ts
+/** Configure the networks, tokens and contracts that should be supported.
+ * List of all supported networks, transfer tokens, and their configurations: https://docs.chain.link/ccip/directory */
+export type NetworkConfig = {
+  /** List of all chains that should be supported */
+  chains: { chain: Chain; logoURL?: string }[];
+  /** You should provide a list of tokens that your app will support transfering.
+   * Refer to https://docs.chain.link/ccip/supported-networks for list of all currently supported
+   * tokens. For instructions on acquiring testnet tokens, refer to the documentation on
+   * https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer.
+   */
+  tokensList: Token[];
+  /** Addresses for the LINK token contract on the corresponding chains */
+  linkContracts: AddressMap;
+  /** Addresses for the router contracts on the corresponding chains */
+  routerAddresses: AddressMap;
+  /** Selectors for the chains that should be supported */
+  chainSelectors: {
+    [chainId: number]: string | undefined;
+  };
+};
+```
 
-```tsx 
-import { CCIPWidget, Token } from 'ccip-react-components';
+You should provide configuration for the networks and tokens that your app will support. Refer to [CCIP documentation](https://docs.chain.link/ccip/supported-networks) for list of all currently supported chains and tokens. For instructions on acquiring testnet tokens, refer to the documentation on [CCIP Test Tokens](https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer).
+
+```tsx
+import { CCIPWidget, NetworkConfig } from 'ccip-react-components';
 import { sepolia, optimismSepolia } from 'viem/chains';
 
-const tokensList: Token[] = [
-  {
-    symbol: 'CCIP-BnM',
-    address: { 
-        [arbitrumSepolia.id]:'0xA8C0c11bf64AF62CDCA6f93D3769B88BdD7cb93D',
-        [avalancheFuji.id]: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
-        [baseSepolia.id]: '0x88A2d74F47a237a62e7A51cdDa67270CE381555e',
-        [bscTestnet.id]: '0xbFA2ACd33ED6EEc0ed3Cc06bF1ac38d22b36B9e9',
+const networkConfing: NetworkConfig = {
+  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
+  linkContracts: {
+    [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+  },
+  routerAddresses: {
+    [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
+    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+  },
+  chainSelectors: {
+    [sepolia.id]: '16015286601757825753',
+    [optimismSepolia.id]: '5224473277236331295',
+  },
+  tokensList: [
+    {
+      symbol: 'CCIP-BnM',
+      address: {
+        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
         [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
-        [polygonAmoy.id]: '0xcab0EF91Bee323d1A617c0a027eE753aFd6997E4',
-        [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05'
+      },
+      logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
     },
-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
-    tags: ['chainlink', 'default']
-  },
-  {
-    symbol: 'CCIP-LnM',
-    address: {
-      [optimismSepolia.id]: '0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a',
-      [sepolia.id]: '0x466D489b6d36E7E3b824ef491C225F5830E81cC1',
-    },
-    logoURL: 'https://smartcontract.imgix.net/tokens/ccip-lnm.webp?auto=compress%2Cformat',
-    tags: ['chainlink', 'default']
-  },
-];
+  ],
+};
 
-<CCIPWidget tokensList={tokensList} />
+<CCIPWidget networkConfig={networkConfig} />;
 ```
+
+### Tokens list
 
 `tokensList` accepts an array of `Token` objects
 
 ```ts
-export declare type TokenMap = {
+export declare type AddressMap = {
   [chainId: number]: Address | undefined;
-}
+};
 
 export declare type Token = {
   /** The token's symbol that will be shown in the UI  */
   symbol: string;
   /** The token's address, represented as a mapping by chainId */
-  address: TokenMap;
+  address: AddressMap;
   /** URL of the token's logo that will be shown in the UI */
   logoURL: string;
   /** A list of meta information tags for organizing and sorting (optional) */
   tags?: string[];
 };
 
-type TokenMap = {
+type AddressMap = {
   [chainId: number]: Address | undefined;
 };
 ```
 
 ## Config
-
-All `Config` properties are optional.
 
 ```tsx
 import { CCIPWidget, Config } from 'ccip-react-components';
@@ -265,7 +290,7 @@ import { Config } from 'ccip-react-components';
 const config: Config = { walletConfig: {
   /** Configure the connection options for Injected Connectors
    * More info: https://wagmi.sh/react/api/connectors/injected
-   */ 
+   */
   injected?: InjectedParameters;
   /** Configure the connection options for MetaMask
    * More info: https://wagmi.sh/react/api/connectors/metaMask

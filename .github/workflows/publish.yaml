@@ -1,3 +1,6 @@
+# NOTE: See "prepublishOnly" script in package.json
+# NPM_TOKEN will only be populated in the context of the `publish` GH environment, see L14
+
 name: Publish to NPM
 
 on:
@@ -34,7 +37,7 @@ jobs:
         run: |
           pnpm build-ccip-js
           cd packages/ccip-js
-          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JAVASCRIPT_SDK }}
+          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JS }}
           pnpm publish --no-git-checks --access public
         shell: bash    
 
@@ -42,6 +45,6 @@ jobs:
         run: |
           pnpm build-components
           cd packages/ccip-react-components
-          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JAVASCRIPT_SDK }}
+          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_REACT_COMPONENTS }}
           pnpm publish --no-git-checks --access public
-        shell: bash 
+        shell: bash  

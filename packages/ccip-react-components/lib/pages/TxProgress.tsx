@@ -8,11 +8,13 @@ import {
 } from 'wagmi';
 import { TransferStatus } from '@chainlink/ccip-js';
 import { ccipClient } from '@/utils/ccip-client';
-import { cn, getChainSelector, getRouterAddress } from '@/utils';
+import { cn } from '@/utils';
 import { useAppContext } from '@/hooks/useAppContext';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CardContent } from '@/components/ui/card';
+import { useRouters } from '@/hooks/useRouters';
+import { useChainSelectors } from '@/hooks/useChainSelectors';
 
 const STATUS_POLL_INTERVAL = 10000; // 10 seconds
 
@@ -36,6 +38,9 @@ export const TxProgress = () => {
   const { isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
     hash: transferHash,
   });
+
+  const { getRouterAddress } = useRouters();
+  const { getChainSelector } = useChainSelectors();
 
   const { data: transferStatus } = useQuery({
     queryKey: ['transferStatus', messageId, destinationChainId, sourceChainId],

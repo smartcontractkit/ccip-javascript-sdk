@@ -25,4 +25,5 @@ export const config: Config = {
     },
     shape: { radius: 4 },
   },
+  showFaucet: true,
 };
