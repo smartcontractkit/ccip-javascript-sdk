@@ -4,8 +4,8 @@ import '@chainlink/ccip-react-components/dist/style.css';
 import { TDrawer, CCIPWidget } from '@chainlink/ccip-react-components';
 
 import { useRef } from 'react';
-import { tokensList } from '@/config/tokensList';
 import { config } from '@/config';
+import { networkConfig } from '@/config/networkConfig';
 
 export function DrawerWidget() {
   const drawerRef = useRef<TDrawer>(null);
@@ -23,7 +23,7 @@ export function DrawerWidget() {
       </button>
       <CCIPWidget
         config={{ ...config, variant: 'drawer' }}
-        tokensList={tokensList}
+        networkConfig={networkConfig}
         ref={drawerRef}
       />
     </>

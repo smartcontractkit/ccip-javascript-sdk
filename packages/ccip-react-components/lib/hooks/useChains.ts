@@ -1,14 +1,12 @@
-import { NETWORK_INFO } from '@/components/Logos';
 import { useAppContext } from '@/hooks/useAppContext';
-import { chains } from '@/utils/config';
 import { isItemAllowed } from '@/utils';
 import { useMemo } from 'react';
 
 export const useChains = () => {
-  const { config } = useAppContext();
+  const { config, chains, chainsInfo } = useAppContext();
   const filteredChains = useMemo(
     () => chains.filter((chain) => isItemAllowed(chain.id, config?.chains)),
-    [config?.chains]
+    [chains, config?.chains]
   );
 
   const fromChains = useMemo(
@@ -32,9 +30,9 @@ export const useChains = () => {
       fromChains.map((chain) => ({
         chainId: `${chain.id}`,
         label: chain.name,
-        logo: NETWORK_INFO[chain.id]?.logo,
+        logo: chainsInfo[chain.id]?.logoURL,
       })),
-    [fromChains]
+    [chainsInfo, fromChains]
   );
 
   const toNetworks = useMemo(
@@ -42,9 +40,9 @@ export const useChains = () => {
       toChains.map((chain) => ({
         chainId: `${chain.id}`,
         label: chain.name,
-        logo: NETWORK_INFO[chain.id]?.logo,
+        logo: chainsInfo[chain.id]?.logoURL,
       })),
-    [toChains]
+    [chainsInfo, toChains]
   );
 
   const fromChain = useMemo(
@@ -75,5 +73,6 @@ export const useChains = () => {
     toNetworks,
     fromChain,
     toChain,
+    chainsInfo,
   };
 };

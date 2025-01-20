@@ -5,17 +5,23 @@ import { Context } from './AppContext';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { config as wagmiConfig } from '@/utils/config';
+import { optimismSepolia, sepolia } from 'viem/chains';
 
 const queryClient = new QueryClient();
 
 describe('AppDefault', () => {
   test('render transfer status page', () => {
     render(
-      <WagmiProvider config={wagmiConfig}>
+      <WagmiProvider config={wagmiConfig([sepolia, optimismSepolia])}>
         <QueryClientProvider client={queryClient}>
           <Context.Provider
             value={{
+              chains: [],
+              chainsInfo: {},
               tokensList: [],
+              linkContracts: {},
+              routerAddresses: {},
+              chainSelectors: {},
               setTransferHash: () => null,
               setMessageId: () => null,
               setSourceChainId: () => null,

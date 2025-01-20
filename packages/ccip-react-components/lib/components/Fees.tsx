@@ -3,7 +3,7 @@ import { useAccount, usePublicClient, useReadContract } from 'wagmi';
 import { Address, formatEther, parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
 import { IERC20ABI } from '@chainlink/ccip-js';
-import { cn, getChainSelector, getRouterAddress } from '@/utils';
+import { cn } from '@/utils';
 import { ccipClient } from '@/utils/ccip-client';
 import { useAppContext } from '@/hooks/useAppContext';
 import {
@@ -17,6 +17,8 @@ import { Error } from '@/components/Error';
 import { InfoSVG } from '@/components/svg/info';
 import { InfoTooltipSVG } from '@/components/svg/info-tooltip';
 import { ChevronSVG } from '@/components/svg/chevron';
+import { useRouters } from '@/hooks/useRouters';
+import { useChainSelectors } from '@/hooks/useChainSelectors';
 
 export const Fees = ({
   sourceChain,
@@ -47,6 +49,9 @@ export const Fees = ({
     abi: IERC20ABI,
     functionName: 'decimals',
   });
+
+  const { getRouterAddress } = useRouters();
+  const { getChainSelector } = useChainSelectors();
 
   const routerAddress = getRouterAddress(sourceChain);
   const destinationChainSelector = getChainSelector(destinationChain);

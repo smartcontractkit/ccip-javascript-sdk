@@ -5,9 +5,9 @@ import { Address } from 'viem';
 
 import { useAppContext } from '@/hooks/useAppContext';
 import { Button } from '@/components/ui/button';
-import { NETWORK_INFO } from '@/components/Logos';
 import { SendButton } from '@/components/SendButton';
 import { Error } from '@/components/Error';
+import { useChains } from '@/hooks/useChains';
 
 export function ActionButton({
   sourceChain,
@@ -54,6 +54,7 @@ export function ActionButton({
 
 function SwitchNetworkButton({ chainId }: { chainId: number }) {
   const { switchChain, isPending, error, isError } = useSwitchChain();
+  const { chainsInfo } = useChains();
   return (
     <>
       {isError && <Error message={error.message.split('.')[0]} />}
@@ -62,7 +63,7 @@ function SwitchNetworkButton({ chainId }: { chainId: number }) {
         className="w-full text-xl leading-6 h-[52px]"
         onClick={() => switchChain({ chainId })}
       >
-        Switch to {`${NETWORK_INFO[chainId].name ?? 'Unknown'}`}
+        Switch to {`${chainsInfo[chainId].name ?? 'Unknown'}`}
       </Button>
     </>
   );
