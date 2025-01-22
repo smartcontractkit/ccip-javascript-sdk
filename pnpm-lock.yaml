@@ -22,10 +22,10 @@ importers:
   examples/nextjs:
     dependencies:
       '@chainlink/ccip-js':
-        specifier: 0.2.1
+        specifier: ^0.2.1
         version: link:../../packages/ccip-js
       '@chainlink/ccip-react-components':
-        specifier: 0.2.1
+        specifier: ^0.3.0
         version: link:../../packages/ccip-react-components
       '@tanstack/react-query':
         specifier: ^5.37.1
@@ -168,7 +168,7 @@ importers:
   packages/ccip-react-components:
     dependencies:
       '@chainlink/ccip-js':
-        specifier: 0.2.1
+        specifier: ^0.2.1
         version: link:../ccip-js
       '@hookform/resolvers':
         specifier: ^3.9.0

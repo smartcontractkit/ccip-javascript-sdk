@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@chainlink/ccip-js": "^0.2.1",
-    "@chainlink/ccip-react-components": "^0.2.1",
+    "@chainlink/ccip-react-components": "^0.3.0",
     "@tanstack/react-query": "^5.37.1",
     "next": "14.2.3",
     "react": "18",
