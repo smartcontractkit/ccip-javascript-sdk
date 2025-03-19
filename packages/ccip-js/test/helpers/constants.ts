@@ -11,9 +11,16 @@ import priceRegistryJson from '../../artifacts-compile/PriceRegistry.json'
 // replace with your own private key (optional)
 dotenv.config()
 
-// default anvil PK
+if (!process.env.PRIVATE_KEY) {
+  console.warn('No PRIVATE_KEY found in .env file, using default anvil PK')
+}
+
+if (!process.env.PRIVATE_KEY?.startsWith('0x')) {
+  process.env.PRIVATE_KEY = '0x' + process.env.PRIVATE_KEY
+}
+
 export const privateKey =
-  (process.env.PRIVATE_KEY as Hex) || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+  (process.env.PRIVATE_KEY as Hex) || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' // default anvil PK
 export const account = privateKeyToAccount(privateKey)
 
 // bridge token contract
