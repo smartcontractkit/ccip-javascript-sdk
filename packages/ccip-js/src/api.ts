@@ -617,7 +617,7 @@ export const createClient = (): Client => {
 
     const approveTxHash = await writeContract(options.client, {
       chain: options.client.chain,
-      account: options.client.account,
+      account: options.client.account as any,
       abi: IERC20ABI,
       address: options.tokenAddress,
       functionName: 'approve',
@@ -852,7 +852,7 @@ export const createClient = (): Client => {
       address: options.routerAddress,
       functionName: 'ccipSend',
       args: buildArgs(options),
-      account: options.client.account,
+      account: options.client.account as any,
       ...(!options.feeTokenAddress && {
         value: await getFee(options),
       }),
@@ -905,7 +905,7 @@ export const createClient = (): Client => {
       address: options.routerAddress,
       functionName: 'ccipSend',
       args: buildArgs(options),
-      account: options.client.account,
+      account: options.client.account as any,
       ...(!options.feeTokenAddress && {
         value: await getFee(options),
       }),
