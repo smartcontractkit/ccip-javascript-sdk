@@ -2,32 +2,12 @@ import { jest, expect, it, describe, afterEach } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import * as viemActions from 'viem/actions'
-import {
-  Address,
-  encodeAbiParameters,
-  encodeFunctionData,
-  getContract,
-  parseEther,
-  zeroAddress,
-} from 'viem'
-
+import { parseEther, zeroAddress } from 'viem'
 import { testClient } from './helpers/clients'
-import {
-  account,
-  ccipLog,
-  ccipTxHash,
-  ccipTxReceipt,
-  onRampAbi,
-  routerAbi,
-} from './helpers/constants'
+import { account, ccipLog, ccipTxHash, ccipTxReceipt } from './helpers/constants'
 import { getContracts, setOnRampAddress } from './helpers/contracts'
-// getSupportedFeeTokens
 import { mineBlock } from './helpers/utils'
-
-import { expect as expectChai } from 'chai'
 import { getSupportedFeeTokens } from './helpers/config'
-// import { readContract } from 'viem/actions'
-// import { getTokenAdminRegistry } from './helpers/config'
 
 const ccipClient = CCIP.createClient()
 const isFork = false
@@ -46,15 +26,15 @@ describe('Integration', () => {
   describe('√ deploy on HH', () => {
     it("Should Deploy Router.sol", async function () {
       const { router } = await getContracts()
-      expectChai(router.address).to.not.equal(0);
+      expect(router.address).not.toBe(zeroAddress);
     });
     it("Should Deploy BridgeToken.sol", async function () {
       const { bridgeToken } = await getContracts()
-      expectChai(bridgeToken.address).to.not.equal(0);
+      expect(bridgeToken.address).not.toBe(zeroAddress);
     });
     it("Should Deploy CCIPLocalSimulator.sol", async function () {
       const { localSimulator } = await getContracts()
-      expectChai(localSimulator.address).to.not.equal(0);
+      expect(localSimulator.address).not.toBe(zeroAddress);
     })
 
     console.log('\u2705 | Deployed Smart Contracts on local Hardhat')
@@ -90,9 +70,7 @@ describe('Integration', () => {
     })
 
     it('√ should get txReceipt if approve invoked with waitForReceipt', async () => {
-      // writeContractMock.mockResolvedValueOnce(ccipTxHash)
-      // waitForTransactionReceiptMock.mockResolvedValue(ccipTxReceipt)
-      const { bridgeToken, localSimulator, router } = await getContracts()
+      const { bridgeToken, router } = await getContracts()
       const approvedAmount = parseEther('0')
 
       const { txReceipt } = await ccipClient.approveRouter({
@@ -103,8 +81,7 @@ describe('Integration', () => {
         waitForReceipt: true,
       })
 
-      // @ts-ignore
-      const txHash = txReceipt.transactionHash
+      const txHash = txReceipt?.transactionHash
       expect(txHash).toStrictEqual(ccipTxHash)
       console.log('\u2705 | Gets txReceipt if approve invoked with waitForReceipt')
     })
@@ -224,54 +201,6 @@ describe('Integration', () => {
     })
   })
 
-  // describe('getFee', () => {
-
-  //   it('should return the correct fee for a transfer', async () => {
-  //     const { router } = await getContracts()
-  //     const expectedFee = 300000000000000n
-  //     readContractMock.mockResolvedValueOnce(expectedFee)
-  //     const data = encodeFunctionData({
-  //       abi: CCIP.IERC20ABI,
-  //       functionName: 'transfer',
-  //       args: [Viem.zeroAddress, Viem.parseEther('0.12')],
-  //     })
-  //     const hhFee = await router.read.getFee([
-  //       '14767482510784806043',   // destinationChainSelector: '14767482510784806043',
-  //       encodeAbiParameters([{ type: 'string', name: 'data' }], ["Hello"])   // data: encodeAbiParameters([{ type: 'string', name: 'data' }], ["Hello"])
-  //     ]) as bigint
-  //     mineBlock(isFork)
-  //     console.log({ hhFee })
-  //     const ccipFee = await ccipClient.getFee({
-  //       client: testClient,
-  //       routerAddress: router.address,
-  //       destinationChainSelector: '14767482510784806043',
-  //       destinationAccount: zeroAddress,
-  //       amount: 1000000000000000000n,
-  //       tokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
-  //     })
-  //     console.log({ ccipFee })
-  //     // expect(ccipFee).toEqual(expectedFee)
-  //   })
-  // })
-
-  // describe('getTokenAdminRegistry', () => {
-  //   it('should return token admin registry', async () => {
-  //     const routerAddress = router.address
-  //     // await expect(
-  //     // async () => {
-  //     // const tokenAdminRegistry = await ccipClient.getTokenAdminRegistry({
-  //     //   client: testClient,
-  //     //   routerAddress: routerAddress,
-  //     //   destinationChainSelector: '14767482510784806043',
-  //     //   tokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
-  //     // })
-  //     // console.log({tokenAdminRegistry})
-  //     // expect(tokenAdminRegistry).toBe('0x95F29FEE11c5C55d26cCcf1DB6772DE953B37B82')
-  //     // }
-  //     // ).rejects.toThrow('Router address 0x0000000000000000000000000000000000000000 is not valid')
-  //   })
-  // })
-
   describe('isTokenSupported', () => {
     it('should return true if token is supported', async () => {
       const { router } = await getContracts()
@@ -290,12 +219,6 @@ describe('Integration', () => {
       readContractMock.mockResolvedValueOnce('0xF081aCC599dFD65cdFD43934d2D8e2C7ad0277aE')
       readContractMock.mockResolvedValueOnce(true)
 
-      // const hhTokenSupported = await router.read.isTokenSupported([
-      //   '14767482510784806043',
-      //   '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
-      // ])
-
-      // console.log({ hhTokenSupported })
       const ccipTokenSupported = await ccipClient.isTokenSupported({
         client: testClient,
         routerAddress: router.address,
@@ -309,19 +232,11 @@ describe('Integration', () => {
 
   describe('transferTokens', () => {
     it('should successfully transfer tokens with minimal input', async () => {
-      const { router } = await getContracts()
       readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(ccipTxReceipt)
       parseEventLogsMock.mockReturnValue(ccipLog as never)
       mineBlock(isFork)
-
-      // const hhTransfer = await router.write.ccipSend([
-      //   14767482510784806043n,  // destinationChainSelector
-      //   zeroAddress             // destinationAccount
-      // ])
-      // mineBlock(isFork)
-      // console.log({ hhTransfer })
 
       const transfer = await ccipClient.transferTokens({
         client: testClient,
@@ -380,7 +295,7 @@ describe('Integration', () => {
     })
 
     it('should get messageId on sendCCIPMessage', async () => {
-      const { bridgeToken, localSimulator, router } = await getContracts()
+      const { router } = await getContracts()
 
       readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
@@ -399,7 +314,7 @@ describe('Integration', () => {
     })
   })
   it('should send message with a function as data', async () => {
-    const { bridgeToken, localSimulator, router } = await getContracts()
+    const { router } = await getContracts()
 
     readContractMock.mockResolvedValueOnce(300000000000000n)
     writeContractMock.mockResolvedValueOnce(ccipTxHash)

@@ -13,23 +13,23 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chainlink/ccip-js": "^0.2.1",
-    "@chainlink/ccip-react-components": "^0.3.0",
+    "@chainlink/ccip-js": "latest",
+    "@chainlink/ccip-react-components": "latest",
     "@tanstack/react-query": "^5.37.1",
     "next": "14.2.3",
-    "react": "18",
-    "react-dom": "18",
-    "typescript": "^5",
-    "viem": "2.21.25",
-    "wagmi": "^2.12.7"
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "^5.8.2",
+    "viem": "2.23.13",
+    "wagmi": "^2.14.15"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.3",
-    "postcss": "^8",
+    "@types/node": "^22.13.11",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.22.0",
+    "eslint-config-next": "15.2.3",
+    "postcss": "^8.5.3",
     "tailwindcss": "^3.4.1"
   }
 }
