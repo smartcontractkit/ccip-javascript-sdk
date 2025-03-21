@@ -39,11 +39,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="1"
-        chainId={11155111}
+        chainId={11_155_111}
       />
     );
     const div = screen.getByText(
@@ -76,11 +76,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="4"
-        chainId={11155111}
+        chainId={11_155_111}
       />
     );
     const div = screen.getByText('Amount exceeds capacity per transaction.');
@@ -110,11 +110,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="1"
-        chainId={11155111}
+        chainId={11_155_111}
       />
     );
     const div = screen.getByRole('generic');

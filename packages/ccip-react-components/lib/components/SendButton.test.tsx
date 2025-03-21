@@ -56,7 +56,7 @@ describe('SendButton', () => {
 
     render(
       <SendButton
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         destinationAccount="0x748Cab9A6993A24CA6208160130b3f7b79098c6d"
@@ -99,7 +99,7 @@ describe('SendButton', () => {
 
     render(
       <SendButton
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         destinationAccount="0x748Cab9A6993A24CA6208160130b3f7b79098c6d"
@@ -167,7 +167,7 @@ describe('SendButton', () => {
         }}
       >
         <SendButton
-          sourceChain={11155111}
+          sourceChain={11_155_111}
           destinationChain={43113}
           tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
           destinationAccount="0x748Cab9A6993A24CA6208160130b3f7b79098c6d"
@@ -216,7 +216,7 @@ describe('SendButton', () => {
 
     render(
       <SendButton
-        sourceChain={11155111}
+        sourceChain={11_155_111}
         destinationChain={43113}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         destinationAccount="0x748Cab9A6993A24CA6208160130b3f7b79098c6d"

@@ -13,6 +13,28 @@ import {
   sepolia,
 } from 'viem/chains';
 
+interface CompatibleChain {
+  id: number;
+  name: string;
+  nativeCurrency?: {
+    name: string;
+    symbol: string;
+    decimals: number;
+  };
+  rpcUrls?: {
+    default: {
+      http: readonly string[];
+    };
+  };
+  blockExplorers?: {
+    default: {
+      name: string;
+      url: string;
+      apiUrl: string;
+    };
+  };
+}
+
 const tokensList: Token[] = [
   {
     symbol: 'CCIP-BnM',
@@ -76,39 +98,39 @@ const tokensList: Token[] = [
   },
 ];
 
-const chains = [
+const chains: { chain: CompatibleChain; logoURL: string }[] = [
   {
-    chain: arbitrumSepolia,
+    chain: arbitrumSepolia as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/arbitrum.svg?auto=compress%2Cformat',
   },
   {
-    chain: avalancheFuji,
+    chain: avalancheFuji as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/avalanche.svg?auto=compress%2Cformat',
   },
   {
-    chain: baseSepolia,
+    chain: baseSepolia as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/base.svg?auto=compress%2Cformat',
   },
   {
-    chain: bscTestnet,
+    chain: bscTestnet as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/bsc.svg?auto=compress%2Cformat',
   },
   {
-    chain: sepolia,
+    chain: sepolia as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/ethereum.svg?auto=compress%2Cformat',
   },
   {
-    chain: optimismSepolia,
+    chain: optimismSepolia as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/optimism.svg?auto=compress%2Cformat',
   },
   {
-    chain: polygonAmoy,
+    chain: polygonAmoy as CompatibleChain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/polygon.svg?auto=compress%2Cformat',
   },
@@ -145,6 +167,7 @@ const chainSelectors = {
 };
 
 export const networkConfig: NetworkConfig = {
+  // @ts-ignore
   chains,
   linkContracts,
   routerAddresses,

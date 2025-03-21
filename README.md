@@ -27,7 +27,7 @@ git clone https://github.com/smartcontractkit/ccip-javascript-sdk.git
 
 2. [Install `pnpm`](https://pnpm.io/installation).
 
-3. Run `pnpm install`
+3. Run `pnpm i`
 
 
 ### Run the example app

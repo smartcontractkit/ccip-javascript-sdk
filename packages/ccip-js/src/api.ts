@@ -19,11 +19,10 @@ import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './co
 
 export { IERC20ABI }
 
-/** An object containing methods for cross-chain transfer management.
- *  @typedef {Object} Client */
+/** An object containing methods for cross-chain transfer management. */
 export interface Client {
   /**
-   *  @param {Viem.WalletClient} options.client - A client with access to wallet actions on the source blockchain.
+   *  @param {Viem.Client} options.client - A client with (extensible) access to wallet actions on the source blockchain.
    *  @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    *  @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
    *  @param {bigint} options.amount - The amount of tokens to transfer, specified as a `bigint`.
@@ -71,7 +70,7 @@ export interface Client {
    *  });
    */
   approveRouter(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     amount: bigint
@@ -337,7 +336,7 @@ export interface Client {
   }): Promise<boolean>
 
   /** Initiate the token transfer and returns the transaction hash and message ID.
-   * @param {Viem.WalletClient} options.client - A client with access to wallet actions on the source blockchain.
+   * @param {Viem.Client} options.client - A client with access to wallet actions on the source blockchain.
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @param {bigint} options.amount - Amount to transfer.
@@ -376,7 +375,7 @@ export interface Client {
    *
    */
   transferTokens(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
     amount: bigint
@@ -399,7 +398,7 @@ export interface Client {
   /** Send arbitrary message through CCIP. The message should be ABI encoded data.
    * It can be encoded via `viem`'s `encodeAbiParameters` data.
    * Check [encodeAbiParameters](https://viem.sh/docs/abi/encodeAbiParameters.html) and [ABI specification](https://docs.soliditylang.org/en/latest/abi-spec.html) for more information
-   * @param {Viem.WalletClient} options.client - A client with access to wallet actions on the source blockchain.
+   * @param {Viem.Client} options.client - A client with (extensible) access to wallet actions on the source blockchain.
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @param {Viem.Address} options.destinationAccount - Address of recipient.
@@ -448,7 +447,7 @@ export interface Client {
    *
    */
   sendCCIPMessage(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
     destinationAccount: Viem.Address
@@ -870,7 +869,7 @@ export const createClient = (): Client => {
     const parsedLog = Viem.parseEventLogs({
       abi: OnRampABI,
       logs: txReceipt.logs,
-      eventName: 'CCIPSendRequested',
+      eventName: 'CCIPMessageSent',
     }) as CCIPTrasnferReceipt[]
 
     const messageId = parsedLog[0]?.args?.message?.messageId
@@ -923,7 +922,7 @@ export const createClient = (): Client => {
     const parsedLog = Viem.parseEventLogs({
       abi: OnRampABI,
       logs: txReceipt.logs,
-      eventName: 'CCIPSendRequested',
+      eventName: 'CCIPMessageSent',
     }) as CCIPTrasnferReceipt[]
 
     const messageId = parsedLog[0]?.args?.message?.messageId

@@ -15,14 +15,14 @@ import {
 } from 'wagmi';
 import {
   Address,
+  Client,
   encodeAbiParameters,
   encodeFunctionData,
   Hash,
   Hex,
   parseEther,
   PublicClient,
-  TransactionReceipt,
-  WalletClient,
+  TransactionReceipt
 } from 'viem';
 import { useState } from 'react';
 
@@ -127,7 +127,7 @@ function ConnectWallet() {
   );
 }
 
-function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
+function ApproveRouter({ walletClient }: { walletClient: Client }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
@@ -195,7 +195,7 @@ function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
 function TransferTokensAndMessage({
   walletClient,
 }: {
-  walletClient: WalletClient;
+  walletClient: Client;
 }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
@@ -320,7 +320,7 @@ function TransferTokensAndMessage({
   );
 }
 
-function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
+function SendCCIPMessage({ walletClient }: { walletClient: Client }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] =
     useState<string>();
@@ -419,7 +419,7 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
   );
 }
 
-function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
+function SendFunctionData({ walletClient }: { walletClient: Client }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] =
     useState<string>();
