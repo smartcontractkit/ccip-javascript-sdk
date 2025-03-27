@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { RateLimit } from './RateLimit';
 import * as wagmi from 'wagmi';
 import * as reactQuery from '@tanstack/react-query';
+import { avalancheFuji, sepolia } from 'viem/chains';
 
 vi.mock(import('wagmi'));
 vi.mock(import('@tanstack/react-query'));
@@ -39,11 +40,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11_155_111}
-        destinationChain={43113}
+        sourceChain={sepolia.id}
+        destinationChain={avalancheFuji.id}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="1"
-        chainId={11_155_111}
+        chainId={sepolia.id}
       />
     );
     const div = screen.getByText(
@@ -76,11 +77,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11_155_111}
-        destinationChain={43113}
+        sourceChain={sepolia.id}
+        destinationChain={avalancheFuji.id}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="4"
-        chainId={11_155_111}
+        chainId={sepolia.id}
       />
     );
     const div = screen.getByText('Amount exceeds capacity per transaction.');
@@ -110,11 +111,11 @@ describe('RateLimit', () => {
 
     render(
       <RateLimit
-        sourceChain={11_155_111}
-        destinationChain={43113}
+        sourceChain={sepolia.id}
+        destinationChain={avalancheFuji.id}
         tokenAddress="0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05"
         amount="1"
-        chainId={11_155_111}
+        chainId={sepolia.id}
       />
     );
     const div = screen.getByRole('generic');

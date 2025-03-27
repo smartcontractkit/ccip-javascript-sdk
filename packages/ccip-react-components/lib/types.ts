@@ -1,12 +1,13 @@
 import { Address } from 'viem';
-import { Chain } from 'wagmi/chains';
+import { Chain } from 'viem/chains';
 import {
   CoinbaseWalletParameters,
   MetaMaskParameters,
   InjectedParameters,
   WalletConnectParameters,
 } from 'wagmi/connectors';
-export type Config = {
+
+export type WidgetConfig = {
   /** The main shape of the app */
   variant?: 'default' | 'compact' | 'drawer';
   /** Customize the theme of the app */
@@ -163,7 +164,7 @@ export type NetworkConfig = {
 };
 
 export type ConfigProps = {
-  config?: Config;
+  config?: WidgetConfig;
   drawer?: DrawerProps;
   networkConfig: NetworkConfig;
 };
@@ -177,7 +178,7 @@ export interface AllowDeny<T> {
   allow?: T[];
   /** If specified the default items will be available, except the ones in this list */
   deny?: T[];
-}
+};
 
 export type TDrawer = {
   isOpen(): void;

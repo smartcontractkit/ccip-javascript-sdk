@@ -1,5 +1,5 @@
 import { DEFAULT_CONFIG } from '@/utils/config';
-import { AddressMap, Config, ConfigProps, Token } from '@/types';
+import { AddressMap, WidgetConfig, ConfigProps, Token } from '@/types';
 import {
   createContext,
   PropsWithChildren,
@@ -11,9 +11,11 @@ import {
 import { Address } from 'viem';
 import { Chain } from 'wagmi/chains';
 import { useAccount, useBalance } from 'wagmi';
+import { sepolia, avalancheFuji, arbitrumSepolia, polygonAmoy, bscTestnet } from 'viem/chains';
+import { testTokenList } from '@/tests/setup';
 
 export const Context = createContext<{
-  config?: Config;
+  config?: WidgetConfig;
   tokensList: Token[];
   chains: Chain[];
   chainsInfo: { [chainId: number]: { logoURL?: string; name: string } };
@@ -39,12 +41,36 @@ export const Context = createContext<{
   isConnectOpen?: boolean;
   setIsConnectOpen: (open: boolean) => void;
 }>({
-  chains: [],
-  chainsInfo: [],
-  tokensList: [],
-  linkContracts: {},
-  routerAddresses: {},
-  chainSelectors: {},
+  chains: [sepolia, avalancheFuji, arbitrumSepolia, bscTestnet, polygonAmoy],
+  chainsInfo: {
+    [sepolia.id]: { logoURL: 'https://example.com/sepolia.png', name: 'Sepolia' },
+    [avalancheFuji.id]: { logoURL: 'https://example.com/avalanche-fuji.png', name: 'Avalanche Fuji' },
+    [arbitrumSepolia.id]: { logoURL: 'https://example.com/arbitrum-sepolia.png', name: 'Arbitrum Sepolia' },
+    [polygonAmoy.id]: { logoURL: 'https://example.com/polygon-amoy.png', name: 'Polygon Amoy' },
+    [bscTestnet.id]: { logoURL: 'https://example.com/bsc-testnet.png', name: 'BSC Testnet' },
+  },
+  tokensList: testTokenList,
+  linkContracts: {
+    [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+    [avalancheFuji.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+    [arbitrumSepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+    [polygonAmoy.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+    [bscTestnet.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
+  },
+  routerAddresses: {
+    [sepolia.id]: '0x1234567890abcdef1234567890abcdef12345678',
+    [avalancheFuji.id]: '0xabcdef1234567890abcdef1234567890abcdef12',
+    [arbitrumSepolia.id]: '0x1234567890abcdef1234567890abcdef12345678',
+    [polygonAmoy.id]: '0x1234567890abcdef1234567890abcdef12345678',
+    [bscTestnet.id]: '0x1234567890abcdef1234567890abcdef12345678',
+  },
+  chainSelectors: {
+    [sepolia.id]: '16015286601757825753',
+    [avalancheFuji.id]: '14767482510784806043',
+    [arbitrumSepolia.id]: '16015286601757825753',
+    [polygonAmoy.id]: '16015286601757825753',
+    [bscTestnet.id]: '16015286601757825753',
+  },
   setTransferHash: () => null,
   setMessageId: () => null,
   setSourceChainId: () => null,
@@ -52,6 +78,7 @@ export const Context = createContext<{
   setFeeTokenSymbol: () => null,
   setFeeAmount: () => null,
   setIsConnectOpen: () => null,
+  feeTokenBalance: 0n,
 });
 
 export const ContextProvider = ({
@@ -114,7 +141,8 @@ export const ContextProvider = ({
     [chainsProp]
   );
 
-  const { chain, chainId, address } = useAccount();
+  const { chain, chainId, address } = useAccount({});
+
   const { data: feeTokenBalanceResult } = useBalance({
     address,
     token: feeTokenAddress,

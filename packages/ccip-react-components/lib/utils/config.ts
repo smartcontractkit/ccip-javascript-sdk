@@ -1,17 +1,40 @@
-import { createClient } from 'viem';
-import { http, createConfig, Config as WagmiConfig } from 'wagmi';
-import { Chain } from 'wagmi/chains';
-import { Config } from '@/types';
+import { createClient, http } from 'viem';
+import { arbitrumSepolia, avalancheFuji, bscTestnet, sepolia, polygonAmoy } from 'viem/chains';
+import { Chain } from 'viem/chains';
 
-export const config = (chains: [Chain, ...Chain[]]): WagmiConfig =>
-  createConfig({
+type ViemConfig = {
+  chains: Chain[];
+  client: ({ chain }: { chain: Chain }) => any;
+  theme?: {
+    palette: {
+      background: string;
+      primary: string;
+      border: string;
+      text: string;
+      muted: string;
+      input: string;
+      popover: string;
+      selected: string;
+      warning: string;
+      warningBackground: string;
+    };
+    shape: { radius: number };
+  };
+};
+
+export const config = (chains: [Chain, ...Chain[]]): ViemConfig =>
+  ({
     chains,
-    client({ chain }) {
+    client({ chain }: { chain: Chain }) {
       return createClient({ chain, transport: http() });
     },
   });
 
-export const DEFAULT_CONFIG: Config = {
+export const DEFAULT_CONFIG: ViemConfig = {
+  chains: [arbitrumSepolia, avalancheFuji, bscTestnet, sepolia, polygonAmoy],
+  client({ chain }: { chain: Chain }) {
+    return createClient({ chain, transport: http() });
+  },
   theme: {
     palette: {
       background: '#FFFFFF',

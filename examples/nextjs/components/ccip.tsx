@@ -98,7 +98,7 @@ function ConnectWallet() {
         <>
           <p>{`Connected to ${chain.name} (chainId: ${chain.id})`}</p>
           <div className="flex flex-col">
-            <label htmlFor="chainId">Switch to chain</label>
+            <label htmlFor="chainId">Switch</label>
             <select
               className="border border-slate-300 rounded-md p-1"
               name="chainId"
