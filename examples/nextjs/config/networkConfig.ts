@@ -3,6 +3,7 @@ import {
   NetworkConfig,
   Token,
 } from '@chainlink/ccip-react-components';
+import { Chain } from 'viem';
 import {
   arbitrumSepolia,
   avalancheFuji,
@@ -12,28 +13,6 @@ import {
   polygonAmoy,
   sepolia,
 } from 'viem/chains';
-
-interface CompatibleChain {
-  id: number;
-  name: string;
-  nativeCurrency?: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-  rpcUrls?: {
-    default: {
-      http: readonly string[];
-    };
-  };
-  blockExplorers?: {
-    default: {
-      name: string;
-      url: string;
-      apiUrl: string;
-    };
-  };
-}
 
 const tokensList: Token[] = [
   {
@@ -98,39 +77,39 @@ const tokensList: Token[] = [
   },
 ];
 
-const chains: { chain: CompatibleChain; logoURL: string }[] = [
+const chains: { chain: Chain; logoURL: string }[] = [
   {
-    chain: arbitrumSepolia as CompatibleChain,
+    chain: arbitrumSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/arbitrum.svg?auto=compress%2Cformat',
   },
   {
-    chain: avalancheFuji as CompatibleChain,
+    chain: avalancheFuji as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/avalanche.svg?auto=compress%2Cformat',
   },
   {
-    chain: baseSepolia as CompatibleChain,
+    chain: baseSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/base.svg?auto=compress%2Cformat',
   },
   {
-    chain: bscTestnet as CompatibleChain,
+    chain: bscTestnet as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/bsc.svg?auto=compress%2Cformat',
   },
   {
-    chain: sepolia as CompatibleChain,
+    chain: sepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/ethereum.svg?auto=compress%2Cformat',
   },
   {
-    chain: optimismSepolia as CompatibleChain,
+    chain: optimismSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/optimism.svg?auto=compress%2Cformat',
   },
   {
-    chain: polygonAmoy as CompatibleChain,
+    chain: polygonAmoy as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/polygon.svg?auto=compress%2Cformat',
   },
@@ -167,7 +146,6 @@ const chainSelectors = {
 };
 
 export const networkConfig: NetworkConfig = {
-  // @ts-ignore
   chains,
   linkContracts,
   routerAddresses,

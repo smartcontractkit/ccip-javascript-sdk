@@ -376,10 +376,10 @@ export const Page = () = {
 Contributions are welcome! Please open an issue or submit a pull request on GitHub.
 
 1. Fork the repository.
-1. Create your feature branch (git checkout -b feature/my-feature).
-1. Commit your changes (git commit -m 'Add some feature').
-1. Push to the branch (git push origin feature/my-feature).
-1. Open a pull request.
+2. Create your feature branch (git checkout -b feature/my-feature).
+3. Commit your changes (git commit -m 'Add some feature').
+4. Push to the branch (git push origin feature/my-feature).
+5. Open a pull request.
 
 ## License
 
