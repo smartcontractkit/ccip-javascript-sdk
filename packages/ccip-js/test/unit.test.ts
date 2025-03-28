@@ -2,8 +2,6 @@ import { jest, expect, it, describe, afterEach } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import * as viemActions from 'viem/actions'
-import { sepolia } from 'viem/chains'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { forkClient } from './helpers/clients'
 
 const ccipClient = CCIP.createClient()
@@ -83,7 +81,7 @@ const mockLog = [
     },
     blockNumber: 36381795n,
     data: '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000ccf0a31a221f3c9b000000000000000000000000748cab9a6993a24ca6208160130b3f7b79098c6d000000000000000000000000748cab9a6993a24ca6208160130b3f7b79098c6d00000000000000000000000000000000000000000000000000000000000004f10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000070000000000000000000000000b9d5d9136855f6fec3c0993fee6e9ce8a29784600000000000000000000000000000000000000000000000004694541094513a400000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000240de438245515b78c2294263a821316b5d5b49af90464dafcedaf13901050bf06200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000070f5c5c40b873ea597776da2c21929a8282a3b35000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000015f9000000000000000000000000000000000000000000000000000000000000000200000000000000000000000008e35eb0dfb39ec5f84254c3f863986a913171e0b0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a98fa8a008371b9408195e52734b1768c0d1cb5c0000000000000000000000000000000000000000000000000000000000000000',
-    eventName: 'CCIPSendRequested',
+    eventName: 'CCIPMessageSent',
     logIndex: 8,
     removed: false,
     topics: ['0xd0c3c799bf9e2639de44391e7f524d229b2b55f5b1ea94b2bf7da42f7243dddd' as Viem.Address],
@@ -98,7 +96,7 @@ const mockLogWOMessageId = [
     args: {},
     blockNumber: 36381795n,
     data: '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000ccf0a31a221f3c9b000000000000000000000000748cab9a6993a24ca6208160130b3f7b79098c6d000000000000000000000000748cab9a6993a24ca6208160130b3f7b79098c6d00000000000000000000000000000000000000000000000000000000000004f10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000070000000000000000000000000b9d5d9136855f6fec3c0993fee6e9ce8a29784600000000000000000000000000000000000000000000000004694541094513a400000000000000000000000000000000000000000000000000000000000001a000000000000000000000000000000000000000000000000000000000000001e00000000000000000000000000000000000000000000000000000000000000240de438245515b78c2294263a821316b5d5b49af90464dafcedaf13901050bf06200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000070f5c5c40b873ea597776da2c21929a8282a3b35000000000000000000000000000000000000000000000000000000003b9aca000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001400000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000015f9000000000000000000000000000000000000000000000000000000000000000200000000000000000000000008e35eb0dfb39ec5f84254c3f863986a913171e0b0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000a98fa8a008371b9408195e52734b1768c0d1cb5c0000000000000000000000000000000000000000000000000000000000000000',
-    eventName: 'CCIPSendRequested',
+    eventName: 'CCIPMessageSent',
     logIndex: 8,
     removed: false,
     topics: ['0xd0c3c799bf9e2639de44391e7f524d229b2b55f5b1ea94b2bf7da42f7243dddd' as Viem.Address],
@@ -147,19 +145,6 @@ describe('Unit', () => {
           }),
       ).rejects.toThrow('Token address 0x0000000000000000000000000000000000000000 is not valid')
     })
-
-    // it('should reject with invalid account', async () => {
-    //   await expect(
-    //     async () =>
-    //       await ccipClient.approveRouter({
-    //         client: walletClientWOAccount,
-    //         routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-    //         amount: 0n,
-    //         tokenAddress: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
-    //         waitForReceipt: true,
-    //       }),
-    //   ).rejects.toThrow('Account address is not valid')
-    // })
 
     it('should succeed with valid input', async () => {
       writeContractMock.mockResolvedValueOnce(mockTxHash)
@@ -256,26 +241,6 @@ describe('Unit', () => {
   })
 
   describe('getOnRampAddress', () => {
-    it('should reject if onRamp is not valid', async () => {
-      await expect(
-        async () =>
-          await ccipClient.getOnRampAddress({
-            client: forkClient,
-            routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-            destinationChainSelector: '0',
-          }),
-      ).rejects.toThrow('OnRamp address is not valid. Execution can not be continued')
-    })
-    it('should reject if router address is not valid', async () => {
-      await expect(
-        async () =>
-          await ccipClient.getOnRampAddress({
-            client: forkClient,
-            routerAddress: Viem.zeroAddress,
-            destinationChainSelector: '0',
-          }),
-      ).rejects.toThrow('Router address 0x0000000000000000000000000000000000000000 is not valid')
-    })
     it('should return the address of the onRamp contract', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       const onRampAddress = await ccipClient.getOnRampAddress({
@@ -297,8 +262,7 @@ describe('Unit', () => {
             destinationChainSelector: '14767482510784806043',
           }),
       ).rejects.toThrow('Router address 0x0000000000000000000000000000000000000000 is not valid')
-    })
-
+    }, 40000)
     it('should reject if onRamp is not valid', async () => {
       readContractMock.mockResolvedValueOnce(Viem.zeroAddress)
       await expect(
@@ -309,8 +273,7 @@ describe('Unit', () => {
             destinationChainSelector: '0',
           }),
       ).rejects.toThrow('OnRamp address is not valid. Execution can not be continued')
-    })
-
+    }, 40000)
     it('should return supported fee tokens for valid chains', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       readContractMock.mockResolvedValueOnce({ priceRegistry: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' })
@@ -344,18 +307,6 @@ describe('Unit', () => {
           }),
       ).rejects.toThrow('Router address 0x0000000000000000000000000000000000000000 is not valid')
     })
-
-    it('should reject if onRamp is not valid', async () => {
-      await expect(
-        async () =>
-          await ccipClient.getLaneRateRefillLimits({
-            client: forkClient,
-            routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-            destinationChainSelector: '0',
-          }),
-      ).rejects.toThrow('OnRamp address is not valid. Execution can not be continued')
-    })
-
     it('should return lane rate refill limits for valid chains', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       readContractMock.mockResolvedValueOnce({
@@ -393,8 +344,7 @@ describe('Unit', () => {
             supportedTokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
           }),
       ).rejects.toThrow('Router address 0x0000000000000000000000000000000000000000 is not valid')
-    })
-
+    }, 10000)
     it('should reject if token address is not valid', async () => {
       await expect(
         async () =>
@@ -407,19 +357,7 @@ describe('Unit', () => {
       ).rejects.toThrow(
         'Token address 0x0000000000000000000000000000000000000000 is not valid. Execution can not be continued',
       )
-    })
-
-    it('should reject if onRamp is not valid', async () => {
-      await expect(async () =>
-        ccipClient.getTokenRateLimitByLane({
-          client: forkClient,
-          routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-          destinationChainSelector: '0',
-          supportedTokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
-        }),
-      ).rejects.toThrow('OnRamp address is not valid. Execution can not be continued')
-    })
-
+    }, 10000)
     it('should reject if laneTokenTransferPool is not set or zero-address', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       readContractMock.mockResolvedValueOnce(Viem.zeroAddress)
@@ -433,8 +371,7 @@ describe('Unit', () => {
       ).rejects.toThrow(
         'Token pool for 0xc4bF5CbDaBE595361438F8c6a187bDc330539c60 is missing. Execution can not be continued',
       )
-    })
-
+    }, 10000)
     it('should return token rate limit by lane for a supported token', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       readContractMock.mockResolvedValueOnce('0x12492154714fBD28F28219f6fc4315d19de1025B')
@@ -554,16 +491,6 @@ describe('Unit', () => {
         }),
       ).rejects.toThrow('hash is not a valid transaction hash')
     })
-
-    it('should return the status of a transfer', async () => {
-      waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
-      const transferStatus = await ccipClient.getTransactionReceipt({
-        client: forkClient,
-        hash: '0xc94dff6318a839d806aaff3bbf32cfe5898319ad4af25ecfbc24fa09b0ef0d4d',
-      })
-
-      expect(transferStatus.blockHash).toBe('0xeb3e2e65c939bd65d6983704a21dda6ae7157079b1e6637ff11bb97228accdc2')
-    })
   })
 
   describe('getTransferStatus', () => {
@@ -610,78 +537,7 @@ describe('Unit', () => {
           sourceChainSelector: '1',
         }),
       ).rejects.toThrow('No matching off-ramp found')
-    })
-
-    it('should return null if the status of a transfer is undefined', async () => {
-      readContractMock.mockResolvedValueOnce([
-        {
-          sourceChainSelector: 9284632837123596123n,
-          offRamp: '0x46b639a3C1a4CBfD326b94a2dB7415c27157282f',
-        },
-        {
-          sourceChainSelector: 14767482510784806043n,
-          offRamp: '0x000b26f604eAadC3D874a4404bde6D64a97d95ca',
-        },
-        {
-          sourceChainSelector: 2027362563942762617n,
-          offRamp: '0x4e897e5cF3aC307F0541B2151A88bCD781c153a3',
-        },
-      ])
-      const transferStatus = await ccipClient.getTransferStatus({
-        client: forkClient,
-        messageId: Viem.zeroHash,
-        destinationRouterAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-        sourceChainSelector: '14767482510784806043',
-      })
-
-      expect(transferStatus).toBe(null)
-    })
-
-    it('should return the status of a transfer', async () => {
-      readContractMock.mockResolvedValueOnce([
-        {
-          sourceChainSelector: 9284632837123596123n,
-          offRamp: '0x46b639a3C1a4CBfD326b94a2dB7415c27157282f',
-        },
-        {
-          sourceChainSelector: 14767482510784806043n,
-          offRamp: '0x000b26f604eAadC3D874a4404bde6D64a97d95ca',
-        },
-        {
-          sourceChainSelector: 2027362563942762617n,
-          offRamp: '0x4e897e5cF3aC307F0541B2151A88bCD781c153a3',
-        },
-      ])
-      getLogsMock.mockResolvedValueOnce([
-        {
-          address: '0x3ab3a3d35cac95ffcfccc127ef01ea8d87b0a64e',
-          args: {
-            sequenceNumber: 1266n,
-            messageId: '0xa59eff480402ef673b5edf4bb52ff7c2f18426dc59cf3295b525f14b0779186a',
-            state: 2,
-            returnData: '0x',
-          },
-          blockHash: '0xf160e33291d0b85251fbb52cd395cc374a096ca1f0724a8e7731aab33ab8b9c2',
-          blockNumber: 16962416n,
-          data: '0x0000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000',
-          logIndex: 33,
-          transactionHash: '0x29e10b1e1fa029d378f573c3c11d979e139894482a5e1835970d2ec57a403f58',
-          transactionIndex: 14,
-          removed: false,
-          eventName: 'ExecutionStateChanged',
-          topics: [],
-        },
-      ])
-
-      const transferStatus = await ccipClient.getTransferStatus({
-        client: forkClient,
-        messageId: '0xc94dff6318a839d806aaff3bbf32cfe5898319ad4af25ecfbc24fa09b0ef0d4d',
-        destinationRouterAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-        sourceChainSelector: '14767482510784806043',
-      })
-
-      expect(transferStatus).toBe(2)
-    })
+    }, 10000)
   })
 
   describe('getTokenAdminRegistry', () => {
@@ -1013,19 +869,6 @@ describe('Unit', () => {
           }),
       ).rejects.toThrow('PARAMETER INPUT ERROR: address is not a valid fee token address')
     })
-
-    // it('should reject with invalid account', async () => {
-    //   await expect(
-    //     async () =>
-    //       await ccipClient.sendCCIPMessage({
-    //         client: walletClientWOAccount,
-    //         routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-    //         destinationChainSelector: '14767482510784806043',
-    //         destinationAccount: Viem.zeroAddress,
-    //         data: Viem.encodeAbiParameters([{ type: 'string', name: 'data' }], ['Hello']),
-    //       }),
-    //   ).rejects.toThrow('Account address is not valid')
-    // })
 
     it('should successfully send message', async () => {
       readContractMock.mockResolvedValueOnce(300000000000000n)

@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { Balance, MaxButon } from './Balance';
 import * as wagmi from 'wagmi';
 
-vi.mock(import('wagmi'));
+vi.mock('wagmi');
 
 // Mock the ResizeObserver
 const ResizeObserverMock = vi.fn(() => ({

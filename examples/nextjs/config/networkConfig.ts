@@ -3,6 +3,7 @@ import {
   NetworkConfig,
   Token,
 } from '@chainlink/ccip-react-components';
+import { Chain } from 'viem';
 import {
   arbitrumSepolia,
   avalancheFuji,
@@ -76,39 +77,39 @@ const tokensList: Token[] = [
   },
 ];
 
-const chains = [
+const chains: { chain: Chain; logoURL: string }[] = [
   {
-    chain: arbitrumSepolia,
+    chain: arbitrumSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/arbitrum.svg?auto=compress%2Cformat',
   },
   {
-    chain: avalancheFuji,
+    chain: avalancheFuji as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/avalanche.svg?auto=compress%2Cformat',
   },
   {
-    chain: baseSepolia,
+    chain: baseSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/base.svg?auto=compress%2Cformat',
   },
   {
-    chain: bscTestnet,
+    chain: bscTestnet as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/bsc.svg?auto=compress%2Cformat',
   },
   {
-    chain: sepolia,
+    chain: sepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/ethereum.svg?auto=compress%2Cformat',
   },
   {
-    chain: optimismSepolia,
+    chain: optimismSepolia as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/optimism.svg?auto=compress%2Cformat',
   },
   {
-    chain: polygonAmoy,
+    chain: polygonAmoy as Chain,
     logoURL:
       'https://d2f70xi62kby8n.cloudfront.net/bridge/icons/networks/polygon.svg?auto=compress%2Cformat',
   },

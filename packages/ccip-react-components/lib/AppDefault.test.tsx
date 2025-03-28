@@ -4,24 +4,46 @@ import { describe, expect, test } from 'vitest';
 import { Context } from './AppContext';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { config as wagmiConfig } from '@/utils/config';
-import { optimismSepolia, sepolia } from 'viem/chains';
+import { createConfig, injected } from 'wagmi';
+import { createPublicClient, http } from 'viem';
+import { arbitrumSepolia, avalancheFuji,bscTestnet, polygonAmoy, sepolia } from 'viem/chains';
 
 const queryClient = new QueryClient();
+
+const wagmiConfig = createConfig({
+  chains: [sepolia, avalancheFuji, arbitrumSepolia, bscTestnet, polygonAmoy],
+  connectors: [injected()],
+  client({ chain }) {
+    return createPublicClient({ chain, transport: http() });
+  }
+})
 
 describe('AppDefault', () => {
   test('render transfer status page', () => {
     render(
-      <WagmiProvider config={wagmiConfig([sepolia, optimismSepolia])}>
+      <WagmiProvider 
+        config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <Context.Provider
             value={{
-              chains: [],
-              chainsInfo: {},
+              chains: [sepolia, avalancheFuji],
+              chainsInfo: {
+                [sepolia.id]: { name: 'Sepolia' },
+                [avalancheFuji.id]: { name: 'Avalanche Fuji' },
+              },
               tokensList: [],
-              linkContracts: {},
-              routerAddresses: {},
-              chainSelectors: {},
+              linkContracts: {
+                [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+                [avalancheFuji.id]: '0xabcdef1234567890abcdef1234567890abcdef12',
+              },
+              routerAddresses: {
+                [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
+                [avalancheFuji.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+              },
+              chainSelectors: {
+                [sepolia.id]: '16015286601757825753',
+                [avalancheFuji.id]: '5224473277236331295',
+              },
               setTransferHash: () => null,
               setMessageId: () => null,
               setSourceChainId: () => null,
