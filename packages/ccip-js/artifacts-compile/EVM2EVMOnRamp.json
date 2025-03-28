@@ -630,7 +630,7 @@
                             "type": "tuple"
                         }
                     ],
-                    "name": "CCIPSendRequested",
+                    "name": "CCIPMessageSent",
                     "type": "event"
                 },
                 {
