@@ -276,7 +276,7 @@ describe('Unit', () => {
     }, 40000)
     it('should return supported fee tokens for valid chains', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
-      readContractMock.mockResolvedValueOnce({ priceRegistry: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' })
+      readContractMock.mockResolvedValueOnce({ feeQuoter: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' })
       readContractMock.mockResolvedValueOnce([
         '0x779877A7B0D9E8603169DdbD7836e478b4624789',
         '0x097D90c9d3E0B50Ca60e1ae45F6A81010f9FB534',

@@ -5,7 +5,7 @@ import bridgeJson from '../../artifacts-compile/BridgeToken.json'
 import onRampJson from '../../artifacts-compile/EVM2EVMOnRamp.json'
 import routerJson from '../../artifacts-compile/Router.json'
 import simulatorJson from '../../artifacts-compile/CCIPLocalSimulator.json'
-import priceRegistryJson from '../../artifacts-compile/PriceRegistry.json'
+import feeQuoterJson from '../../artifacts-compile/FeeQuoter.json'
 
 // load.env file for private key 
 // replace with your own private key (optional)
@@ -22,7 +22,7 @@ export const { bridgeTokenAbi, bridgeTokenBin } = bridgeJson['contracts']['src/c
 export const { onRampAbi, onRampBin } = onRampJson['contracts']['src/contracts/EVM2EVMOnRamp.sol:EVM2EVMOnRamp']
 export const { routerAbi, routerBin } = routerJson['contracts']['src/contracts/Router.sol:Router']
 export const { simulatorAbi, simulatorBin } = simulatorJson['contracts']['src/contracts/CCIPLocalSimulator.sol:CCIPLocalSimulator']
-export const { priceRegistryAbi, priceRegistryBin } = priceRegistryJson['contracts']['src/contracts/PriceRegistry.sol:PriceRegistry']
+export const { feeQuoterAbi, feeQuoterBin } = feeQuoterJson['contracts']['src/contracts/FeeQuoter.sol:FeeQuoter']
 
 // CCIP testing data for simulations
 export const ccipTxHash = '0xc55d92b1212dd24db843e1cbbcaebb1fffe3cd1751313e0fd02cf26bf72b359e'

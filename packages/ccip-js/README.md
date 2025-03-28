@@ -338,8 +338,8 @@ type DynamicConfig = {
   destGasPerDataAvailabilityByte: number
   // The multiplier in basis points (bps) applied to the data availability gas cost. This value is used to adjust the cost of data availability by applying a scaling factor.
   destDataAvailabilityMultiplierBps: number
-  // The address of the price registry used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
-  priceRegistry: Viem.Address
+  // The address of the feeQuoter contract used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
+  feeQuoter: Viem.Address
   // The maximum number of data bytes that can be included in a single message. This parameter limits the size of the data payload to prevent excessive data in one transfer.
   maxDataBytes: number
   // The maximum gas limit that can be applied to a single message. This parameter ensures that the transaction does not exceed a certain gas threshold, preventing overly costly operations.

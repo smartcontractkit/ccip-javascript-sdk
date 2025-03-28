@@ -181,7 +181,7 @@ describe('Integration', () => {
       ]
 
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
-      readContractMock.mockResolvedValueOnce({ priceRegistry: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' })
+      readContractMock.mockResolvedValueOnce({ feeQuoter: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' })
       readContractMock.mockResolvedValueOnce(supportedFeeTokens)
 
       const hhSupportedFeeTokens = await getSupportedFeeTokens()

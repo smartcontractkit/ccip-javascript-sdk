@@ -1,5 +1,5 @@
 import { formatEther, getContract, type Address, type Hex } from 'viem'
-import { account, bridgeTokenAbi, bridgeTokenBin, onRampAbi, onRampBin, priceRegistryAbi, priceRegistryBin, routerAbi, routerBin, simulatorAbi, simulatorBin } from './constants'
+import { account, bridgeTokenAbi, bridgeTokenBin, onRampAbi, onRampBin, feeQuoterAbi, feeQuoterBin, routerAbi, routerBin, simulatorAbi, simulatorBin } from './constants'
 import { mineBlock } from './utils'
 import { forkClient, testClient } from './clients'
 import { readContract } from 'viem/actions'
@@ -63,18 +63,18 @@ export const getContractAddresses = async () => {
     abi: routerAbi,
     bin: `0x${routerBin}`
   }) as Address
-  const priceRegistryAddress = await deployContract({
+  const feeQuoterAddress = await deployContract({
     isFork: false,
     args: [],
-    abi: priceRegistryAbi,
-    bin: `0x${priceRegistryBin}`
+    abi: feeQuoterAbi,
+    bin: `0x${feeQuoterBin}`
   }) as Address
   return {
     localSimulatorAddress: localSimulatorAddress,
     bridgeTokenAddress: bridgeTokenAddress,
     linkTokenAddress: linkTokenAddress,
     routerAddress: routerAddress,
-    priceRegistryAddress: priceRegistryAddress
+    feeQuoterAddress: feeQuoterAddress
   }
 }
 export const getOnRampAddress = async () => {
@@ -102,7 +102,7 @@ export const getOnRampAddress = async () => {
 }
 
 export const getContracts = async () => {
-  const { localSimulatorAddress, bridgeTokenAddress, priceRegistryAddress, routerAddress } = await getContractAddresses()
+  const { localSimulatorAddress, bridgeTokenAddress, feeQuoterAddress, routerAddress } = await getContractAddresses()
   const bridgeToken = await getContract({
     address: bridgeTokenAddress,
     abi: bridgeTokenAbi,
@@ -123,9 +123,9 @@ export const getContracts = async () => {
   //   abi: onRampAbi,
   //   client: testClient,
   // })
-  const priceRegistry = await getContract({
-    address: priceRegistryAddress,
-    abi: priceRegistryAbi,
+  const feeQuoter = await getContract({
+    address: feeQuoterAddress,
+    abi: feeQuoterAbi,
     client: testClient,
   })
   mineBlock(false)
@@ -134,7 +134,7 @@ export const getContracts = async () => {
     router: router,
     localSimulator: localSimulator,
     // onRamp: onRamp,
-    priceRegistry: priceRegistry
+    feeQuoter: feeQuoter
   }
 }
 

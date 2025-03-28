@@ -40,7 +40,7 @@ export type StaticConfig = {
 * @property {bigint} destGasOverhead - The overhead in gas that is added to the destination chain to account for base transaction costs. This value helps ensure that the transaction has enough gas to cover additional overhead on the destination chain.
 * @property {bigint} destGasPerDataAvailabilityByte - The gas cost per byte of data availability on the destination chain. This parameter contributes to the overall gas calculation for data availability during the transfer.
 * @property {bigint} destDataAvailabilityMultiplierBps - The multiplier in basis points (bps) applied to the data availability gas cost. This value is used to adjust the cost of data availability by applying a scaling factor.
-* @property {Address} priceRegistry - The address of the price registry used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
+* @property {Address} feeQuoter - The address of the feeQuoter contract used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
 * @property {bigint} maxDataBytes - The maximum number of data bytes that can be included in a single message. This parameter limits the size of the data payload to prevent excessive data in one transfer.
 * @property {bigint} maxPerMsgGasLimit - The maximum gas limit that can be applied to a single message. This parameter ensures that the transaction does not exceed a certain gas threshold, preventing overly costly operations.
 */
@@ -52,7 +52,7 @@ export type DynamicConfig = {
     destDataAvailabilityOverheadGas: bigint //           ──╯ Extra data availability gas charged on top of the message, e.g. for OCR  
     destGasPerDataAvailabilityByte: bigint //      ───╮ Amount of gas to charge per byte of message data that needs availability
     destDataAvailabilityMultiplierBps: bigint //      │ Multiplier for data availability gas, multiples of bps, or 0.0001
-    priceRegistry: Address      //                    │ Price registry address
+    feeQuoter: Address      //                        │ FeeQuoter address
     maxDataBytes: bigint      //                      │ Maximum payload data size in bytes
     maxPerMsgGasLimit: bigint      // ────────────────╯ Maximum gas limit for messages targeting EVMs
 }

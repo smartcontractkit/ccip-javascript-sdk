@@ -13,7 +13,7 @@ import RouterABI from './abi/Router.json'
 import OnRampABI from './abi/OnRamp.json'
 import IERC20ABI from './abi/IERC20Metadata.json'
 import TokenPoolABI from './abi/TokenPool.json'
-import PriceRegistryABI from './abi/PriceRegistry.json'
+import FeeQuoterABI from './abi/FeeQuoter.json'
 import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
 import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
 
@@ -687,16 +687,16 @@ export const createClient = (): Client => {
       functionName: 'getDynamicConfig',
     })
 
-    const priceRegistry = (dynamicConfig as DynamicConfig).priceRegistry
+    const feeQuoter = (dynamicConfig as DynamicConfig).feeQuoter
 
     checkIsAddressValid(
-      priceRegistry,
+      feeQuoter,
       'CONTRACT CALL ERROR: Price regisry is not valid. Execution can not be continued',
     )
 
     const feeTokens = await readContract(options.client, {
-      abi: PriceRegistryABI,
-      address: priceRegistry,
+      abi: FeeQuoterABI,
+      address: feeQuoter,
       functionName: 'getFeeTokens',
     })
     return feeTokens as Viem.Address[]
@@ -1115,7 +1115,7 @@ export interface RateLimiterState {
  *                                                        cost. This value is used to adjust the
  *                                                        cost of data availability by applying
  *                                                        a scaling factor.
- * @property {Viem.Address} priceRegistry - The address of the price registry used to obtain
+ * @property {Viem.Address} feeQuoter - The address of the feeQuoter contract used to obtain
  *                                          pricing information for gas and other costs during
  *                                          the transfer. This registry helps ensure that the
  *                                          correct prices are applied to the transaction.
@@ -1135,7 +1135,7 @@ export type DynamicConfig = {
   destDataAvailabilityOverheadGas: number
   destGasPerDataAvailabilityByte: number
   destDataAvailabilityMultiplierBps: number
-  priceRegistry: Viem.Address
+  feeQuoter: Viem.Address
   maxDataBytes: number
   maxPerMsgGasLimit: number
   defaultTokenFeeUSDCents: number
