@@ -14,7 +14,11 @@
     "build": "tsc && hardhat compile",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
+    "test:jest": "jest --coverage",
     "test": "sh run_tests.sh"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.26.0",
