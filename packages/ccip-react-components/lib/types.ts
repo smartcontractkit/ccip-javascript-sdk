@@ -167,6 +167,7 @@ export type ConfigProps = {
   config?: WidgetConfig;
   drawer?: DrawerProps;
   networkConfig: NetworkConfig;
+  chain: Chain;
 };
 
 export type DrawerProps = {

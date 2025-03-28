@@ -98,6 +98,7 @@ export const ContextProvider = ({
 
   const config = useMemo(
     () => ({
+      ...configProp,
       theme: {
         palette: {
           ...DEFAULT_CONFIG.theme?.palette,
@@ -141,7 +142,7 @@ export const ContextProvider = ({
     [chainsProp]
   );
 
-  const { chain, chainId, address } = useAccount({});
+  const { chain: currentChain, chainId, address } = useAccount();
 
   const { data: feeTokenBalanceResult } = useBalance({
     address,
@@ -149,10 +150,10 @@ export const ContextProvider = ({
   });
 
   useEffect(() => {
-    if (chain?.nativeCurrency.symbol) {
-      setFeeTokenSymbol(chain?.nativeCurrency.symbol);
+    if (currentChain?.nativeCurrency.symbol) {
+      setFeeTokenSymbol(currentChain?.nativeCurrency.symbol);
     }
-  }, [chain?.nativeCurrency.symbol]);
+  }, [currentChain?.nativeCurrency.symbol]);
 
   useEffect(() => {
     if (chainId) {
@@ -169,12 +170,12 @@ export const ContextProvider = ({
   }, [feeTokenBalanceResult?.value]);
 
   const setFeeTokenHandler = useCallback(() => {
-    if (chain?.nativeCurrency.symbol) {
-      feeTokenSymbol === chain?.nativeCurrency.symbol
+    if (currentChain?.nativeCurrency.symbol) {
+      feeTokenSymbol === currentChain?.nativeCurrency.symbol
         ? setFeeTokenSymbol('LINK')
-        : setFeeTokenSymbol(chain?.nativeCurrency.symbol);
+        : setFeeTokenSymbol(currentChain?.nativeCurrency.symbol);
     }
-  }, [feeTokenSymbol, chain?.nativeCurrency.symbol]);
+  }, [feeTokenSymbol, currentChain?.nativeCurrency.symbol]);
 
   return (
     <Context.Provider

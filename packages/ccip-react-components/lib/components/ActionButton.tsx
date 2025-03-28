@@ -54,7 +54,7 @@ export function ActionButton({
 
 function SwitchNetworkButton({ chainId }: { chainId: number }) {
   const { switchChain, isPending, error, isError } = useSwitchChain();
-  const { chainsInfo } = useChains();
+  
   return (
     <>
       {isError && <Error message={error.message.split('.')[0]} />}
@@ -63,7 +63,7 @@ function SwitchNetworkButton({ chainId }: { chainId: number }) {
         className="w-full text-xl leading-6 h-[52px]"
         onClick={() => switchChain({ chainId })}
       >
-        Switch to {chainsInfo[chainId]?.name ?? 'Unknown'}
+        Switch
       </Button>
     </>
   );

@@ -198,7 +198,7 @@ export function SendButton({
             })
           }
         >
-          Approve LINK
+          Approve
         </Button>
       </>
     );

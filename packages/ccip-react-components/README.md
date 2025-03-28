@@ -50,28 +50,28 @@ For a working example of how to store, manage and use the NetworkConfig paramete
 ```tsx
 import 'ccip-react-components/dist/style.css';
 import { CCIPWidget, Config, NetworkConfig } from 'ccip-react-components';
-import { sepolia, optimismSepolia } from 'viem/chains';
+import { sepolia, avalancheFuji } from 'viem/chains';
 
 const networkConfing: NetworkConfig = {
-  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
+  chains: [{ chain: sepolia }, { chain: avalancheFuji }],
   linkContracts: {
     [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
-    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+    [avalancheFuji.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
   },
   routerAddresses: {
     [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+    [avalancheFuji.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
   },
   chainSelectors: {
     [sepolia.id]: '16015286601757825753',
-    [optimismSepolia.id]: '5224473277236331295',
+    [avalancheFuji.id]: '5224473277236331295',
   },
   tokensList: [
     {
       symbol: 'CCIP-BnM',
       address: {
         [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+        [avalancheFuji.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
       },
       logoURL:
         'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
@@ -124,28 +124,28 @@ You should provide configuration for the networks and tokens that your app will 
 
 ```tsx
 import { CCIPWidget, NetworkConfig } from 'ccip-react-components';
-import { sepolia, optimismSepolia } from 'viem/chains';
+import { sepolia, avalancheFuji } from 'viem/chains';
 
-const networkConfing: NetworkConfig = {
-  chains: [{ chain: sepolia }, { chain: optimismSepolia }],
+const networkConfig: NetworkConfig = {
+  chains: [{ chain: sepolia }, { chain: avalancheFuji }],
   linkContracts: {
     [sepolia.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789',
-    [optimismSepolia.id]: '0xE4aB69C077896252FAFBD49EFD26B5D171A32410',
+    [avalancheFuji.id]: '0xabcdef1234567890abcdef1234567890abcdef12',
   },
   routerAddresses: {
     [sepolia.id]: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
-    [optimismSepolia.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
+    [avalancheFuji.id]: '0x114a20a10b43d4115e5aeef7345a1a71d2a60c57',
   },
   chainSelectors: {
     [sepolia.id]: '16015286601757825753',
-    [optimismSepolia.id]: '5224473277236331295',
+    [avalancheFuji.id]: '5224473277236331295',
   },
   tokensList: [
     {
       symbol: 'CCIP-BnM',
       address: {
         [sepolia.id]: '0xFd57b4ddBf88a4e07fF4e34C487b99af2Fe82a05',
-        [optimismSepolia.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
+        [avalancheFuji.id]: '0x8aF4204e30565DF93352fE8E1De78925F6664dA7',
       },
       logoURL: 'https://smartcontract.imgix.net/tokens/ccip-bnm.webp?auto=compress%2Cformat',
     },
