@@ -718,7 +718,7 @@ function GetLaneRateRefillLimits({
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
-      <h2 className="font-bold">Get lane rate refil limits:</h2>
+      <h2 className="font-bold">Get lane rate refill limits:</h2>
       <div className="flex flex-col">
         <label htmlFor="routerAddress">Router Address*</label>
         <input
