@@ -90,7 +90,7 @@
                                 },
                                 {
                                     "internalType": "address",
-                                    "name": "priceRegistry",
+                                    "name": "feeQuoter",
                                     "type": "address"
                                 },
                                 {
@@ -630,7 +630,7 @@
                             "type": "tuple"
                         }
                     ],
-                    "name": "CCIPSendRequested",
+                    "name": "CCIPMessageSent",
                     "type": "event"
                 },
                 {
@@ -753,7 +753,7 @@
                                 },
                                 {
                                     "internalType": "address",
-                                    "name": "priceRegistry",
+                                    "name": "feeQuoter",
                                     "type": "address"
                                 },
                                 {
@@ -1158,7 +1158,7 @@
                                 },
                                 {
                                     "internalType": "address",
-                                    "name": "priceRegistry",
+                                    "name": "feeQuoter",
                                     "type": "address"
                                 },
                                 {
@@ -1628,7 +1628,7 @@
                                 },
                                 {
                                     "internalType": "address",
-                                    "name": "priceRegistry",
+                                    "name": "feeQuoter",
                                     "type": "address"
                                 },
                                 {

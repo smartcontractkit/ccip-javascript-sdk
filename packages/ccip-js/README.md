@@ -69,19 +69,19 @@ Additionally, after the transfer, you may need to check the transfer status.
 To install the package, use the following command:
 
 ```sh
-npm install @chainlink/ccip-js viem
+npm install @chainlink/ccip-js
 ```
 
 Or with Yarn:
 
 ```sh
-yarn add @chainlink/ccip-js viem
+yarn add @chainlink/ccip-js
 ```
 
 Or with PNPM:
 
 ```sh
-pnpm add @chainlink/ccip-js viem
+pnpm add @chainlink/ccip-js
 ```
 
 ## Usage
@@ -166,7 +166,7 @@ An object containing methods for cross-chain transfer management. Refer to [Clie
 ```typescript
 export interface Client {
   approveRouter(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     amount: bigint
@@ -240,7 +240,7 @@ export interface Client {
   }): Promise<boolean>
 
   transferTokens(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
     amount: bigint
@@ -260,7 +260,7 @@ export interface Client {
   }): Promise<{ txHash: Viem.Hash; messageId: Viem.Hash; txReceipt: Viem.TransactionReceipt }>
 
   sendCCIPMessage(options: {
-    client: Viem.WalletClient
+    client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
     destinationAccount: Viem.Address
@@ -338,8 +338,8 @@ type DynamicConfig = {
   destGasPerDataAvailabilityByte: number
   // The multiplier in basis points (bps) applied to the data availability gas cost. This value is used to adjust the cost of data availability by applying a scaling factor.
   destDataAvailabilityMultiplierBps: number
-  // The address of the price registry used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
-  priceRegistry: Viem.Address
+  // The address of the feeQuoter contract used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
+  feeQuoter: Viem.Address
   // The maximum number of data bytes that can be included in a single message. This parameter limits the size of the data payload to prevent excessive data in one transfer.
   maxDataBytes: number
   // The maximum gas limit that can be applied to a single message. This parameter ensures that the transaction does not exceed a certain gas threshold, preventing overly costly operations.
@@ -514,7 +514,7 @@ Initiates the token transfer and returns the transaction hash, cross-chain trans
 
 ```typescript
 transferTokens(options: {
-  client: Viem.WalletClient
+  client: Viem.Client
   routerAddress: Viem.Address
   destinationChainSelector: string
   amount: bigint

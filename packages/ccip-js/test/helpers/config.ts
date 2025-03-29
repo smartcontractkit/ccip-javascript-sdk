@@ -8,7 +8,7 @@ interface ConfigOptions {
 }
 
 interface DynamicConfigOptions {
-    priceRegistryAddress: Address
+    feeQuoterAddress: Address
 }
 
 interface FeeTokenConfigOptions {
@@ -55,7 +55,7 @@ export const setStaticConfig = async ({
     } as StaticConfig
 }
 
-const setDynamicConfig = async ({ priceRegistryAddress }: DynamicConfigOptions) => {
+const setDynamicConfig = async ({ feeQuoterAddress }: DynamicConfigOptions) => {
     const { routerAddress } = await getContractAddresses()
     return {
         router: routerAddress,
@@ -65,7 +65,7 @@ const setDynamicConfig = async ({ priceRegistryAddress }: DynamicConfigOptions) 
         destGasOverhead: 1n,
         destGasPerDataAvailabilityByte: 1n,
         destDataAvailabilityMultiplierBps: 1n,
-        priceRegistry: priceRegistryAddress,
+        feeQuoter: feeQuoterAddress,
         maxDataBytes: 1n,
         maxPerMsgGasLimit: 1n
     } as DynamicConfig
@@ -126,7 +126,7 @@ const setTokenTransferFeeConfigArgs = async ({ chainSelector, tokenAddress }: Fe
 }
 
 export const getStandardConfigs = async ({ chainSelector }: ConfigOptions) => {
-    const { priceRegistryAddress, routerAddress } = await getContractAddresses()
+    const { feeQuoterAddress, routerAddress } = await getContractAddresses()
     const staticConfig = await setStaticConfig({ chainSelector })
     const rateLimiterConfig = { 
         isEnabled: false,
@@ -134,7 +134,7 @@ export const getStandardConfigs = async ({ chainSelector }: ConfigOptions) => {
         rate: 1n
     } as RateLimiterConfig
     // await setRateLimiterConfig({ chainSelector })
-    const dynamicConfig = await setDynamicConfig({ priceRegistryAddress })
+    const dynamicConfig = await setDynamicConfig({ feeQuoterAddress })
 
     return {
         staticConfig,
@@ -144,8 +144,8 @@ export const getStandardConfigs = async ({ chainSelector }: ConfigOptions) => {
 }
 
 export const getSupportedFeeTokens = async () => {
-    const { priceRegistry } = await getContracts()
-    const feeTokens = await priceRegistry.read.getFeeTokens() as Address[]
+    const { feeQuoter } = await getContracts()
+    const feeTokens = await feeQuoter.read.getFeeTokens() as Address[]
     return feeTokens
 }
 
