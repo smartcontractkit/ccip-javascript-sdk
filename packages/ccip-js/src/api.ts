@@ -281,8 +281,7 @@ export interface Client {
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating whether the token
-   *                            is supported on the destination chain.
+   * @returns {Promise<boolean>} A promise that resolves to the Token Admin Registry Contract address on the source chain.
    * @example
    * import { createPublicClient, http } from 'viem'
    * import { mainnet } from 'viem/chains'
@@ -617,7 +616,7 @@ export const createClient = (): Client => {
 
     const approveTxHash = await writeContract(options.client, {
       chain: options.client.chain,
-      account: options.client.account!.address,
+      account: options.client.account!,
       abi: IERC20ABI,
       address: options.tokenAddress,
       functionName: 'approve',
@@ -852,7 +851,7 @@ export const createClient = (): Client => {
       address: options.routerAddress,
       functionName: 'ccipSend',
       args: buildArgs(options),
-      account: options.client.account!.address,
+      account: options.client.account!,
       ...(!options.feeTokenAddress && {
         value: await getFee(options),
       }),
@@ -905,7 +904,7 @@ export const createClient = (): Client => {
       address: options.routerAddress,
       functionName: 'ccipSend',
       args: buildArgs(options),
-      account: options.client.account!.address,
+      account: options.client.account!,
       ...(!options.feeTokenAddress && {
         value: await getFee(options),
       }),

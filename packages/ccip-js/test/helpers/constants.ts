@@ -7,20 +7,20 @@ import routerJson from '../../artifacts-compile/Router.json'
 import simulatorJson from '../../artifacts-compile/CCIPLocalSimulator.json'
 import priceRegistryJson from '../../artifacts-compile/PriceRegistry.json'
 
-// load.env file for private key 
+// load.env file for private key
 // replace with your own private key (optional)
 dotenv.config()
 
-if (!process.env.PRIVATE_KEY) {
-  console.warn('No PRIVATE_KEY found in .env file, using default anvil PK')
+if (process.env.PRIVATE_KEY?.slice(0, 2) !== '0x') {
+  process.env.PRIVATE_KEY = `0x${process.env.PRIVATE_KEY}`
 }
 
-if (!process.env.PRIVATE_KEY?.startsWith('0x')) {
-  process.env.PRIVATE_KEY = '0x' + process.env.PRIVATE_KEY
-}
+export const DEFAULT_ANVIL_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
 
-export const privateKey =
-  (process.env.PRIVATE_KEY as Hex) || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' // default anvil PK
+export const privateKey = (
+  process.env.PRIVATE_KEY === '0x' ? DEFAULT_ANVIL_PRIVATE_KEY : process.env.PRIVATE_KEY
+) as Hex
+
 export const account = privateKeyToAccount(privateKey)
 
 // bridge token contract
@@ -28,8 +28,10 @@ export const { bridgeTokenAbi, bridgeTokenBin } = bridgeJson['contracts']['src/c
 // note: no need to deploy
 export const { onRampAbi, onRampBin } = onRampJson['contracts']['src/contracts/EVM2EVMOnRamp.sol:EVM2EVMOnRamp']
 export const { routerAbi, routerBin } = routerJson['contracts']['src/contracts/Router.sol:Router']
-export const { simulatorAbi, simulatorBin } = simulatorJson['contracts']['src/contracts/CCIPLocalSimulator.sol:CCIPLocalSimulator']
-export const { priceRegistryAbi, priceRegistryBin } = priceRegistryJson['contracts']['src/contracts/PriceRegistry.sol:PriceRegistry']
+export const { simulatorAbi, simulatorBin } =
+  simulatorJson['contracts']['src/contracts/CCIPLocalSimulator.sol:CCIPLocalSimulator']
+export const { priceRegistryAbi, priceRegistryBin } =
+  priceRegistryJson['contracts']['src/contracts/PriceRegistry.sol:PriceRegistry']
 
 // CCIP testing data for simulations
 export const ccipTxHash = '0xc55d92b1212dd24db843e1cbbcaebb1fffe3cd1751313e0fd02cf26bf72b359e'

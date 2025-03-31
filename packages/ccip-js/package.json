@@ -15,7 +15,7 @@
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
     "pretest": "anvil --block-time 2",
-    "t:int": "jest --coverage -u -t=\"Integration\"",
+    "t:int": "jest --coverage -u --testMatch=\"**/integration-*.test.ts\"",
     "t:unit": "jest --coverage -u -t=\"Unit\"",
     "test": "jest --coverage",
     "test:hh": "hardhat test"
