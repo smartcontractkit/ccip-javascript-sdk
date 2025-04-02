@@ -73,12 +73,6 @@ describe('Integration: Fuji -> Sepolia', () => {
     }
   })
 
-  // afterAll((done) => {
-  //   // Wait for 1 second to eliminate error: 'Jest did not exit one second after the test run has completed.'
-  //   done()
-  //   setTimeout(() => process.exit(0), 1000)
-  // })
-
   describe('√ all critical functionality in CCIP Client', () => {
     it('✅ should approve BnM spend, given valid input', async () => {
       const ccipApprove = await ccipSdkClient.approveRouter({
