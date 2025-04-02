@@ -2,7 +2,6 @@ import { jest, expect, it, describe, afterEach, beforeAll } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import * as viemActions from 'viem/actions'
-import { parseEther, zeroAddress } from 'viem'
 
 import { testClient } from './helpers/clients'
 import { account, ccipLog, ccipTxHash, ccipTxReceipt, onRampAbi, routerAbi } from './helpers/constants'
@@ -25,6 +24,32 @@ const parseEventLogsMock = jest.spyOn(Viem, 'parseEventLogs')
 describe('Integration- Using Mocks', () => {
   afterEach(() => {
     jest.clearAllMocks()
+  })
+
+  beforeAll(async () => {
+    // Create a temporary public client to check if Anvil is running
+    const tempClient = Viem.createPublicClient({
+      transport: Viem.http('http://127.0.0.1:8545'),
+    })
+
+    // Try to get the chain ID and verify it's Anvil
+    try {
+      const chainId = await tempClient.getChainId()
+      if (chainId.toString() !== '31337') {
+        throw new Error(`Wrong chain ID ('${chainId}') detected on port 8545. Expected Anvil's '31337'`)
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Wrong chain ID')) {
+        throw error
+      }
+
+      throw new Error(
+        '❌ Anvil is not running on port 8545. Please start Anvil first:\n' +
+          '1. Open a new terminal\n' +
+          '2. Run: anvil --port 8545\n' +
+          '3. Then run the tests again',
+      )
+    }
   })
 
   describe('√ deploy on Anvil', () => {
@@ -50,7 +75,7 @@ describe('Integration- Using Mocks', () => {
 
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
       waitForTransactionReceiptMock.mockResolvedValue(ccipTxReceipt)
-      const approvedAmount = parseEther('10')
+      const approvedAmount = Viem.parseEther('10')
 
       // HH: Approval Transaction
       await bridgeToken.write.approve([
@@ -76,7 +101,7 @@ describe('Integration- Using Mocks', () => {
       // writeContractMock.mockResolvedValueOnce(ccipTxHash)
       // waitForTransactionReceiptMock.mockResolvedValue(ccipTxReceipt)
       const { bridgeToken, localSimulator, router } = await getContracts()
-      const approvedAmount = parseEther('0')
+      const approvedAmount = Viem.parseEther('0')
 
       const { txReceipt } = await ccipClient.approveRouter({
         client: testClient,
@@ -114,7 +139,7 @@ describe('Integration- Using Mocks', () => {
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
       waitForTransactionReceiptMock.mockResolvedValue(ccipTxReceipt)
       const { bridgeToken, router } = await getContracts()
-      const approvedAmount = parseEther('10')
+      const approvedAmount = Viem.parseEther('10')
 
       // HH: Approval Transaction
       await bridgeToken.write.approve([
@@ -214,7 +239,7 @@ describe('Integration- Using Mocks', () => {
   //     const data = encodeFunctionData({
   //       abi: CCIP.IERC20ABI,
   //       functionName: 'transfer',
-  //       args: [Viem.zeroAddress, Viem.parseEther('0.12')],
+  //       args: [Viem.Viem.zeroAddress, Viem.parseEther('0.12')],
   //     })
   //     const hhFee = await router.read.getFee([
   //       '14767482510784806043',   // destinationChainSelector: '14767482510784806043',
@@ -226,7 +251,7 @@ describe('Integration- Using Mocks', () => {
   //       client: testClient,
   //       routerAddress: router.address,
   //       destinationChainSelector: '14767482510784806043',
-  //       destinationAccount: zeroAddress,
+  //       destinationAccount: Viem.zeroAddress,
   //       amount: 1000000000000000000n,
   //       tokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
   //     })
@@ -299,7 +324,7 @@ describe('Integration- Using Mocks', () => {
 
       // const hhTransfer = await router.write.ccipSend([
       //   14767482510784806043n,  // destinationChainSelector
-      //   zeroAddress             // destinationAccount
+      //   Viem.zeroAddress             // destinationAccount
       // ])
       // mineBlock(isFork)
       // console.log({ hhTransfer })
@@ -308,7 +333,7 @@ describe('Integration- Using Mocks', () => {
         client: testClient,
         routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
         destinationChainSelector: '14767482510784806043',
-        destinationAccount: zeroAddress,
+        destinationAccount: Viem.zeroAddress,
         tokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
         amount: 1000000000000000000n,
       })
@@ -351,7 +376,7 @@ describe('Integration- Using Mocks', () => {
         client: testClient,
         routerAddress: router.address,
         destinationChainSelector: '14767482510784806043',
-        destinationAccount: zeroAddress,
+        destinationAccount: Viem.zeroAddress,
         data: Viem.encodeAbiParameters([{ type: 'string', name: 'data' }], ['Hello']),
       })
       expect(transfer.txHash).toEqual(ccipTxHash)
@@ -371,7 +396,7 @@ describe('Integration- Using Mocks', () => {
         client: testClient,
         routerAddress: router.address,
         destinationChainSelector: '14767482510784806043',
-        destinationAccount: zeroAddress,
+        destinationAccount: Viem.zeroAddress,
         feeTokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
         data: Viem.encodeAbiParameters([{ type: 'string', name: 'data' }], ['Hello']),
       })
