@@ -16,12 +16,7 @@ if (process.env.PRIVATE_KEY?.slice(0, 2) !== '0x') {
 }
 
 export const DEFAULT_ANVIL_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
-
-export const privateKey = (
-  process.env.PRIVATE_KEY === '0x' ? DEFAULT_ANVIL_PRIVATE_KEY : process.env.PRIVATE_KEY
-) as Hex
-
-export const account = privateKeyToAccount(privateKey)
+export const account = privateKeyToAccount(DEFAULT_ANVIL_PRIVATE_KEY)
 
 // bridge token contract
 export const { bridgeTokenAbi, bridgeTokenBin } = bridgeJson['contracts']['src/contracts/BridgeToken.sol:BridgeToken']

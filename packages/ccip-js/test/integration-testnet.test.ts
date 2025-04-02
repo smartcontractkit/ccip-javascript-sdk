@@ -4,7 +4,7 @@ import * as Viem from 'viem'
 import { sepolia, avalancheFuji } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import bridgeTokenAbi from '@chainlink/contracts/abi/v0.8/BurnMintERC677.json'
-import { privateKey, DEFAULT_ANVIL_PRIVATE_KEY } from './helpers/constants'
+import { DEFAULT_ANVIL_PRIVATE_KEY } from './helpers/constants'
 import { parseEther } from 'viem'
 
 const ccipSdkClient = CCIP.createClient()
@@ -17,6 +17,7 @@ const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
 
 // 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
 // which is called  in approveRouter()
+// TODO @zeuslawyer: https://prajjwaldimri.medium.com/why-is-my-jest-runner-not-closing-bc4f6632c959 - tests are passing but jest is not closing. Viem transport issue? why?
 const TIMEOUT = 180 * 1000 // 3m
 
 if (!SEPOLIA_RPC_URL) {
@@ -25,6 +26,8 @@ if (!SEPOLIA_RPC_URL) {
 if (!AVALANCHE_FUJI_RPC_URL) {
   throw new Error('AVALANCHE_FUJI_RPC_URL must be set')
 }
+const privateKey = process.env.PRIVATE_KEY as `0x${string}`
+
 if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   throw new Error(
     "Developer's PRIVATE_KEY for Ethereum Sepolia and Avalanche Fuji must be set for integration testing on",
@@ -63,18 +66,18 @@ describe('Integration: Fuji -> Sepolia', () => {
 
     expect(bnmToken_fuji.address).toEqual('0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4')
 
-    const bnmBalance = await bnmToken_fuji.read.balanceOf([privateKeyToAccount(privateKey).address])
+    const bnmBalance = await bnmToken_fuji.read.balanceOf([privateKeyToAccount(privateKey!).address])
     if (parseInt(bnmBalance) < approvedAmount) {
-      await bnmToken_fuji.write.drip([privateKeyToAccount(privateKey)])
-      console.log(' ℹ️ | Dripped 1 CCIP BnM token to account: ', privateKeyToAccount(privateKey))
+      await bnmToken_fuji.write.drip([privateKeyToAccount(privateKey!).address])
+      console.log(' ℹ️ | Dripped 1 CCIP BnM token to account: ', privateKeyToAccount(privateKey!).address)
     }
   })
 
-  afterAll((done) => {
-    done()
-    // Wait for 1 second to eliminate error: 'Jest did not exit one second after the test run has completed.'
-    setTimeout(() => process.exit(0), 1000)
-  })
+  // afterAll((done) => {
+  //   // Wait for 1 second to eliminate error: 'Jest did not exit one second after the test run has completed.'
+  //   done()
+  //   setTimeout(() => process.exit(0), 1000)
+  // })
 
   describe('√ all critical functionality in CCIP Client', () => {
     it('✅ should approve BnM spend, given valid input', async () => {
@@ -86,8 +89,8 @@ describe('Integration: Fuji -> Sepolia', () => {
         waitForReceipt: true,
       })
 
-      ccipApprove.txReceipt!.status == 'success' && console.log(' ✅ | Approved CCIP BnM token on Avalanche Fuji')
-      expect(ccipApprove.txReceipt!.status).toEqual('success')
+      // ccipApprove.txReceipt!.status == 'success' && console.log(' ✅ | Approved CCIP BnM token on Avalanche Fuji'
+      await expect(ccipApprove.txReceipt!.status).toEqual('success')
     })
 
     it('✅ fetches token allowance', async function () {

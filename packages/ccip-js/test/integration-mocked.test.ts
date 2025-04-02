@@ -1,32 +1,17 @@
-import { jest, expect, it, describe, afterEach } from '@jest/globals'
+import { jest, expect, it, describe, afterEach, beforeAll } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import * as viemActions from 'viem/actions'
-import {
-  Address,
-  encodeAbiParameters,
-  encodeFunctionData,
-  getContract,
-  parseEther,
-  zeroAddress,
-} from 'viem'
+import { parseEther, zeroAddress } from 'viem'
 
 import { testClient } from './helpers/clients'
-import {
-  account,
-  ccipLog,
-  ccipTxHash,
-  ccipTxReceipt,
-  onRampAbi,
-  routerAbi,
-} from './helpers/constants'
+import { account, ccipLog, ccipTxHash, ccipTxReceipt, onRampAbi, routerAbi } from './helpers/constants'
 import { getContracts, setOnRampAddress } from './helpers/contracts'
 // getSupportedFeeTokens
 import { mineBlock } from './helpers/utils'
 
 import { expect as expectChai } from 'chai'
 import { getSupportedFeeTokens } from './helpers/config'
-// import { readContract } from 'viem/actions'
 // import { getTokenAdminRegistry } from './helpers/config'
 
 const ccipClient = CCIP.createClient()
@@ -37,31 +22,29 @@ const writeContractMock = jest.spyOn(viemActions, 'writeContract')
 const waitForTransactionReceiptMock = jest.spyOn(viemActions, 'waitForTransactionReceipt')
 const parseEventLogsMock = jest.spyOn(Viem, 'parseEventLogs')
 
-describe('Integration', () => {
-
+describe('Integration- Using Mocks', () => {
   afterEach(() => {
     jest.clearAllMocks()
   })
 
-  describe('√ deploy on HH', () => {
-    it("Should Deploy Router.sol", async function () {
+  describe('√ deploy on Anvil', () => {
+    it('Should Deploy Router.sol', async function () {
       const { router } = await getContracts()
-      expectChai(router.address).to.not.equal(0);
-    });
-    it("Should Deploy BridgeToken.sol", async function () {
+      expectChai(router.address).to.not.equal(0)
+    })
+    it('Should Deploy BridgeToken.sol', async function () {
       const { bridgeToken } = await getContracts()
-      expectChai(bridgeToken.address).to.not.equal(0);
-    });
-    it("Should Deploy CCIPLocalSimulator.sol", async function () {
+      expectChai(bridgeToken.address).to.not.equal(0)
+    })
+    it('Should Deploy CCIPLocalSimulator.sol', async function () {
       const { localSimulator } = await getContracts()
-      expectChai(localSimulator.address).to.not.equal(0);
+      expectChai(localSimulator.address).to.not.equal(0)
     })
 
-    console.log('\u2705 | Deployed Smart Contracts on local Hardhat')
+    console.log('\u2705 | Deployed Smart Contracts on local Anvil')
   })
 
   describe('√ approve', () => {
-
     it('√ should succeed with valid input', async () => {
       const { bridgeToken, localSimulator, router } = await getContracts()
 
@@ -71,8 +54,8 @@ describe('Integration', () => {
 
       // HH: Approval Transaction
       await bridgeToken.write.approve([
-        router.address,     // spender
-        approvedAmount      // amount
+        router.address, // spender
+        approvedAmount, // amount
       ])
 
       // CCIP: Approval Transaction
@@ -135,15 +118,15 @@ describe('Integration', () => {
 
       // HH: Approval Transaction
       await bridgeToken.write.approve([
-        router.address,     // spender
-        approvedAmount      // amount
+        router.address, // spender
+        approvedAmount, // amount
       ])
 
       mineBlock(isFork)
 
       const hhApprovedAmount = await bridgeToken.read.allowance([
-        account.address,  // owner
-        router.address    // spender
+        account.address, // owner
+        router.address, // spender
       ])
 
       await ccipClient.approveRouter({
@@ -155,8 +138,8 @@ describe('Integration', () => {
       })
 
       const ccipApprovedAmount = await bridgeToken.read.allowance([
-        account.address,  // owner
-        router.address    // spender
+        account.address, // owner
+        router.address, // spender
       ])
 
       expect(hhApprovedAmount).toBe(approvedAmount)
@@ -168,7 +151,6 @@ describe('Integration', () => {
   })
 
   describe('√ getOnRampAddress', () => {
-
     it('√ should return the address of the onRamp contract', async () => {
       const { router } = await getContracts()
       const expectedOnRampAddress = '0x8F35B097022135E0F46831f798a240Cc8c4b0B01'
@@ -194,7 +176,6 @@ describe('Integration', () => {
   })
 
   describe('√ getSupportedFeeTokens', () => {
-
     it('√ should return supported fee tokens for valid chains', async () => {
       const { router } = await getContracts()
       const supportedFeeTokens = [
@@ -214,7 +195,7 @@ describe('Integration', () => {
       const ccipSupportedFeeTokens = await ccipClient.getSupportedFeeTokens({
         client: testClient,
         routerAddress: router.address,
-        destinationChainSelector: "16015286601757825753",
+        destinationChainSelector: '16015286601757825753',
       })
 
       expect(hhSupportedFeeTokens).toStrictEqual(supportedFeeTokens)
@@ -358,7 +339,6 @@ describe('Integration', () => {
     })
   })
   describe('sendCCIPMessage', () => {
-
     it('should successfully send message', async () => {
       const { router } = await getContracts()
 
