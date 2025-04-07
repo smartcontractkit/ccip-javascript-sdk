@@ -67,19 +67,19 @@ Additionally, after the transfer, you may need to check the transfer status.
 To install the package, use the following command:
 
 ```sh
-npm install @chainlink/ccip-js viem
+npm install @chainlink/ccip-js
 ```
 
 Or with Yarn:
 
 ```sh
-yarn add @chainlink/ccip-js viem
+yarn add @chainlink/ccip-js
 ```
 
 Or with PNPM:
 
 ```sh
-pnpm add @chainlink/ccip-js viem
+pnpm add @chainlink/ccip-js
 ```
 
 ## Usage
