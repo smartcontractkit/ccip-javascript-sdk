@@ -1,6 +1,5 @@
 # CCIP-JS
 
-
 CCIP-JS is a TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers. The library utilizes types and helper functions from [Viem](https://viem.sh/).
 
 To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.link/ccip).
@@ -41,7 +40,6 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
     - [Contributing](#contributing)
   - [License](#license)
 
-
 ## Why CCIP-JS?
 
 CCIP-JS provides ready-to-use typesafe methods for every step of the token transfer process.
@@ -69,24 +67,25 @@ Additionally, after the transfer, you may need to check the transfer status.
 To install the package, use the following command:
 
 ```sh
-npm install @chainlink/ccip-js viem
+npm install @chainlink/ccip-js
 ```
 
 Or with Yarn:
 
 ```sh
-yarn add @chainlink/ccip-js viem
+yarn add @chainlink/ccip-js
 ```
 
 Or with PNPM:
 
 ```sh
-pnpm add @chainlink/ccip-js viem
+pnpm add @chainlink/ccip-js
 ```
 
 ## Usage
 
 This example code covers the following steps:
+
 - Initialize CCIP-JS Client for mainnet
 - Approve tokens for transfer
 - Get fee for the transfer
@@ -593,11 +592,13 @@ pnpm build-ccip-js
 
 #### Running tests
 
-```sh
-pnpm i -w
-anvil
-pnpm test
-```
+1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
+
+2. open a new terminal window and run `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
+
+3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm test`
+
+<b?>Note:</b> that Anvil is only needed for the tests inside `./test/integration-mocked.test.ts` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
 
 ### Contributing
 
