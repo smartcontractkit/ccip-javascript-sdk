@@ -26,8 +26,8 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
       - [getAllowance](#getallowance)
       - [getOnRampAddress](#getonrampaddress)
       - [getSupportedFeeTokens](#getsupportedfeetokens)
-      - [getLaneRateRefillLimits](#getlaneraterefilllimits)
-      - [getTokenRateLimitByLane](#gettokenratelimitbylane)
+      - [getChainRateRefillLimits](#getchainraterefilllimits)
+      - [getTokenRateLimitByChain](#gettokenratelimitbychain)
       - [getFee](#getfee)
       - [getTokenAdminRegistry](#gettokenadminregistry)
       - [isTokenSupported](#istokensupported)
@@ -201,13 +201,13 @@ export interface Client {
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
 
-  getLaneRateRefillLimits(options: {
+  getChainRateRefillLimits(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
 
-  getTokenRateLimitByLane(options: {
+  getTokenRateLimitByChain(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
@@ -438,24 +438,24 @@ getSupportedFeeTokens(options: {
 }): Promise<Viem.Address[]>
 ```
 
-#### getLaneRateRefillLimits
+#### getChainRateRefillLimits
 
-Retrieves the aggregated rate refill limits for the specified lane. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
+Retrieves the aggregated rate refill limits for the specified chain. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getLaneRateRefillLimits(options: {
+getChainRateRefillLimits(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   destinationChainSelector: string
 }): Promise<RateLimiterState>
 ```
 
-#### getTokenRateLimitByLane
+#### getTokenRateLimitByChain
 
 Retrieves the rate refill limits for the specified token. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getTokenRateLimitByLane(options: {
+getTokenRateLimitByChain(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   supportedTokenAddress: Viem.Address

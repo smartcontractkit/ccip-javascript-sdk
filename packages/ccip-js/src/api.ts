@@ -146,12 +146,12 @@ export interface Client {
     destinationChainSelector: string
   }): Promise<Viem.Address>
 
-  /** Get a list of supported fee tokens for provided lane for the cross-chain transfer.
+  /** Get a list of supported fee tokens for provided chain for the cross-chain transfer.
    * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @returns {Promise<Viem.Address[]>} A promise that resolves to an array of ERC-20 token addresses that
-   *                                    can be used to pee the transfer fee on a given lane.
+   *                                    can be used to pee the transfer fee on a given chain.
    * @example
    *  import { createPublicClient, http } from 'viem'
    *  import { mainnet } from 'viem/chains'
@@ -173,12 +173,12 @@ export interface Client {
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
 
-  /** Retrieve the rate refill limits for the specified lane.
+  /** Retrieve the rate refill limits for the specified chain.
    * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @returns {Promise<RateLimiterState>} A promise that resolves to the current state of the
-   *                                          lane rate limiter, including token balance, capacity,
+   *                                          chain rate limiter, including token balance, capacity,
    *                                          and refill rate.
    * @example
    * import { createPublicClient, http } from 'viem'
@@ -189,25 +189,25 @@ export interface Client {
    *   transport: http()
    * })
    *
-   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getLaneRateRefillLimits({
+   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getChainRateRefillLimits({
    *   client: publicClient,
    *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
    *   destinationChainSelector: "1234"
    * });
    */
-  getLaneRateRefillLimits(options: {
+  getChainRateRefillLimits(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
 
-  /** Retrieve the rate refill limits for the specified token.
+  /** Retrieve the rate refill limits for the specified token on a chain.
    * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
    * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {number} options.supportedTokenAddress - The address of the token (supported by this lane) to check limits for.
+   * @param {number} options.supportedTokenAddress - The address of the token (supported by this chain) to check limits for.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @returns {Promise<RateLimiterState>} A promise that resolves to the current state of the
-   *                                          lane rate limiter, including token balance, capacity,
+   *                                          chain rate limiter, including token balance, capacity,
    *                                          and refill rate.
    * @example
    * import { createPublicClient, http } from 'viem'
@@ -218,14 +218,14 @@ export interface Client {
    *   transport: http()
    * })
    *
-   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getTokenRateLimitByLane({
+   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getTokenRateLimitByChain({
    *   client: publicClient,
    *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
    *   supportedTokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
    *   destinationChainSelector: "1234"
    * });
    */
-  getTokenRateLimitByLane(options: {
+  getTokenRateLimitByChain(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
@@ -587,8 +587,8 @@ export const createClient = (): Client => {
     getAllowance,
     getOnRampAddress,
     getSupportedFeeTokens,
-    getLaneRateRefillLimits,
-    getTokenRateLimitByLane,
+    getChainRateRefillLimits,
+    getTokenRateLimitByChain,
     getFee,
     getTokenAdminRegistry,
     isTokenSupported,
@@ -691,7 +691,7 @@ export const createClient = (): Client => {
   }
 
   /**
-   * Gets the list of supported fee tokens for a specific source-destination chain lane
+   * Gets the list of supported fee tokens for a specific source-destination chain
    * These tokens can be used to pay for the cross-chain transfer fees
    */
   async function getSupportedFeeTokens(options: Parameters<Client['getSupportedFeeTokens']>[0]) {
@@ -719,10 +719,10 @@ export const createClient = (): Client => {
   }
 
   /**
-   * Retrieves the current rate limits for a specific lane
+   * Retrieves the current rate limits for a specific chain
    * Returns information about capacity, remaining tokens, and refill rates
    */
-  async function getLaneRateRefillLimits(options: Parameters<Client['getLaneRateRefillLimits']>[0]) {
+  async function getChainRateRefillLimits(options: Parameters<Client['getChainRateRefillLimits']>[0]) {
     const onRampAddress = await getOnRampAddress(options)
 
     const currentRateLimiterState = await readContract(options.client, {
@@ -734,10 +734,10 @@ export const createClient = (): Client => {
   }
 
   /**
-   * Gets the rate limit information for a specific token on a specific lane
+   * Gets the rate limit information for a specific token on a specific chain
    * Provides details about how much of this token can be transferred in a time period
    */
-  async function getTokenRateLimitByLane(options: Parameters<Client['getTokenRateLimitByLane']>[0]) {
+  async function getTokenRateLimitByChain(options: Parameters<Client['getTokenRateLimitByChain']>[0]) {
     checkIsAddressValid(
       options.supportedTokenAddress,
       `PARAMETER INPUT ERROR: Token address ${options.supportedTokenAddress} is not valid. Execution can not be continued`,
@@ -745,7 +745,7 @@ export const createClient = (): Client => {
 
     const onRampAddress = await getOnRampAddress(options)
 
-    const laneTokenTransferPool = (await readContract(options.client, {
+    const chainTokenTransferPool = (await readContract(options.client, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'getPoolBySourceToken',
@@ -753,13 +753,13 @@ export const createClient = (): Client => {
     })) as Viem.Address
 
     checkIsAddressValid(
-      laneTokenTransferPool,
+      chainTokenTransferPool,
       `CONTRACT CALL ERROR: Token pool for ${options.supportedTokenAddress} is missing. Execution can not be continued`,
     )
 
     const transferPoolTokenOutboundLimit = await readContract(options.client, {
       abi: TokenPoolABI,
-      address: laneTokenTransferPool as Viem.Address,
+      address: chainTokenTransferPool as Viem.Address,
       functionName: 'getCurrentOutboundRateLimiterState',
       args: [options.destinationChainSelector],
     })

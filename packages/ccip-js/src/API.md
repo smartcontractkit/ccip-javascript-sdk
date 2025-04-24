@@ -37,8 +37,8 @@ The `Client` interface provides several methods for managing cross-chain transfe
 | **getAllowance**              | Retrieves the allowance of a specified account for a cross-chain transfer. |
 | **getOnRampAddress**          | Retrieves the onRamp contract address from a router contract. |
 | **getSupportedFeeTokens**     | Gets a list of supported fee tokens for a cross-chain transfer. |
-| **getLaneRateRefillLimits**   | Retrieves the rate refill limits for a specified lane. |
-| **getTokenRateLimitByLane**   | Retrieves the rate refill limits for a specified token. |
+| **getChainRateRefillLimits**   | Retrieves the rate refill limits for a specified lane. |
+| **getTokenRateLimitByChain**   | Retrieves the rate refill limits for a specified token. |
 | **getFee**                    | Gets the fee required for a cross-chain transfer. |
 | **getTokenAdminRegistry**     | Retrieves the token admin registry contract address. |
 | **isTokenSupported**          | Checks if a token is supported on the destination chain. |

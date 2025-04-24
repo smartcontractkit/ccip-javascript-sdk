@@ -296,11 +296,11 @@ describe('Unit', () => {
       ])
     })
   })
-  describe('getLaneRateRefillLimits', () => {
+  describe('getChainRateRefillLimits', () => {
     it('should reject with invalid router address', async () => {
       await expect(
         async () =>
-          await ccipClient.getLaneRateRefillLimits({
+          await ccipClient.getChainRateRefillLimits({
             client: forkClient,
             routerAddress: Viem.zeroAddress,
             destinationChainSelector: '14767482510784806043',
@@ -317,13 +317,13 @@ describe('Unit', () => {
         rate: 0n,
       })
 
-      const laneRateRefillLimits = await ccipClient.getLaneRateRefillLimits({
+      const chainRateRefillLimits = await ccipClient.getChainRateRefillLimits({
         client: forkClient,
         routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
         destinationChainSelector: '14767482510784806043',
       })
 
-      expect(laneRateRefillLimits).toStrictEqual({
+      expect(chainRateRefillLimits).toStrictEqual({
         tokens: 0n,
         lastUpdated: 1729679256,
         isEnabled: false,
@@ -333,11 +333,11 @@ describe('Unit', () => {
     })
   })
 
-  describe('getTokenRateLimitByLane', () => {
+  describe('getTokenRateLimitByChain', () => {
     it('should reject with invalid router address', async () => {
       await expect(
         async () =>
-          await ccipClient.getTokenRateLimitByLane({
+          await ccipClient.getTokenRateLimitByChain({
             client: forkClient,
             routerAddress: Viem.zeroAddress,
             destinationChainSelector: '14767482510784806043',
@@ -348,7 +348,7 @@ describe('Unit', () => {
     it('should reject if token address is not valid', async () => {
       await expect(
         async () =>
-          await ccipClient.getTokenRateLimitByLane({
+          await ccipClient.getTokenRateLimitByChain({
             client: forkClient,
             routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
             destinationChainSelector: '14767482510784806043',
@@ -358,11 +358,11 @@ describe('Unit', () => {
         'Token address 0x0000000000000000000000000000000000000000 is not valid. Execution can not be continued',
       )
     }, 10000)
-    it('should reject if laneTokenTransferPool is not set or zero-address', async () => {
+    it('should reject if token pool is not set or zero-address', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01')
       readContractMock.mockResolvedValueOnce(Viem.zeroAddress)
       await expect(async () =>
-        ccipClient.getTokenRateLimitByLane({
+        ccipClient.getTokenRateLimitByChain({
           client: forkClient,
           routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
           destinationChainSelector: '0',
@@ -383,14 +383,14 @@ describe('Unit', () => {
         rate: 0n,
       })
 
-      const tokenRateLimitByLane = await ccipClient.getTokenRateLimitByLane({
+      const tokenRateLimitByChain = await ccipClient.getTokenRateLimitByChain({
         client: forkClient,
         routerAddress: '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59',
         destinationChainSelector: '14767482510784806043',
         supportedTokenAddress: '0x94095e6514411C65E7809761F21eF0febe69A977',
       })
 
-      expect(tokenRateLimitByLane).toStrictEqual({
+      expect(tokenRateLimitByChain).toStrictEqual({
         tokens: 0n,
         lastUpdated: 1729679256,
         isEnabled: false,
