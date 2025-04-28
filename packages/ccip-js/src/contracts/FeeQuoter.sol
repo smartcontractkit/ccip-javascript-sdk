@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.24;
 
-import {IPriceRegistry} from '@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IPriceRegistry.sol';
+import {IFeeQuoter} from '@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IFeeQuoter.sol';
 import {OwnerIsCreator} from '@chainlink/contracts-ccip/src/v0.8/shared/access/OwnerIsCreator.sol';
 import {Internal} from '@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Internal.sol';
 import {USDPriceWith18Decimals} from '@chainlink/contracts-ccip/src/v0.8/ccip/libraries/USDPriceWith18Decimals.sol';
@@ -9,9 +9,9 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 
 // import {EnumerableSet} from "../vendor/openzeppelin-solidity/v4.8.0/utils/structs/EnumerableSet.sol";
 
-/// @notice The PriceRegistry contract responsibility is to store the current gas price in USD for a given destination chain,
+/// @notice The FeeQuoter contract responsibility is to store the current gas price in USD for a given destination chain,
 /// and the price of a token in USD allowing the owner or priceUpdater to update this value.
-contract PriceRegistry is IPriceRegistry, OwnerIsCreator {
+contract FeeQuoter is IFeeQuoter, OwnerIsCreator {
   using EnumerableSet for EnumerableSet.AddressSet;
   using USDPriceWith18Decimals for uint224;
 
@@ -74,17 +74,17 @@ contract PriceRegistry is IPriceRegistry, OwnerIsCreator {
   // |                     Price calculations                       |
   // ================================================================
 
-  // @inheritdoc IPriceRegistry
+  // @inheritdoc IFeeQuoter
   function getTokenPrice(address token) public view override returns (Internal.TimestampedPackedUint224 memory) {
     return s_usdPerToken[token];
   }
 
-  // @inheritdoc IPriceRegistry
+  // @inheritdoc IFeeQuoter
   function getValidatedTokenPrice(address token) external view override returns (uint224) {
     return _getValidatedTokenPrice(token);
   }
 
-  // @inheritdoc IPriceRegistry
+  // @inheritdoc IFeeQuoter
   function getTokenPrices(
     address[] calldata tokens
   ) external view override returns (Internal.TimestampedPackedUint224[] memory) {
@@ -102,7 +102,7 @@ contract PriceRegistry is IPriceRegistry, OwnerIsCreator {
     return i_stalenessThreshold;
   }
 
-  // @inheritdoc IPriceRegistry
+  // @inheritdoc IFeeQuoter
   function getDestinationChainGasPrice(
     uint64 destChainSelector
   ) external view override returns (Internal.TimestampedPackedUint224 memory) {
@@ -124,7 +124,7 @@ contract PriceRegistry is IPriceRegistry, OwnerIsCreator {
     return (_getValidatedTokenPrice(feeToken), gasPrice.value);
   }
 
-  /// @inheritdoc IPriceRegistry
+  /// @inheritdoc IFeeQuoter
   /// @dev this function assumed that no more than 1e59 dollar, is sent as payment.
   /// If more is sent, the multiplication of feeTokenAmount and feeTokenValue will overflow.
   /// Since there isn't even close to 1e59 dollars in the world economy this is safe.
@@ -198,7 +198,7 @@ contract PriceRegistry is IPriceRegistry, OwnerIsCreator {
   // |                       Price updates                          |
   // ================================================================
 
-  // @inheritdoc IPriceRegistry
+  // @inheritdoc IFeeQuoter
   function updatePrices(Internal.PriceUpdates memory priceUpdates) external override requireUpdaterOrOwner {
     _updatePrices(priceUpdates);
   }

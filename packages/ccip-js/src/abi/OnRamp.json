@@ -25,7 +25,7 @@
           { "internalType": "uint32", "name": "destDataAvailabilityOverheadGas", "type": "uint32" },
           { "internalType": "uint16", "name": "destGasPerDataAvailabilityByte", "type": "uint16" },
           { "internalType": "uint16", "name": "destDataAvailabilityMultiplierBps", "type": "uint16" },
-          { "internalType": "address", "name": "priceRegistry", "type": "address" },
+          { "internalType": "address", "name": "feeQuoter", "type": "address" },
           { "internalType": "uint32", "name": "maxDataBytes", "type": "uint32" },
           { "internalType": "uint32", "name": "maxPerMsgGasLimit", "type": "uint32" },
           { "internalType": "uint16", "name": "defaultTokenFeeUSDCents", "type": "uint16" },
@@ -230,7 +230,7 @@
         "type": "tuple"
       }
     ],
-    "name": "CCIPSendRequested",
+    "name": "CCIPMessageSent",
     "type": "event"
   },
   {
@@ -279,7 +279,7 @@
           { "internalType": "uint32", "name": "destDataAvailabilityOverheadGas", "type": "uint32" },
           { "internalType": "uint16", "name": "destGasPerDataAvailabilityByte", "type": "uint16" },
           { "internalType": "uint16", "name": "destDataAvailabilityMultiplierBps", "type": "uint16" },
-          { "internalType": "address", "name": "priceRegistry", "type": "address" },
+          { "internalType": "address", "name": "feeQuoter", "type": "address" },
           { "internalType": "uint32", "name": "maxDataBytes", "type": "uint32" },
           { "internalType": "uint32", "name": "maxPerMsgGasLimit", "type": "uint32" },
           { "internalType": "uint16", "name": "defaultTokenFeeUSDCents", "type": "uint16" },
@@ -459,7 +459,7 @@
           { "internalType": "uint32", "name": "destDataAvailabilityOverheadGas", "type": "uint32" },
           { "internalType": "uint16", "name": "destGasPerDataAvailabilityByte", "type": "uint16" },
           { "internalType": "uint16", "name": "destDataAvailabilityMultiplierBps", "type": "uint16" },
-          { "internalType": "address", "name": "priceRegistry", "type": "address" },
+          { "internalType": "address", "name": "feeQuoter", "type": "address" },
           { "internalType": "uint32", "name": "maxDataBytes", "type": "uint32" },
           { "internalType": "uint32", "name": "maxPerMsgGasLimit", "type": "uint32" },
           { "internalType": "uint16", "name": "defaultTokenFeeUSDCents", "type": "uint16" },
@@ -663,7 +663,7 @@
           { "internalType": "uint32", "name": "destDataAvailabilityOverheadGas", "type": "uint32" },
           { "internalType": "uint16", "name": "destGasPerDataAvailabilityByte", "type": "uint16" },
           { "internalType": "uint16", "name": "destDataAvailabilityMultiplierBps", "type": "uint16" },
-          { "internalType": "address", "name": "priceRegistry", "type": "address" },
+          { "internalType": "address", "name": "feeQuoter", "type": "address" },
           { "internalType": "uint32", "name": "maxDataBytes", "type": "uint32" },
           { "internalType": "uint32", "name": "maxPerMsgGasLimit", "type": "uint32" },
           { "internalType": "uint16", "name": "defaultTokenFeeUSDCents", "type": "uint16" },

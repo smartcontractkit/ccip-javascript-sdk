@@ -1,18 +1,7 @@
-'use client';
+"use client";
 
-import {
-  createClient,
-  IERC20ABI,
-  RateLimiterState,
-  TransferStatus,
-} from '@chainlink/ccip-js';
-import {
-  useConnect,
-  useAccount,
-  useSwitchChain,
-  usePublicClient,
-  useWalletClient,
-} from 'wagmi';
+import { createClient, IERC20ABI, RateLimiterState, TransferStatus } from "@chainlink/ccip-js";
+import { useConnect, useAccount, useSwitchChain, usePublicClient, useWalletClient } from "wagmi";
 import {
   Address,
   encodeAbiParameters,
@@ -23,8 +12,8 @@ import {
   PublicClient,
   TransactionReceipt,
   WalletClient,
-} from 'viem';
-import { useState } from 'react';
+} from "viem";
+import { useState } from "react";
 
 const ccipClient = createClient();
 
@@ -40,9 +29,9 @@ export function CCIP() {
           <GetAllowance publicClient={publicClient} />
           <GetOnRampAddress publicClient={publicClient} />
           <GetSupportedFeeTokens publicClient={publicClient} />
-          <GetLaneRateRefillLimits publicClient={publicClient} />
+          <GetChainRateRefillLimits publicClient={publicClient} />
           <IsTokenSupported publicClient={publicClient} />
-          <GetTokenRateLimitByLane publicClient={publicClient} />
+          <GetTokenRateLimitByChain publicClient={publicClient} />
           <GetTokenAdminRegistry publicClient={publicClient} />
           <GetTransactionReceipt publicClient={publicClient} />
           <GetTransferStatus />
@@ -63,18 +52,8 @@ export function CCIP() {
 
 function ConnectWallet() {
   const { chain, address } = useAccount();
-  const {
-    connectors,
-    connect,
-    isError: isConnectError,
-    error: connectError,
-  } = useConnect();
-  const {
-    chains,
-    switchChain,
-    error: switchError,
-    isError: isSwitchError,
-  } = useSwitchChain();
+  const { connectors, connect, isError: isConnectError, error: connectError } = useConnect();
+  const { chains, switchChain, error: switchError, isError: isSwitchError } = useSwitchChain();
 
   const [chainId, setChainId] = useState<string>(`${chain?.id}`);
 
@@ -82,7 +61,7 @@ function ConnectWallet() {
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Connect Wallet:</h2>
       <div className="space-x-2">
-        {connectors.map((connector) => (
+        {connectors.map(connector => (
           <button
             className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
             key={connector.uid}
@@ -103,9 +82,9 @@ function ConnectWallet() {
               className="border border-slate-300 rounded-md p-1"
               name="chainId"
               value={chainId}
-              onChange={(e) => setChainId(e.target.value)}
+              onChange={e => setChainId(e.target.value)}
             >
-              {chains.map((c) => (
+              {chains.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.name}
                 </option>
@@ -118,9 +97,7 @@ function ConnectWallet() {
           >
             Switch
           </button>
-          {isSwitchError && (
-            <p className="text-red-500">{switchError.message}</p>
-          )}
+          {isSwitchError && <p className="text-red-500">{switchError.message}</p>}
         </>
       )}
     </div>
@@ -192,16 +169,11 @@ function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
   );
 }
 
-function TransferTokensAndMessage({
-  walletClient,
-}: {
-  walletClient: WalletClient;
-}) {
+function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
   const [data, setData] = useState<Hex>();
   const [messageId, setMessageId] = useState<string>();
@@ -229,9 +201,7 @@ function TransferTokensAndMessage({
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -254,14 +224,7 @@ function TransferTokensAndMessage({
           className="border border-slate-300 rounded-md p-1"
           name="message"
           placeholder="0x..."
-          onChange={({ target }) =>
-            setData(
-              encodeAbiParameters(
-                [{ type: 'string', name: 'data' }],
-                [target.value]
-              )
-            )
-          }
+          onChange={({ target }) => setData(encodeAbiParameters([{ type: "string", name: "data" }], [target.value]))}
         />
       </div>
       <div className="flex flex-col w-full">
@@ -279,13 +242,7 @@ function TransferTokensAndMessage({
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
-          if (
-            routerAddress &&
-            destinationChainSelector &&
-            amount &&
-            destinationAccount &&
-            tokenAddress
-          ) {
+          if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
             const result = await ccipClient.transferTokens({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -311,9 +268,7 @@ function TransferTokensAndMessage({
       {messageId && (
         <div className="flex flex-col w-full">
           <label>MessageId:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {messageId}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{messageId}</code>
         </div>
       )}
     </div>
@@ -322,8 +277,7 @@ function TransferTokensAndMessage({
 
 function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
   const [data, setData] = useState<Hex>();
   const [messageId, setMessageId] = useState<string>();
@@ -343,9 +297,7 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
       </div>
 
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -368,25 +320,13 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
           className="border border-slate-300 rounded-md p-1"
           name="message"
           placeholder="Message"
-          onChange={({ target }) =>
-            setData(
-              encodeAbiParameters(
-                [{ type: 'string', name: 'data' }],
-                [target.value]
-              )
-            )
-          }
+          onChange={({ target }) => setData(encodeAbiParameters([{ type: "string", name: "data" }], [target.value]))}
         />
       </div>
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
-          if (
-            routerAddress &&
-            destinationChainSelector &&
-            destinationAccount &&
-            data
-          ) {
+          if (routerAddress && destinationChainSelector && destinationAccount && data) {
             const result = await ccipClient.sendCCIPMessage({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -410,9 +350,7 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
       {messageId && (
         <div className="flex flex-col w-full">
           <label>MessageId:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {messageId}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{messageId}</code>
         </div>
       )}
     </div>
@@ -421,8 +359,7 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
 
 function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
   const [amount, setAmount] = useState<string>();
   const [data, setData] = useState<Hex>();
@@ -444,9 +381,7 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
       </div>
 
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -478,12 +413,7 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
-          if (
-            routerAddress &&
-            destinationChainSelector &&
-            destinationAccount &&
-            amount
-          ) {
+          if (routerAddress && destinationChainSelector && destinationAccount && amount) {
             const result = await ccipClient.sendCCIPMessage({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -491,7 +421,7 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
               destinationAccount: destinationAccount as Address,
               data: encodeFunctionData({
                 abi: IERC20ABI,
-                functionName: 'transfer',
+                functionName: "transfer",
                 args: [destinationAccount, parseEther(amount)],
               }),
             });
@@ -511,9 +441,7 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
       {messageId && (
         <div className="flex flex-col w-full">
           <label>MessageId:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {messageId}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{messageId}</code>
         </div>
       )}
     </div>
@@ -576,9 +504,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
       {allowance && (
         <div className="flex flex-col w-full">
           <label>Allowance:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {allowance}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{allowance}</code>
         </div>
       )}
     </div>
@@ -588,8 +514,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
 function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [onRamp, setOnRamp] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Get On-ramp address:</h2>
@@ -603,9 +528,7 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -639,14 +562,9 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
   );
 }
 
-function GetSupportedFeeTokens({
-  publicClient,
-}: {
-  publicClient: PublicClient;
-}) {
+function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [supportedFeeTokens, setSupportedFeeTokens] = useState<Address[]>();
 
   return (
@@ -662,9 +580,7 @@ function GetSupportedFeeTokens({
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -691,11 +607,8 @@ function GetSupportedFeeTokens({
         <div className="flex flex-col w-full">
           <label>Supported fee tokens:</label>
           <code className="w-full whitespace-pre-wrap break-all">
-            {supportedFeeTokens.map((address) => (
-              <pre
-                className="w-full whitespace-pre-wrap break-all"
-                key={address}
-              >
+            {supportedFeeTokens.map(address => (
+              <pre className="w-full whitespace-pre-wrap break-all" key={address}>
                 {address}
               </pre>
             ))}
@@ -706,14 +619,9 @@ function GetSupportedFeeTokens({
   );
 }
 
-function GetLaneRateRefillLimits({
-  publicClient,
-}: {
-  publicClient: PublicClient;
-}) {
+function GetChainRateRefillLimits({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [rateLimits, setRateLimits] = useState<RateLimiterState>();
 
   return (
@@ -729,9 +637,7 @@ function GetLaneRateRefillLimits({
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -774,14 +680,9 @@ function GetLaneRateRefillLimits({
   );
 }
 
-function GetTokenRateLimitByLane({
-  publicClient,
-}: {
-  publicClient: PublicClient;
-}) {
+function GetTokenRateLimitByChain({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [tokenRateLimits, setTokenRateLimits] = useState<RateLimiterState>();
 
@@ -798,9 +699,7 @@ function GetTokenRateLimitByLane({
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -821,13 +720,12 @@ function GetTokenRateLimitByLane({
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && tokenAddress) {
-            const tokenRateLimiterState =
-              await ccipClient.getTokenRateLimitByLane({
-                client: publicClient,
-                routerAddress: routerAddress as Address,
-                destinationChainSelector,
-                supportedTokenAddress: tokenAddress as Address,
-              });
+            const tokenRateLimiterState = await ccipClient.getTokenRateLimitByLane({
+              client: publicClient,
+              routerAddress: routerAddress as Address,
+              destinationChainSelector,
+              supportedTokenAddress: tokenAddress as Address,
+            });
             setTokenRateLimits(tokenRateLimiterState);
           }
         }}
@@ -858,8 +756,7 @@ function GetTokenRateLimitByLane({
 
 function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [isTokenSupported, setIsTokenSupported] = useState<string>();
 
@@ -876,9 +773,7 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -914,23 +809,16 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
       {isTokenSupported && (
         <div className="flex flex-col w-full">
           <label>Is token supported:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {isTokenSupported.toLocaleString()}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{isTokenSupported.toLocaleString()}</code>
         </div>
       )}
     </div>
   );
 }
 
-function GetTokenAdminRegistry({
-  publicClient,
-}: {
-  publicClient: PublicClient;
-}) {
+function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [tokenAdminRegistry, setTokenAdminRegistry] = useState<string>();
   return (
@@ -946,9 +834,7 @@ function GetTokenAdminRegistry({
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -969,13 +855,12 @@ function GetTokenAdminRegistry({
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && tokenAddress && destinationChainSelector) {
-            const tokenAdminRegistryResult =
-              await ccipClient.getTokenAdminRegistry({
-                client: publicClient,
-                routerAddress: routerAddress as Address,
-                tokenAddress: tokenAddress as Address,
-                destinationChainSelector,
-              });
+            const tokenAdminRegistryResult = await ccipClient.getTokenAdminRegistry({
+              client: publicClient,
+              routerAddress: routerAddress as Address,
+              tokenAddress: tokenAddress as Address,
+              destinationChainSelector,
+            });
             setTokenAdminRegistry(tokenAdminRegistryResult);
           }
         }}
@@ -985,23 +870,16 @@ function GetTokenAdminRegistry({
       {tokenAdminRegistry && (
         <div className="flex flex-col w-full">
           <label>Token admin registry address:</label>
-          <code className="w-full whitespace-pre-wrap break-all">
-            {tokenAdminRegistry.toLocaleString()}
-          </code>
+          <code className="w-full whitespace-pre-wrap break-all">{tokenAdminRegistry.toLocaleString()}</code>
         </div>
       )}
     </div>
   );
 }
 
-function GetTransactionReceipt({
-  publicClient,
-}: {
-  publicClient: PublicClient;
-}) {
+function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient }) {
   const [hash, setHash] = useState<string>();
-  const [transactionReceipt, setTransactionReceipt] =
-    useState<TransactionReceipt>();
+  const [transactionReceipt, setTransactionReceipt] = useState<TransactionReceipt>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -1021,11 +899,10 @@ function GetTransactionReceipt({
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (hash) {
-            const transactionReceiptResult =
-              await ccipClient.getTransactionReceipt({
-                client: publicClient,
-                hash: hash as Hash,
-              });
+            const transactionReceiptResult = await ccipClient.getTransactionReceipt({
+              client: publicClient,
+              hash: hash as Hash,
+            });
             setTransactionReceipt(transactionReceiptResult);
           }
         }}
@@ -1057,8 +934,7 @@ function GetTransactionReceipt({
 
 function GetTransferStatus() {
   const { chains } = useSwitchChain();
-  const [destinationRouterAddress, setDestinationRouterAddress] =
-    useState<string>();
+  const [destinationRouterAddress, setDestinationRouterAddress] = useState<string>();
   const [destinationChainId, setDestinationChainId] = useState<number>();
   const [sourceChainSelector, setSourceChainSelector] = useState<string>();
   const [messageId, setMessageId] = useState<string>();
@@ -1073,9 +949,7 @@ function GetTransferStatus() {
       <h2 className="font-bold">Get transfer status:</h2>
       <div className="space-y-2">
         <div className="flex flex-col">
-          <label htmlFor="destinationRouterAddress">
-            Destination router address
-          </label>
+          <label htmlFor="destinationRouterAddress">Destination router address</label>
           <input
             className="border border-slate-300 rounded-md p-1"
             name="destinationRouterAddress"
@@ -1087,9 +961,9 @@ function GetTransferStatus() {
           <label htmlFor="destinationChainId">Destination chain id</label>
           <select
             className="border border-slate-300 rounded-md p-1"
-            onChange={(e) => setDestinationChainId(Number(e.target.value))}
+            onChange={e => setDestinationChainId(Number(e.target.value))}
           >
-            {chains.map((chain) => (
+            {chains.map(chain => (
               <option key={chain.id} value={chain.id}>
                 {chain.name}
               </option>
@@ -1119,12 +993,7 @@ function GetTransferStatus() {
         <button
           className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
           onClick={async () => {
-            if (
-              destinationChainPublicClient &&
-              destinationRouterAddress &&
-              sourceChainSelector &&
-              messageId
-            ) {
+            if (destinationChainPublicClient && destinationRouterAddress && sourceChainSelector && messageId) {
               const transferStatusResult = await ccipClient.getTransferStatus({
                 client: destinationChainPublicClient,
                 destinationRouterAddress: destinationRouterAddress as Address,
@@ -1147,8 +1016,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
-  const [destinationChainSelector, setDestinationChainSelector] =
-    useState<string>();
+  const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
   const [data, setData] = useState<Hex>();
   const [fee, setFee] = useState<string>();
@@ -1175,9 +1043,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
         />
       </div>
       <div className="flex flex-col w-full">
-        <label htmlFor="destinationChainSelector">
-          Destination Chain Selector*
-        </label>
+        <label htmlFor="destinationChainSelector">Destination Chain Selector*</label>
         <input
           className="border border-slate-300 rounded-md p-1"
           name="destinationChainSelector"
@@ -1200,14 +1066,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
           className="border border-slate-300 rounded-md p-1"
           name="message"
           placeholder="0x..."
-          onChange={({ target }) =>
-            setData(
-              encodeAbiParameters(
-                [{ type: 'string', name: 'data' }],
-                [target.value]
-              )
-            )
-          }
+          onChange={({ target }) => setData(encodeAbiParameters([{ type: "string", name: "data" }], [target.value]))}
         />
       </div>
       <div className="flex flex-col w-full">
@@ -1225,13 +1084,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
-          if (
-            routerAddress &&
-            destinationChainSelector &&
-            amount &&
-            destinationAccount &&
-            tokenAddress
-          ) {
+          if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
             const result = await ccipClient.getFee({
               client: publicClient,
               routerAddress: routerAddress as Address,

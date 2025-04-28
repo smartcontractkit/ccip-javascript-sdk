@@ -25,8 +25,8 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
       - [getAllowance](#getallowance)
       - [getOnRampAddress](#getonrampaddress)
       - [getSupportedFeeTokens](#getsupportedfeetokens)
-      - [getLaneRateRefillLimits](#getlaneraterefilllimits)
-      - [getTokenRateLimitByLane](#gettokenratelimitbylane)
+      - [getChainRateRefillLimits](#getchainraterefilllimits)
+      - [getTokenRateLimitByChain](#gettokenratelimitbychain)
       - [getFee](#getfee)
       - [getTokenAdminRegistry](#gettokenadminregistry)
       - [isTokenSupported](#istokensupported)
@@ -200,13 +200,13 @@ export interface Client {
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
 
-  getLaneRateRefillLimits(options: {
+  getChainRateRefillLimits(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
 
-  getTokenRateLimitByLane(options: {
+  getTokenRateLimitByChain(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
@@ -337,8 +337,8 @@ type DynamicConfig = {
   destGasPerDataAvailabilityByte: number
   // The multiplier in basis points (bps) applied to the data availability gas cost. This value is used to adjust the cost of data availability by applying a scaling factor.
   destDataAvailabilityMultiplierBps: number
-  // The address of the price registry used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
-  priceRegistry: Viem.Address
+  // The address of the feeQuoter used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
+  feeQuoter: Viem.Address
   // The maximum number of data bytes that can be included in a single message. This parameter limits the size of the data payload to prevent excessive data in one transfer.
   maxDataBytes: number
   // The maximum gas limit that can be applied to a single message. This parameter ensures that the transaction does not exceed a certain gas threshold, preventing overly costly operations.
@@ -437,24 +437,24 @@ getSupportedFeeTokens(options: {
 }): Promise<Viem.Address[]>
 ```
 
-#### getLaneRateRefillLimits
+#### getchainraterefilllimits
 
-Retrieves the aggregated rate refill limits for the specified lane. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
+Retrieves the aggregated rate refill limits for the specified chain. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getLaneRateRefillLimits(options: {
+getChainRateRefillLimits(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   destinationChainSelector: string
 }): Promise<RateLimiterState>
 ```
 
-#### getTokenRateLimitByLane
+#### gettokenratelimitbychain
 
 Retrieves the rate refill limits for the specified token. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getTokenRateLimitByLane(options: {
+getTokenRateLimitByChain(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   supportedTokenAddress: Viem.Address
@@ -595,9 +595,9 @@ pnpm build-ccip-js
 1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
 
 2. open a new terminal window and run `foundryup` followed by `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
-   <b?>Note:</b> that Anvil is only needed for the tests inside `./test/integration-mocked.test.ts` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
+   <b?>Note:</b> that Anvil is only needed for the integrations tests inside `./test` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
 
-3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm t:int` or `pnpm t:uint`. Note some tests are flaky - this is under investigation.
+3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm t:int` or `pnpm t:uint`. Note some tests are flaky - this is under investigation. You can choose to run just the mocked test or the testnet integration tests using `pnpm jest <<name of test file>>`.
 
 ### Contributing
 
