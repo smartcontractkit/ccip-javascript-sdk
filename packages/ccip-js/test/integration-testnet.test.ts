@@ -278,7 +278,7 @@ describe('Integration: Fuji -> Sepolia', () => {
         client: sepoliaClient, // from the destination chain
         sourceChainSelector: FUJI_CHAIN_SELECTOR,
         destinationRouterAddress: SEPOLIA_ROUTER_ADDRESS,
-        fromBlockNumber: ccipSend_txReceipt.blockNumber,
+        fromBlockNumber: ccipSend_txReceipt.blockNumber ? ccipSend_txReceipt.blockNumber : undefined,
         messageId: _messageId,
       })
 

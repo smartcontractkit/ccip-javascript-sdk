@@ -594,11 +594,10 @@ pnpm build-ccip-js
 
 1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
 
-2. open a new terminal window and run `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
+2. open a new terminal window and run `foundryup` followed by `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
+   <b?>Note:</b> that Anvil is only needed for the tests inside `./test/integration-mocked.test.ts` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
 
-3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm test`
-
-<b?>Note:</b> that Anvil is only needed for the tests inside `./test/integration-mocked.test.ts` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
+3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm t:int` or `pnpm t:uint`. Note some tests are flaky - this is under investigation.
 
 ### Contributing
 
