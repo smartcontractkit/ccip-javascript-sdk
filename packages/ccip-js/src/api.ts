@@ -11,6 +11,7 @@ import {
 
 import RouterABI from './abi/Router.json'
 import OnRampABI from './abi/OnRamp.json'
+import OnRampABI_1_6 from './abi/OnRamp_1_6.json'
 import IERC20ABI from './abi/IERC20Metadata.json'
 import TokenPoolABI from './abi/TokenPool.json'
 import FeeQuoterABI from './abi/FeeQuoter.json'
@@ -895,6 +896,8 @@ export const createClient = (): Client => {
       ...options.writeContractParameters,
     }
 
+    const onRamp = await getOnRampAddress(options)
+
     const transferTokensTxHash = await writeContract(options.client, writeContractParameters)
 
     const txReceipt = await waitForTransactionReceipt(options.client, {
@@ -903,13 +906,29 @@ export const createClient = (): Client => {
       ...options.waitForTransactionReceiptParameters,
     })
 
-    const parsedLog = Viem.parseEventLogs({
+    const typeAndVersion = await readContract(options.client, {
       abi: OnRampABI,
-      logs: txReceipt.logs,
-      eventName: 'CCIPMessageSent',
-    }) as CCIPTrasnferReceipt[]
+      address: onRamp,
+      functionName: 'typeAndVersion',
+    })
 
-    const messageId = parsedLog[0]?.args?.message?.messageId
+    const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
+    const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? RouterABI : OnRampABI_1_6
+
+    const parsedLog = Viem.parseEventLogs({
+      abi: abi,
+      logs: txReceipt.logs,
+      eventName: eventName,
+    }) as CCIPTransferReceipt[]
+
+    let messageId
+
+    if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
+      messageId = parsedLog[0]?.args?.message?.messageId
+    } else {
+      messageId = parsedLog[0]?.args?.message?.header?.messageId
+    }
+
     if (!messageId) {
       throw new Error('EVENTS LOG ERROR: Message ID not found in the transaction logs')
     }
@@ -964,7 +983,7 @@ export const createClient = (): Client => {
       abi: OnRampABI,
       logs: txReceipt.logs,
       eventName: 'CCIPMessageSent',
-    }) as CCIPTrasnferReceipt[]
+    }) as CCIPTransferReceipt[]
 
     const messageId = parsedLog[0]?.args?.message?.messageId
     if (!messageId) {
@@ -1038,6 +1057,7 @@ export const createClient = (): Client => {
     if (!Viem.isHash(options.hash)) {
       throw new Error(`PARAMETER INPUT ERROR: ${options.hash} is not a valid transaction hash`)
     }
+
     return await getTxReceipt(options.client, { hash: options.hash })
   }
 
@@ -1246,10 +1266,13 @@ export enum TransferStatus {
 /**
  * Extends the Viem.Log type to fetch cross-chain trasnfer messageId.
  */
-export type CCIPTrasnferReceipt = Viem.Log & {
+export type CCIPTransferReceipt = Viem.Log & {
   args: {
     message?: {
-      messageId?: Viem.Hash
+      messageId?: Viem.Hash // 1.5
+      header?: {
+        messageId?: Viem.Hash // 1.6
+      }
     }
   }
 }
