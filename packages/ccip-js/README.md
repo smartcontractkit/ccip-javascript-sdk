@@ -4,6 +4,8 @@ CCIP-JS is a TypeScript library that provides a client for managing cross-chain 
 
 To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.link/ccip).
 
+// ... existing code ...
+
 ## Table of Contents
 
 - [CCIP-JS](#ccip-js)
@@ -34,11 +36,11 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
       - [sendCCIPMessage](#sendccipmessage)
       - [getTransferStatus](#gettransferstatus)
       - [getTransactionReceipt](#gettransactionreceipt)
-    - [Development](#development)
-      - [Build](#build)
-      - [Running tests](#running-tests)
-    - [Contributing](#contributing)
-  - [License](#license)
+  - [Development](#development)
+    - [Build](#build)
+    - [Running tests](#running-tests)
+  - [Contributing](#contributing)
+- [License](#license)
 
 ## Why CCIP-JS?
 
@@ -52,6 +54,12 @@ Although you can do a CCIP token transfer simply by calling the [`ccipSend` func
 - retrieving fee amounts and fee tokens
 
 Additionally, after the transfer, you may need to check the transfer status.
+
+CCIP JS is a stand-alone NPM package that can be imported into your NodeJS/Typescript projects.
+
+It can also be imported as a scripting dependency inside [Remix IDE scripts](https://remix-ide.readthedocs.io/en/latest/running_js_scripts.html).
+
+> ⚠️ Warning The use of secrets (including your private keys) in scripts inside Remix IDE is an experimental feature that may not operate as expected and is subject to change. Please be aware that Chainlink does not control how your secrets or environment variables are used or accessed within Remix or when executing scripts within Remix, and the safekeeping of secrets and environment variables is your responsibility.
 
 ## Features
 
