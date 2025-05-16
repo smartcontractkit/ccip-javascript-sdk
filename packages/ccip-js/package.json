@@ -1,6 +1,6 @@
 {
   "name": "@chainlink/ccip-js",
-  "version": "0.3.0",
+  "version": "0.2.4",
   "private": false,
   "main": "dist/api.js",
   "types": "dist/api.d.ts",
@@ -14,7 +14,7 @@
     "build": "tsc && hardhat compile",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
-    "t:int": "jest --coverage -u --testMatch=\"**/integration-*.test.ts\" --detectOpenHandles",
+    "t:int": "jest --coverage -u --testMatch=\"**/integration-testnet.test.ts\" --detectOpenHandles",
     "t:unit": "jest --coverage -u -t=\"Unit\"",
     "test:hh": "hardhat test"
   },

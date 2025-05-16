@@ -27,8 +27,8 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
       - [getAllowance](#getallowance)
       - [getOnRampAddress](#getonrampaddress)
       - [getSupportedFeeTokens](#getsupportedfeetokens)
-      - [getChainRateRefillLimits](#getchainraterefilllimits)
-      - [getTokenRateLimitByChain](#gettokenratelimitbychain)
+      - [getLaneRateRefillLimits](#getlaneraterefilllimits)
+      - [getTokenRateLimitByLane](#gettokenratelimitbylane)
       - [getFee](#getfee)
       - [getTokenAdminRegistry](#gettokenadminregistry)
       - [isTokenSupported](#istokensupported)
@@ -208,13 +208,13 @@ export interface Client {
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
 
-  getChainRateRefillLimits(options: {
+  getLaneRateRefillLimits(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
 
-  getTokenRateLimitByChain(options: {
+  getTokenRateLimitByLane(options: {
     client: Viem.Client
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
@@ -445,24 +445,26 @@ getSupportedFeeTokens(options: {
 }): Promise<Viem.Address[]>
 ```
 
-#### getchainraterefilllimits
+#### getLaneRateRefillLimits
 
 Retrieves the aggregated rate refill limits for the specified chain. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getChainRateRefillLimits(options: {
+getLaneRateRefillLimits(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   destinationChainSelector: string
 }): Promise<RateLimiterState>
 ```
 
-#### gettokenratelimitbychain
+#### getTokenRateLimitByLane
+
+Retrieves the rate refill limits forokenratelimitbyLane
 
 Retrieves the rate refill limits for the specified token. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
-getTokenRateLimitByChain(options: {
+getTokenRateLimitByLane(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   supportedTokenAddress: Viem.Address

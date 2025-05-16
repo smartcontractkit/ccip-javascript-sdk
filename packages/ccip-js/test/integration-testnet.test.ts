@@ -118,7 +118,7 @@ describe('Integration: Fuji -> Sepolia', () => {
     })
 
     it('✅ fetched lane rate refill limits are defined', async function () {
-      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getChainRateRefillLimits({
+      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getLaneRateRefillLimits({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
@@ -133,7 +133,7 @@ describe('Integration: Fuji -> Sepolia', () => {
     })
 
     it('✅ returns token rate limit by lane', async function () {
-      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getTokenRateLimitByChain({
+      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getTokenRateLimitByLane({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
         supportedTokenAddress: bnmToken_fuji.address,

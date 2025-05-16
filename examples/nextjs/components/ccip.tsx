@@ -29,9 +29,9 @@ export function CCIP() {
           <GetAllowance publicClient={publicClient} />
           <GetOnRampAddress publicClient={publicClient} />
           <GetSupportedFeeTokens publicClient={publicClient} />
-          <GetChainRateRefillLimits publicClient={publicClient} />
+          <GetLaneRateRefillLimits publicClient={publicClient} />
           <IsTokenSupported publicClient={publicClient} />
-          <GetTokenRateLimitByChain publicClient={publicClient} />
+          <GetTokenRateLimitByLane publicClient={publicClient} />
           <GetTokenAdminRegistry publicClient={publicClient} />
           <GetTransactionReceipt publicClient={publicClient} />
           <GetTransferStatus />
@@ -619,7 +619,7 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
   );
 }
 
-function GetChainRateRefillLimits({ publicClient }: { publicClient: PublicClient }) {
+function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [rateLimits, setRateLimits] = useState<RateLimiterState>();
@@ -680,7 +680,7 @@ function GetChainRateRefillLimits({ publicClient }: { publicClient: PublicClient
   );
 }
 
-function GetTokenRateLimitByChain({ publicClient }: { publicClient: PublicClient }) {
+function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
