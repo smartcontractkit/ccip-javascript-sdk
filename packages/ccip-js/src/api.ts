@@ -15,6 +15,7 @@ import OnRampABI_1_6 from './abi/OnRamp_1_6.json'
 import IERC20ABI from './abi/IERC20Metadata.json'
 import TokenPoolABI from './abi/TokenPool.json'
 import PriceRegistryABI from './abi/PriceRegistry.json'
+import FeeQuoterABI from './abi/FeeQuoter.json'
 import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
 import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
 import { parseAbi } from 'viem'
@@ -690,27 +691,28 @@ export const createClient = (): Client => {
     })
 
     const typeAndVersion = await readContract(options.client, {
-      // abi: parseAbi(['function typeAndVersion() returns (string)']),
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'typeAndVersion',
     })
 
-    let priceRegOrFeeQuoter
+    console.info('getSupportedFeeTokens():  CCIP type and version: ', typeAndVersion)
+
+    let priceRegistryOrFeeQuoter
     if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
-      priceRegOrFeeQuoter = (dynamicConfig as DynamicConfig).priceRegistry
+      priceRegistryOrFeeQuoter = (dynamicConfig as DynamicConfig).priceRegistry
     } else {
-      priceRegOrFeeQuoter = (dynamicConfig as DynamicConfig).feeQuoter
+      priceRegistryOrFeeQuoter = (dynamicConfig as DynamicConfig).feeQuoter
     }
 
     checkIsAddressValid(
-      priceRegOrFeeQuoter as Viem.Address,
-      `CONTRACT CALL ERROR: Price regisry '${priceRegOrFeeQuoter}' is not valid. Execution can not be continued`,
+      priceRegistryOrFeeQuoter as Viem.Address,
+      `CONTRACT CALL ERROR: Price regisry '${priceRegistryOrFeeQuoter}' is not valid. Execution can not be continued`,
     )
 
     const feeTokens = await readContract(options.client, {
-      abi: PriceRegistryABI,
-      address: priceRegOrFeeQuoter as Viem.Address,
+      abi: parseAbi(['function getFeeTokens() returns (address[] feeTokens)']), // same signature for both PriceRegistry and FeeQuoter
+      address: priceRegistryOrFeeQuoter as Viem.Address,
       functionName: 'getFeeTokens',
     })
     return feeTokens as Viem.Address[]
@@ -887,6 +889,8 @@ export const createClient = (): Client => {
       functionName: 'typeAndVersion',
     })
 
+    console.info('transferTokens():  CCIP type and version: ', typeAndVersion)
+
     const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
     const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? OnRampABI : OnRampABI_1_6
 
@@ -956,6 +960,8 @@ export const createClient = (): Client => {
       address: onRamp,
       functionName: 'typeAndVersion',
     })
+
+    console.info('sendCCIPMessage():  CCIP type and version: ', typeAndVersion)
 
     const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
     const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? OnRampABI : OnRampABI_1_6

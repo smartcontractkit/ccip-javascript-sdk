@@ -156,7 +156,7 @@ describe('Integration', () => {
   })
 
   describe('√ getSupportedFeeTokens', () => {
-    it('√ should return supported fee tokens for valid chains', async () => {
+    it('√ For 1.5 should return supported fee tokens for valid chains', async () => {
       const { router } = await getContracts()
       const supportedFeeTokens = [
         '0x779877A7B0D9E8603169DdbD7836e478b4624789',
@@ -167,6 +167,34 @@ describe('Integration', () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
       readContractMock.mockResolvedValueOnce({ priceRegistry: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' }) // Read OnRamp > getDynamicConfig()
       readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') // Read OnRamp > typeAndVersion()
+      readContractMock.mockResolvedValueOnce(supportedFeeTokens) // Read OnRamp > getFeeTokens()
+
+      const hhSupportedFeeTokens = await getSupportedFeeTokens()
+      mineBlock(isFork)
+
+      const ccipSupportedFeeTokens = await ccipClient.getSupportedFeeTokens({
+        client: testClient,
+        routerAddress: router.address,
+        destinationChainSelector: '16015286601757825753',
+      })
+
+      expect(hhSupportedFeeTokens).toStrictEqual(supportedFeeTokens)
+      expect(ccipSupportedFeeTokens).toStrictEqual(supportedFeeTokens)
+      expect(ccipSupportedFeeTokens).toStrictEqual(hhSupportedFeeTokens)
+      console.log('\u2705 | Returns supported fee tokens for valid chains.')
+    })
+
+    it('√ For 1.6 should return supported fee tokens for valid chains', async () => {
+      const { router } = await getContracts()
+      const supportedFeeTokens = [
+        '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+        '0x097D90c9d3E0B50Ca60e1ae45F6A81010f9FB534',
+        '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60',
+      ]
+
+      readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
+      readContractMock.mockResolvedValueOnce({ feeQuoter: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' }) // Read OnRamp > getDynamicConfig()
+      readContractMock.mockResolvedValueOnce('OnRamp 1.6.0') // Read OnRamp > typeAndVersion()
       readContractMock.mockResolvedValueOnce(supportedFeeTokens) // Read OnRamp > getFeeTokens()
 
       const hhSupportedFeeTokens = await getSupportedFeeTokens()
@@ -223,7 +251,7 @@ describe('Integration', () => {
       mineBlock(isFork)
 
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
-      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //  // Read OnRamp > typeAndVersion() OnRamp 1.6.0
+      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //  // Read OnRamp > typeAndVersion()
 
       const transfer = await ccipClient.transferTokens({
         client: testClient,
@@ -238,9 +266,9 @@ describe('Integration', () => {
       expect(transfer.txReceipt.blockHash).toEqual('0x565f99df4e32e15432f44c19b3d1d15447c41ca185a09aaf8d53356ce4086d8b')
     })
 
-    it('should successfully transfer tokens with all inputs', async () => {
+    it('1.5:  should successfully transfer tokens with all inputs', async () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
-      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion() OnRamp 1.6.0
+      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion()
 
       readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
@@ -263,6 +291,7 @@ describe('Integration', () => {
       expect(transfer.txReceipt.blockHash).toEqual('0x565f99df4e32e15432f44c19b3d1d15447c41ca185a09aaf8d53356ce4086d8b')
     })
   })
+
   describe('sendCCIPMessage', () => {
     it('should successfully send message', async () => {
       const { router } = await getContracts()
@@ -270,7 +299,7 @@ describe('Integration', () => {
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
       writeContractMock.mockResolvedValueOnce(ccipTxHash) //  sendCCIPMessage()
       waitForTransactionReceiptMock.mockResolvedValueOnce(ccipTxReceipt) //  sendCCIPMessage()
-      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion() OnRamp 1.6.0
+      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion()
       parseEventLogsMock.mockReturnValue(ccipLog as never) //  sendCCIPMessage() log
 
       const transfer = await ccipClient.sendCCIPMessage({
@@ -289,7 +318,7 @@ describe('Integration', () => {
       const { router } = await getContracts()
 
       readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
-      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion() OnRamp 1.6.0
+      readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion()
       writeContractMock.mockResolvedValueOnce(ccipTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(ccipTxReceipt)
       parseEventLogsMock.mockReturnValue(ccipLog as never)
@@ -312,7 +341,7 @@ describe('Integration', () => {
     jest.clearAllMocks()
 
     readContractMock.mockResolvedValueOnce('0x8F35B097022135E0F46831f798a240Cc8c4b0B01') //  getOnRampAddress()
-    readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion() OnRamp 1.6.0
+    readContractMock.mockResolvedValueOnce('EVM2EVMOnRamp 1.5.0') //   Read OnRamp > typeAndVersion()
     // readContractMock.mockResolvedValueOnce(300000000000000n) //  getFee()
     writeContractMock.mockResolvedValueOnce(ccipTxHash)
     waitForTransactionReceiptMock.mockResolvedValueOnce(ccipTxReceipt)
