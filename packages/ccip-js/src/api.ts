@@ -689,16 +689,28 @@ export const createClient = (): Client => {
       functionName: 'getDynamicConfig',
     })
 
-    const priceRegistry = (dynamicConfig as DynamicConfig).priceRegistry
+    const typeAndVersion = await readContract(options.client, {
+      // abi: parseAbi(['function typeAndVersion() returns (string)']),
+      abi: OnRampABI,
+      address: onRampAddress,
+      functionName: 'typeAndVersion',
+    })
+
+    let priceRegOrFeeQuoter
+    if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
+      priceRegOrFeeQuoter = (dynamicConfig as DynamicConfig).priceRegistry
+    } else {
+      priceRegOrFeeQuoter = (dynamicConfig as DynamicConfig).feeQuoter
+    }
 
     checkIsAddressValid(
-      priceRegistry,
-      'CONTRACT CALL ERROR: Price regisry is not valid. Execution can not be continued',
+      priceRegOrFeeQuoter as Viem.Address,
+      `CONTRACT CALL ERROR: Price regisry '${priceRegOrFeeQuoter}' is not valid. Execution can not be continued`,
     )
 
     const feeTokens = await readContract(options.client, {
       abi: PriceRegistryABI,
-      address: priceRegistry,
+      address: priceRegOrFeeQuoter as Viem.Address,
       functionName: 'getFeeTokens',
     })
     return feeTokens as Viem.Address[]
@@ -1172,7 +1184,8 @@ export type DynamicConfig = {
   destDataAvailabilityOverheadGas: number
   destGasPerDataAvailabilityByte: number
   destDataAvailabilityMultiplierBps: number
-  priceRegistry: Viem.Address
+  priceRegistry?: Viem.Address
+  feeQuoter?: Viem.Address
   maxDataBytes: number
   maxPerMsgGasLimit: number
   defaultTokenFeeUSDCents: number
