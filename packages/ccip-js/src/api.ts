@@ -11,11 +11,14 @@ import {
 
 import RouterABI from './abi/Router.json'
 import OnRampABI from './abi/OnRamp.json'
+import OnRampABI_1_6 from './abi/OnRamp_1_6.json'
 import IERC20ABI from './abi/IERC20Metadata.json'
 import TokenPoolABI from './abi/TokenPool.json'
 import PriceRegistryABI from './abi/PriceRegistry.json'
+import FeeQuoterABI from './abi/FeeQuoter.json'
 import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
 import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
+import { parseAbi } from 'viem'
 
 export { IERC20ABI }
 
@@ -687,16 +690,29 @@ export const createClient = (): Client => {
       functionName: 'getDynamicConfig',
     })
 
-    const priceRegistry = (dynamicConfig as DynamicConfig).priceRegistry
+    const typeAndVersion = await readContract(options.client, {
+      abi: OnRampABI,
+      address: onRampAddress,
+      functionName: 'typeAndVersion',
+    })
+
+    console.info('getSupportedFeeTokens():  CCIP type and version: ', typeAndVersion)
+
+    let priceRegistryOrFeeQuoter
+    if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
+      priceRegistryOrFeeQuoter = (dynamicConfig as DynamicConfig).priceRegistry
+    } else {
+      priceRegistryOrFeeQuoter = (dynamicConfig as DynamicConfig).feeQuoter
+    }
 
     checkIsAddressValid(
-      priceRegistry,
-      'CONTRACT CALL ERROR: Price regisry is not valid. Execution can not be continued',
+      priceRegistryOrFeeQuoter as Viem.Address,
+      `CONTRACT CALL ERROR: Price regisry '${priceRegistryOrFeeQuoter}' is not valid. Execution can not be continued`,
     )
 
     const feeTokens = await readContract(options.client, {
-      abi: PriceRegistryABI,
-      address: priceRegistry,
+      abi: parseAbi(['function getFeeTokens() returns (address[] feeTokens)']), // same signature for both PriceRegistry and FeeQuoter
+      address: priceRegistryOrFeeQuoter as Viem.Address,
       functionName: 'getFeeTokens',
     })
     return feeTokens as Viem.Address[]
@@ -866,13 +882,32 @@ export const createClient = (): Client => {
       ...options.waitForTransactionReceiptParameters,
     })
 
-    const parsedLog = Viem.parseEventLogs({
-      abi: OnRampABI,
-      logs: txReceipt.logs,
-      eventName: 'CCIPSendRequested',
-    }) as CCIPTrasnferReceipt[]
+    const onRamp = await getOnRampAddress(options)
+    const typeAndVersion = await readContract(options.client, {
+      abi: parseAbi(['function typeAndVersion() returns (string)']),
+      address: onRamp,
+      functionName: 'typeAndVersion',
+    })
 
-    const messageId = parsedLog[0]?.args?.message?.messageId
+    console.info('transferTokens():  CCIP type and version: ', typeAndVersion)
+
+    const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
+    const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? OnRampABI : OnRampABI_1_6
+
+    const parsedLog = Viem.parseEventLogs({
+      abi: abi,
+      logs: txReceipt.logs,
+      eventName: eventName,
+    }) as CCIPTransferReceipt[]
+
+    let messageId
+
+    if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
+      messageId = parsedLog[0]?.args?.message?.messageId
+    } else {
+      messageId = parsedLog[0]?.args?.message?.header?.messageId
+    }
+
     if (!messageId) {
       throw new Error('EVENTS LOG ERROR: Message ID not found in the transaction logs')
     }
@@ -919,13 +954,32 @@ export const createClient = (): Client => {
       ...options.waitForTransactionReceiptParameters,
     })
 
-    const parsedLog = Viem.parseEventLogs({
-      abi: OnRampABI,
-      logs: txReceipt.logs,
-      eventName: 'CCIPSendRequested',
-    }) as CCIPTrasnferReceipt[]
+    const onRamp = await getOnRampAddress(options)
+    const typeAndVersion = await readContract(options.client, {
+      abi: parseAbi(['function typeAndVersion() returns (string)']),
+      address: onRamp,
+      functionName: 'typeAndVersion',
+    })
 
-    const messageId = parsedLog[0]?.args?.message?.messageId
+    console.info('sendCCIPMessage():  CCIP type and version: ', typeAndVersion)
+
+    const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
+    const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? OnRampABI : OnRampABI_1_6
+
+    const parsedLog = Viem.parseEventLogs({
+      abi: abi,
+      logs: txReceipt.logs,
+      eventName: eventName,
+    }) as CCIPTransferReceipt[]
+
+    let messageId
+
+    if (typeAndVersion === 'EVM2EVMOnRamp 1.5.0') {
+      messageId = parsedLog[0]?.args?.message?.messageId
+    } else {
+      messageId = parsedLog[0]?.args?.message?.header?.messageId
+    }
+
     if (!messageId) {
       throw new Error('EVENTS LOG ERROR: Message ID not found in the transaction logs')
     }
@@ -989,6 +1043,7 @@ export const createClient = (): Client => {
     if (!Viem.isHash(options.hash)) {
       throw new Error(`PARAMETER INPUT ERROR: ${options.hash} is not a valid transaction hash`)
     }
+
     return await getTxReceipt(options.client, { hash: options.hash })
   }
 
@@ -1135,7 +1190,8 @@ export type DynamicConfig = {
   destDataAvailabilityOverheadGas: number
   destGasPerDataAvailabilityByte: number
   destDataAvailabilityMultiplierBps: number
-  priceRegistry: Viem.Address
+  priceRegistry?: Viem.Address
+  feeQuoter?: Viem.Address
   maxDataBytes: number
   maxPerMsgGasLimit: number
   defaultTokenFeeUSDCents: number
@@ -1197,10 +1253,13 @@ export enum TransferStatus {
 /**
  * Extends the Viem.Log type to fetch cross-chain trasnfer messageId.
  */
-export type CCIPTrasnferReceipt = Viem.Log & {
+export type CCIPTransferReceipt = Viem.Log & {
   args: {
     message?: {
-      messageId?: Viem.Hash
+      messageId?: Viem.Hash // 1.5
+      header?: {
+        messageId?: Viem.Hash // 1.6
+      }
     }
   }
 }

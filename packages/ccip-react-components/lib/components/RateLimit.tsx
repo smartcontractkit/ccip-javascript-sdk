@@ -2,12 +2,7 @@ import { Address, parseUnits } from 'viem';
 import { useQuery } from '@tanstack/react-query';
 import { IERC20ABI } from '@chainlink/ccip-js';
 import { ccipClient } from '@/utils/ccip-client';
-import {
-  useAccount,
-  useBalance,
-  usePublicClient,
-  useReadContract,
-} from 'wagmi';
+import { useAccount, useBalance, usePublicClient, useReadContract } from 'wagmi';
 import { useAppContext } from '@/hooks/useAppContext';
 import { Error } from '@/components/Error';
 import { useRouters } from '@/hooks/useRouters';
@@ -69,20 +64,17 @@ export const RateLimit = ({
     enabled: !!publicClient,
   });
 
-  if (
-    limits &&
-    !balanceIsLoading &&
-    balance &&
-    balance?.value >= parseUnits(amount, balance.decimals)
-  ) {
+  if (limits && !balanceIsLoading && balance && balance?.value >= parseUnits(amount, balance.decimals)) {
     if (parseUnits(amount, decimals as number) > limits.capacity) {
-      return <Error message="Amount exceeds capacity per transaction." />;
+      return <Error message='Amount exceeds capacity per transaction.' />;
     }
 
     if (parseUnits(amount, decimals as number) > limits.tokens) {
       return (
         <Error
-          message={`Not enough tokens in the pool. It will refill in ${(parseUnits(amount, decimals as number) - limits.tokens) / limits.rate} seconds`}
+          message={`Not enough tokens in the pool. It will refill in ${
+            (parseUnits(amount, decimals as number) - limits.tokens) / limits.rate
+          } seconds`}
         />
       );
     }

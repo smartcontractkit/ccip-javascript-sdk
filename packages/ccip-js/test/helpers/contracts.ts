@@ -1,5 +1,17 @@
 import { formatEther, getContract, type Address, type Hex } from 'viem'
-import { account, bridgeTokenAbi, bridgeTokenBin, onRampAbi, onRampBin, priceRegistryAbi, priceRegistryBin, routerAbi, routerBin, simulatorAbi, simulatorBin } from './constants'
+import {
+  account,
+  bridgeTokenAbi,
+  bridgeTokenBin,
+  onRampAbi,
+  onRampBin,
+  feeQuoterAbi,
+  feeQuoterBin,
+  routerAbi,
+  routerBin,
+  simulatorAbi,
+  simulatorBin,
+} from './constants'
 import { mineBlock } from './utils'
 import { forkClient, testClient } from './clients'
 import { readContract } from 'viem/actions'
@@ -37,51 +49,53 @@ export const deployContract = async ({ isFork, args, abi, bin }: DeployContractO
 }
 
 export const getContractAddresses = async () => {
-  const bridgeTokenAddress = await deployContract({
+  const bridgeTokenAddress = (await deployContract({
     isFork: false,
     args: ['CCIP Burn & Mint Token', 'CCIP-BnM'],
     abi: bridgeTokenAbi,
-    bin: `0x${bridgeTokenBin}`
-  }) as Address
-  const linkTokenAddress = await deployContract({
+    bin: `0x${bridgeTokenBin}`,
+  })) as Address
+  const linkTokenAddress = (await deployContract({
     isFork: false,
     args: ['Chainlink', ' LINK'],
     abi: bridgeTokenAbi,
-    bin: `0x${bridgeTokenBin}`
-  }) as Address
-  const localSimulatorAddress = await deployContract({
+    bin: `0x${bridgeTokenBin}`,
+  })) as Address
+  const localSimulatorAddress = (await deployContract({
     isFork: false,
     args: [],
     abi: simulatorAbi,
-    bin: `0x${simulatorBin}`
-  }) as Address
-  const routerAddress = await deployContract({
+    bin: `0x${simulatorBin}`,
+  })) as Address
+  const routerAddress = (await deployContract({
     isFork: false,
-    args: [
-      linkTokenAddress, linkTokenAddress
-    ],
+    args: [linkTokenAddress, linkTokenAddress],
     abi: routerAbi,
-    bin: `0x${routerBin}`
-  }) as Address
-  const priceRegistryAddress = await deployContract({
+    bin: `0x${routerBin}`,
+  })) as Address
+  const feeQuoterAddress = (await deployContract({
     isFork: false,
     args: [],
-    abi: priceRegistryAbi,
-    bin: `0x${priceRegistryBin}`
-  }) as Address
+    abi: feeQuoterAbi,
+    bin: `0x${feeQuoterBin}`,
+  })) as Address
   return {
     localSimulatorAddress: localSimulatorAddress,
     bridgeTokenAddress: bridgeTokenAddress,
     linkTokenAddress: linkTokenAddress,
     routerAddress: routerAddress,
-    priceRegistryAddress: priceRegistryAddress
+    feeQuoterAddress: feeQuoterAddress,
   }
 }
 export const getOnRampAddress = async () => {
-  const { staticConfig, dynamicConfig, rateLimiterConfig } = await getStandardConfigs({ chainSelector: 16015286601757825753n })
-  const { feeTokenConfigs, tokenTransferFeeConfigArgs } = await getTokenConfigs({ chainSelector: 16015286601757825753n })
+  const { staticConfig, dynamicConfig, rateLimiterConfig } = await getStandardConfigs({
+    chainSelector: 16015286601757825753n,
+  })
+  const { feeTokenConfigs, tokenTransferFeeConfigArgs } = await getTokenConfigs({
+    chainSelector: 16015286601757825753n,
+  })
   const { nopsAndWeights, rampOptions } = await getRampConfigs({ chainSelector: 16015286601757825753n })
-  const onRampAddress = await deployContract({
+  const onRampAddress = (await deployContract({
     isFork: false,
     args: [
       staticConfig.toString(),
@@ -89,20 +103,19 @@ export const getOnRampAddress = async () => {
       rateLimiterConfig.toString(),
       feeTokenConfigs.toString(),
       tokenTransferFeeConfigArgs.toString(),
-      nopsAndWeights.toString()
+      nopsAndWeights.toString(),
     ],
     abi: onRampAbi,
-    bin: `0x${onRampBin}`
-  }) as Address
+    bin: `0x${onRampBin}`,
+  })) as Address
   mineBlock(false)
   return {
-    onRampAddress: onRampAddress
+    onRampAddress: onRampAddress,
   }
-
 }
 
 export const getContracts = async () => {
-  const { localSimulatorAddress, bridgeTokenAddress, priceRegistryAddress, routerAddress } = await getContractAddresses()
+  const { localSimulatorAddress, bridgeTokenAddress, feeQuoterAddress, routerAddress } = await getContractAddresses()
   const bridgeToken = await getContract({
     address: bridgeTokenAddress,
     abi: bridgeTokenAbi,
@@ -123,9 +136,9 @@ export const getContracts = async () => {
   //   abi: onRampAbi,
   //   client: testClient,
   // })
-  const priceRegistry = await getContract({
-    address: priceRegistryAddress,
-    abi: priceRegistryAbi,
+  const feeQuoter = await getContract({
+    address: feeQuoterAddress,
+    abi: feeQuoterAbi,
     client: testClient,
   })
   mineBlock(false)
@@ -134,19 +147,19 @@ export const getContracts = async () => {
     router: router,
     localSimulator: localSimulator,
     // onRamp: onRamp,
-    priceRegistry: priceRegistry
+    feeQuoter: feeQuoter,
   }
 }
 
 export const getApprovalAmount = async ({ isFork, contractAddress, spenderAddress }: AllowanceOptions) => {
   const client = isFork ? forkClient : testClient
 
-  const allowance = await client.readContract({
+  const allowance = (await client.readContract({
     address: contractAddress,
     abi: bridgeTokenAbi,
     functionName: 'allowance',
     args: [account.address, spenderAddress], // owner, spender
-  }) as bigint
+  })) as bigint
 
   return allowance
 }
@@ -162,20 +175,20 @@ export async function setOnRampAddress({ destinationChainSelector }: OnRampOptio
     [
       {
         destChainSelector: destinationChainSelector,
-        onRamp: '0x8F35B097022135E0F46831f798a240Cc8c4b0B01'
-      }
+        onRamp: '0x8F35B097022135E0F46831f798a240Cc8c4b0B01',
+      },
     ],
     [],
-    []
-  ]);
+    [],
+  ])
   mineBlock(false)
 
-  const onRampAddress = await readContract(testClient, {
+  const onRampAddress = (await readContract(testClient, {
     abi: routerAbi,
     address: router.address,
     functionName: 'getOnRamp',
     args: [destinationChainSelector],
-  }) as Address
+  })) as Address
 
   return onRampAddress
 }

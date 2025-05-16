@@ -4,6 +4,8 @@ CCIP-JS is a TypeScript library that provides a client for managing cross-chain 
 
 To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.link/ccip).
 
+// ... existing code ...
+
 ## Table of Contents
 
 - [CCIP-JS](#ccip-js)
@@ -34,11 +36,11 @@ To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.l
       - [sendCCIPMessage](#sendccipmessage)
       - [getTransferStatus](#gettransferstatus)
       - [getTransactionReceipt](#gettransactionreceipt)
-    - [Development](#development)
-      - [Build](#build)
-      - [Running tests](#running-tests)
-    - [Contributing](#contributing)
-  - [License](#license)
+  - [Development](#development)
+    - [Build](#build)
+    - [Running tests](#running-tests)
+  - [Contributing](#contributing)
+- [License](#license)
 
 ## Why CCIP-JS?
 
@@ -52,6 +54,12 @@ Although you can do a CCIP token transfer simply by calling the [`ccipSend` func
 - retrieving fee amounts and fee tokens
 
 Additionally, after the transfer, you may need to check the transfer status.
+
+CCIP JS is a stand-alone NPM package that can be imported into your NodeJS/Typescript projects.
+
+It can also be imported as a scripting dependency inside [Remix IDE scripts](https://remix-ide.readthedocs.io/en/latest/running_js_scripts.html).
+
+> ⚠️ Warning The use of secrets (including your private keys) in scripts inside Remix IDE is an experimental feature that may not operate as expected and is subject to change. Please be aware that Chainlink does not control how your secrets or environment variables are used or accessed within Remix or when executing scripts within Remix, and the safekeeping of secrets and environment variables is your responsibility.
 
 ## Features
 
@@ -337,8 +345,8 @@ type DynamicConfig = {
   destGasPerDataAvailabilityByte: number
   // The multiplier in basis points (bps) applied to the data availability gas cost. This value is used to adjust the cost of data availability by applying a scaling factor.
   destDataAvailabilityMultiplierBps: number
-  // The address of the price registry used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
-  priceRegistry: Viem.Address
+  // The address of the feeQuoter used to obtain pricing information for gas and other costs during the transfer. This registry helps ensure that the correct prices are applied to the transaction.
+  feeQuoter: Viem.Address
   // The maximum number of data bytes that can be included in a single message. This parameter limits the size of the data payload to prevent excessive data in one transfer.
   maxDataBytes: number
   // The maximum gas limit that can be applied to a single message. This parameter ensures that the transaction does not exceed a certain gas threshold, preventing overly costly operations.
@@ -439,7 +447,7 @@ getSupportedFeeTokens(options: {
 
 #### getLaneRateRefillLimits
 
-Retrieves the aggregated rate refill limits for the specified lane. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
+Retrieves the aggregated rate refill limits for the specified chain. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
 ```typescript
 getLaneRateRefillLimits(options: {
@@ -450,6 +458,8 @@ getLaneRateRefillLimits(options: {
 ```
 
 #### getTokenRateLimitByLane
+
+Retrieves the rate refill limits forokenratelimitbyLane
 
 Retrieves the rate refill limits for the specified token. Returns a promise that resolves to [RateLimiterState](#ratelimiterstate) object.
 
@@ -594,11 +604,10 @@ pnpm build-ccip-js
 
 1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
 
-2. open a new terminal window and run `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
+2. open a new terminal window and run `foundryup` followed by `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
+   <b?>Note:</b> that Anvil is only needed for the integrations tests inside `./test` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
 
-3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm test`
-
-<b?>Note:</b> that Anvil is only needed for the tests inside `./test/integration-mocked.test.ts` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
+3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm t:int` or `pnpm t:uint`. Note some tests are flaky - this is under investigation. You can choose to run just the mocked test or the testnet integration tests using `pnpm jest <<name of test file>>`.
 
 ### Contributing
 
