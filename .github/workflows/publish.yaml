@@ -1,17 +1,20 @@
-# NOTE: See "prepublishOnly" script in package.json
 # NPM_TOKEN will only be populated in the context of the `publish` GH environment, see L14
+# Dry run job split as a separate job to conditionally omit `environment`
 
 name: Publish to NPM
 
 on:
   push:
     branches:
-      - "main"
+      - "**" # Run on all branches, but only publish from main
 
 jobs:
-  build-and-publish:
+  publish-on-main:
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
     environment: publish
+    permissions:
+        contents: read
     steps:
       - name: Checkout the repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -29,9 +32,9 @@ jobs:
         shell: bash
 
       - name: Install dependencies
-        run:
+        run: |
           pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
-        shell: bash    
+        shell: bash
 
       - name: Publish ccip-js to NPM
         run: |
@@ -39,7 +42,7 @@ jobs:
           cd packages/ccip-js
           pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JS }}
           pnpm publish --no-git-checks --access public
-        shell: bash    
+        shell: bash
 
       - name: Publish ccip-react-components to NPM
         run: |
@@ -47,4 +50,44 @@ jobs:
           cd packages/ccip-react-components
           pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_REACT_COMPONENTS }}
           pnpm publish --no-git-checks --access public
-        shell: bash  
+        shell: bash
+
+  dry-run-publish:
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-latest
+    permissions:
+        contents: read
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.12
+          always-auth: true
+
+      - name: Install PNPM
+        run: npm install -g pnpm@9.4.0
+        shell: bash
+
+      - name: Install dependencies
+        run: |
+          pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
+        shell: bash
+
+      - name: Dry-run publish ccip-js
+        run: |
+          pnpm build-ccip-js
+          cd packages/ccip-js
+          pnpm publish --no-git-checks --access public --dry-run
+        shell: bash
+
+      - name: Dry-run publish ccip-react-components
+        run: |
+          pnpm build-components
+          cd packages/ccip-react-components
+          pnpm publish --no-git-checks --access public --dry-run
+        shell: bash
