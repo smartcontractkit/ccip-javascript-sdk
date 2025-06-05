@@ -1,4 +1,4 @@
-import { formatEther, getContract, type Address, type Hex } from 'viem'
+import { getContract, type Address, type Hex } from 'viem'
 import {
   account,
   bridgeTokenAbi,

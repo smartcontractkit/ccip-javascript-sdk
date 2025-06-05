@@ -2,8 +2,6 @@ import { jest, expect, it, describe, afterEach } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import * as viemActions from 'viem/actions'
-import { sepolia } from 'viem/chains'
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { forkClient } from './helpers/clients'
 
 const ccipClient = CCIP.createClient()

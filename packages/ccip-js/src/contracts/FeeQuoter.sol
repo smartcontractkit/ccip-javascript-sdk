@@ -11,7 +11,7 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 
 /// @notice The FeeQuoter contract responsibility is to store the current gas price in USD for a given destination chain,
 /// and the price of a token in USD allowing the owner or priceUpdater to update this value.
-contract FeeQuoter is IFeeQuoter, OwnerIsCreator {
+abstract contract FeeQuoter is IFeeQuoter, OwnerIsCreator {
   using EnumerableSet for EnumerableSet.AddressSet;
   using USDPriceWith18Decimals for uint224;
 
@@ -124,7 +124,7 @@ contract FeeQuoter is IFeeQuoter, OwnerIsCreator {
     return (_getValidatedTokenPrice(feeToken), gasPrice.value);
   }
 
-  /// @inheritdoc IFeeQuoter
+  
   /// @dev this function assumed that no more than 1e59 dollar, is sent as payment.
   /// If more is sent, the multiplication of feeTokenAmount and feeTokenValue will overflow.
   /// Since there isn't even close to 1e59 dollars in the world economy this is safe.

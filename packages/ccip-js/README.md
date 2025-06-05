@@ -591,7 +591,7 @@ Retrieves the transaction receipt based on the transaction hash. Returns a promi
 getTransactionReceipt(options: { client: Viem.Client; hash: Viem.Hash }): Promise<Viem.TransactionReceipt>
 ```
 
-### Development
+### Development (For developing this CCIP-JS package locally)
 
 #### Build
 
@@ -600,6 +600,9 @@ pnpm i -w
 pnpm build-ccip-js
 ```
 
+Note that when the above `build-ccip-js` step is run, the contracts located in `./src/contracts` are compiled and ABIs and artifacts are emitted into the `../ccip-js/artifacts`
+folder. From there, the relevant ABI arrays must be manually moved to `./src/abi` , and just the ABI array is pasted into the corresponding file in `./src/abi`. However the files in `./artifacts-compile` contain objects with both the abi and the bytecode and are used in the unit test files with Viem's test clients.
+
 #### Running tests
 
 1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
@@ -607,7 +610,11 @@ pnpm build-ccip-js
 2. open a new terminal window and run `foundryup` followed by `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
    <b?>Note:</b> that Anvil is only needed for the integrations tests inside `./test` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
 
-3. Back in the first terminal, inside, `packages/ccip-js` run `pnpm t:int` or `pnpm t:uint`. Note some tests are flaky - this is under investigation. You can choose to run just the mocked test or the testnet integration tests using `pnpm jest <<name of test file>>`.
+3. Back in the first terminal, inside, `packages/ccip-js` run `export PRIVATE_KEY=xxxxxx` to set your private key and then run `pnpm t:int` or `pnpm t:uint`.
+
+Note some tests are flaky - this is under investigation. You can choose to run just the mocked test or the testnet integration tests using `pnpm jest <<name of test file>>`.
+
+Note further that we have set a 180000ms (3 mins) timeout on the jest config. This can cause the testnet integration test to "hang" for the entire duration.
 
 ### Contributing
 
