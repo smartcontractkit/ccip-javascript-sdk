@@ -103,7 +103,7 @@ const config: Config = {
 export type NetworkConfig = {
   /** List of all chains that should be supported */
   chains: { chain: Chain; logoURL?: string }[];
-  /** You should provide a list of tokens that your app will support transfering.
+  /** You should provide a list of tokens that your app will support transferring.
    * Refer to https://docs.chain.link/ccip/supported-networks for list of all currently supported
    * tokens. For instructions on acquiring testnet tokens, refer to the documentation on
    * https://docs.chain.link/ccip/test-tokens#mint-tokens-in-a-block-explorer.
