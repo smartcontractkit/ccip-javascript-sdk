@@ -18,7 +18,7 @@ const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
 // 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
 // which is called  in approveRouter()
 // TODO @zeuslawyer: https://prajjwaldimri.medium.com/why-is-my-jest-runner-not-closing-bc4f6632c959 - tests are passing but jest is not closing. Viem transport issue? why?
-const TIMEOUT = 180 * 1000 // 3m
+// currently timeout set to 180000ms in jest.config.js
 
 if (!SEPOLIA_RPC_URL) {
   throw new Error('SEPOLIA_RPC_URL  must be set')
@@ -26,7 +26,8 @@ if (!SEPOLIA_RPC_URL) {
 if (!AVALANCHE_FUJI_RPC_URL) {
   throw new Error('AVALANCHE_FUJI_RPC_URL must be set')
 }
-const privateKey = process.env.PRIVATE_KEY as `0x${string}`
+
+const privateKey = process.env.PRIVATE_KEY as Viem.Hex
 
 if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   throw new Error(
@@ -34,7 +35,6 @@ if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   )
 }
 
-jest.setTimeout(TIMEOUT)
 describe('Integration: Fuji -> Sepolia', () => {
   let avalancheFujiClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
