@@ -1,6 +1,7 @@
 import { Address, Hash, Hex, TransactionReceipt } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import dotenv from 'dotenv'
+
 import bridgeJson from '../../artifacts-compile/BridgeToken.json'
 import onRampJson from '../../artifacts-compile/EVM2EVMOnRamp.json'
 import routerJson from '../../artifacts-compile/Router.json'

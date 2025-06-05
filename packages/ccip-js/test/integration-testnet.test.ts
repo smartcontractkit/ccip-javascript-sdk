@@ -1,4 +1,4 @@
-import { jest, expect, it, beforeAll, describe, afterAll } from '@jest/globals'
+import { expect, it, afterAll, beforeAll, describe } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import { sepolia, avalancheFuji } from 'viem/chains'
@@ -289,5 +289,9 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(avalancheFujiClient.account!.address.toLowerCase())
       expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS.toLowerCase())
     })
+  })
+
+  afterAll(async () => {
+    console.info('✅ | Testnet Integration tests passed. Waiting for timeout...')
   })
 })
