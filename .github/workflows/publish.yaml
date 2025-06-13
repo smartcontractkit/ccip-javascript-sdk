@@ -51,20 +51,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node 20.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.19
-          always-auth: true
-
-      - name: Install PNPM
-        run: npm install -g pnpm@9.4.0
-        shell: bash
-
-      - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
-        shell: bash
+      - name: Setup and Install dependencies
+        uses: ./.github/actions/install
 
       - name: Dry-run publish ccip-js
         run: |
