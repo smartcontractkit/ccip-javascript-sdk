@@ -9,6 +9,11 @@ on:
       - "**" # Run on all branches, but only publish from main
 
 jobs:
+  install:
+    uses: ./.github/workflows/install.yml
+    with:
+      runner: 'ubuntu-latest'
+
   publish-on-main:
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
@@ -21,21 +26,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node 20.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.19
-          always-auth: true
-
-      - name: Install PNPM
-        run: npm install -g pnpm@9.4.0
-        shell: bash
-
-      - name: Install dependencies
-        run: |
-          pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
-        shell: bash
-
+      - name: Setup and Install dependencies
+        uses: install
+        
       - name: Publish ccip-js to NPM
         run: |
           pnpm build-ccip-js
