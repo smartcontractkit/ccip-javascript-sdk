@@ -14,4 +14,4 @@ runs:
     - name: Install dependencies
       run: |
         pnpm install --frozen-lockfile --strict-peer-dependencies --filter=ccip-js --filter=ccip-react-components
-        shell: bash
+      shell: bash
