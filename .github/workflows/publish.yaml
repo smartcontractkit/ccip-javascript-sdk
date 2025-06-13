@@ -9,11 +9,6 @@ on:
       - "**" # Run on all branches, but only publish from main
 
 jobs:
-  install:
-    uses: ./.github/workflows/install.yml
-    with:
-      runner: ubuntu-latest
-
   publish-on-main:
     if: github.ref_name == 'main'
     runs-on: ubuntu-latest
@@ -27,7 +22,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup and Install dependencies
-        uses: install
+        uses: ./.github/actions/install
         
       - name: Publish ccip-js to NPM
         run: |
