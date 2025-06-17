@@ -887,7 +887,7 @@ export const createClient = (): Client => {
       functionName: 'typeAndVersion',
     })
 
-    console.info('transferTokens():  CCIP type and version: ', typeAndVersion)
+    console.info('transferTokens():  CCIP onramp, typeAndVersion: ', onRamp, typeAndVersion)
 
     const eventName = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? 'CCIPSendRequested' : 'CCIPMessageSent'
     const abi = typeAndVersion === 'EVM2EVMOnRamp 1.5.0' ? OnRampABI : OnRampABI_1_6

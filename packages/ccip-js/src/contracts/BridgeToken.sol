@@ -4,9 +4,9 @@ pragma solidity ^0.8.24;
 import {BurnMintERC677} from '@chainlink/contracts-ccip/src/v0.8/shared/token/ERC677/BurnMintERC677.sol';
 
 /// @title BridgeToken
-/// @notice This contract extends the functionality of the BurnMintERC677 token contract to include a `drip` function that mints one full token to a specified address.
+/// @notice This contract is the same as burnMintERC677Helper in that it extends the functionality of the BurnMintERC677 token contract to include a `drip` function that mints one full token to a specified address.
 /// @dev Inherits from the BurnMintERC677 contract and sets the token name, symbol, decimals, and initial supply in the constructor.
-contract BridgeToken is BurnMintERC677 {
+contract BridgeToken is BurnMintERC677 { // aka burnMintERC677Helper
   /**
    * @notice Constructor to initialize the BridgeToken contract with a name and symbol.
    * @dev Calls the parent constructor of BurnMintERC677 with fixed decimals (18) and initial supply (0).
