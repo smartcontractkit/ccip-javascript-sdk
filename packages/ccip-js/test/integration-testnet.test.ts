@@ -42,7 +42,7 @@ describe('Integration: Fuji -> Sepolia', () => {
   let sepoliaClient: Viem.WalletClient
   let bnmToken_fuji: any
   let _messageId: `0x${string}`
-  let ccipSend_txHash: `0x${string}`
+  let tokenTransfer_txHash: `0x${string}`
 
   const AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS = '0xF694E193200268f9a4868e4Aa017A0118C9a8177'
   const approvedAmount = parseEther('0.000000005')
@@ -76,7 +76,7 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 
   describe('√ (Fuji -> Sepolia) all critical functionality in CCIP Client', () => {
-    it('✅ should approve BnM spend, given valid input', async () => {
+    it('should approve BnM spend, given valid input', async () => {
       const ccipApprove = await ccipSdkClient.approveRouter({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -85,11 +85,11 @@ describe('Integration: Fuji -> Sepolia', () => {
         waitForReceipt: true,
       })
 
-      // ccipApprove.txReceipt!.status == 'success' && console.log(' ✅ | Approved CCIP BnM token on Avalanche Fuji'
+      // ccipApprove.txReceipt!.status == 'success' && console.log(' | Approved CCIP BnM token on Avalanche Fuji'
       await expect(ccipApprove.txReceipt!.status).toEqual('success')
     })
 
-    it('✅ fetches token allowance', async function () {
+    it('fetches token allowance', async function () {
       const allowance = await ccipSdkClient.getAllowance({
         client: avalancheFujiClient,
         account: avalancheFujiClient.account!.address,
@@ -99,7 +99,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(allowance).toEqual(approvedAmount)
     })
 
-    it('✅ returns on-ramp address', async function () {
+    it('returns on-ramp address', async function () {
       const avalancheFujiOnRampAddress = await ccipSdkClient.getOnRampAddress({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -108,7 +108,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(avalancheFujiOnRampAddress).toEqual('0x75b9a75Ee1fFef6BE7c4F842a041De7c6153CF4E')
     })
 
-    it('✅ lists supported fee tokens', async function () {
+    it('lists supported fee tokens', async function () {
       const result = await ccipSdkClient.getSupportedFeeTokens({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -119,7 +119,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(result[0].toLocaleLowerCase()).toBe(LINK_TOKEN_FUJI.toLowerCase())
     })
 
-    it('✅ fetched lane rate refill limits are defined', async function () {
+    it('fetched lane rate refill limits are defined', async function () {
       const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getLaneRateRefillLimits({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -134,7 +134,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(typeof rate).toBe('bigint')
     })
 
-    it('✅ returns token rate limit by lane', async function () {
+    it('returns token rate limit by lane', async function () {
       const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getTokenRateLimitByLane({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -150,7 +150,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(typeof rate).toBe('bigint')
     })
 
-    it('✅ returns fee estimate', async function () {
+    it('returns fee estimate', async function () {
       const fee_link = await ccipSdkClient.getFee({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -173,7 +173,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(fee_link).toBeGreaterThan(1000n)
       expect(fee_native).toBeGreaterThan(1000n)
     })
-    it('✅ returns token admin registry', async function () {
+    it('returns token admin registry', async function () {
       const result = await ccipSdkClient.getTokenAdminRegistry({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -185,7 +185,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(result).toEqual(CCIP_ADMIN_REGISTRY_ADDRESS)
     })
 
-    it('✅ checks if BnM token is supported for transfer', async function () {
+    it('checks if BnM token is supported for transfer', async function () {
       const result = await ccipSdkClient.isTokenSupported({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -195,7 +195,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(result).toBe(true)
     })
 
-    it('✅ transfers tokens | pay in LINK', async function () {
+    it('transfers tokens | pay in LINK', async function () {
       await ccipSdkClient.approveRouter({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -241,12 +241,12 @@ describe('Integration: Fuji -> Sepolia', () => {
       })
 
       _messageId = result.messageId
-      ccipSend_txHash = result.txHash
+      tokenTransfer_txHash = result.txHash
 
       expect(result.txReceipt!.status).toEqual('success')
     })
 
-    it('✅ transfers tokens | pays in native token', async function () {
+    it('transfers tokens > pays in native token', async function () {
       await ccipSdkClient.approveRouter({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -267,10 +267,48 @@ describe('Integration: Fuji -> Sepolia', () => {
       expect(result.txReceipt!.status).toEqual('success')
     })
 
-    it('✅ gets transfer status & gets transaction receipt', async function () {
+    it('CCIP message (sending) tx OK > paid in LINK', async function () {
+      const testMessage = Viem.encodeAbiParameters(
+        [{ type: 'string', name: 'message' }],
+        ['Hello from Avalanche Fuji!'],
+      )
+
+      // Get fee in LINK and approve it
+      const fee_link = await ccipSdkClient.getFee({
+        client: avalancheFujiClient,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaClient.account!.address, // TODO @zeuslawyer deploy contract for receiver
+        data: testMessage,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+
+      await ccipSdkClient.approveRouter({
+        client: avalancheFujiClient,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: fee_link,
+        tokenAddress: LINK_TOKEN_FUJI,
+        waitForReceipt: true,
+      })
+
+      const result = await ccipSdkClient.sendCCIPMessage({
+        client: avalancheFujiClient,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaClient.account!.address,
+        data: testMessage,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+
+      expect(result.txReceipt!.status).toEqual('success')
+      expect(result.messageId).toBeDefined()
+      expect(result.txHash).toBeDefined()
+    })
+
+    it('gets transfer status & gets transaction receipt', async function () {
       const ccipSend_txReceipt = await ccipSdkClient.getTransactionReceipt({
         client: avalancheFujiClient,
-        hash: ccipSend_txHash,
+        hash: tokenTransfer_txHash,
       })
 
       const FUJI_CHAIN_SELECTOR = '14767482510784806043'
@@ -294,16 +332,16 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 
   afterAll(async () => {
-    console.info('✅ | Testnet Integration tests passed. Waiting for timeout...')
+    console.info('✅ | Testnet Integration tests completed. Waiting for timeout...')
   })
 })
 
-describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client', () => {
+describe.only('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
   let hederaTestnetClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_hedera: any
   let _messageId: `0x${string}`
-  let ccipSend_txHash: `0x${string}`
+  let tokenTransfer_txHash: `0x${string}`
   const HEDERA_TESTNET_CCIP_ROUTER_ADDRESS = '0x802C5F84eAD128Ff36fD6a3f8a418e339f467Ce4'
   const approvedAmount = parseEther('0.00001') // 18 decimals
 
@@ -338,7 +376,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     }
   })
 
-  it('✅ should approve BnM spend, given valid input', async () => {
+  it('should approve BnM spend, given valid input', async () => {
     const ccipApprove = await ccipSdkClient.approveRouter({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -350,7 +388,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     await expect(ccipApprove.txReceipt!.status).toEqual('success')
   })
 
-  it('✅ fetches token allowance', async function () {
+  it('fetches token allowance', async function () {
     const allowance = await ccipSdkClient.getAllowance({
       client: hederaTestnetClient,
       account: hederaTestnetClient.account!.address,
@@ -360,7 +398,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(allowance).toEqual(approvedAmount)
   })
 
-  it('✅ returns on-ramp address', async function () {
+  it('returns on-ramp address', async function () {
     const hederaOnRampAddress = await ccipSdkClient.getOnRampAddress({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -369,7 +407,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(hederaOnRampAddress).toBeDefined()
   })
 
-  it('✅ lists supported fee tokens', async function () {
+  it('lists supported fee tokens', async function () {
     const result = await ccipSdkClient.getSupportedFeeTokens({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -378,7 +416,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(result.length).toBeGreaterThan(0)
   })
 
-  it('✅ fetched lane rate refill limits are defined', async function () {
+  it('fetched lane rate refill limits are defined', async function () {
     const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getLaneRateRefillLimits({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -392,7 +430,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(typeof rate).toBe('bigint')
   })
 
-  it('✅ returns token rate limit by lane', async function () {
+  it('returns token rate limit by lane', async function () {
     const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipSdkClient.getTokenRateLimitByLane({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -407,7 +445,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(typeof rate).toBe('bigint')
   })
 
-  it('✅ returns fee estimate', async function () {
+  it('returns fee estimate', async function () {
     const fee_native = await ccipSdkClient.getFee({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -420,7 +458,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(fee_native).toBeGreaterThan(1000n)
   })
 
-  it('✅ returns token admin registry', async function () {
+  it('returns token admin registry', async function () {
     const result = await ccipSdkClient.getTokenAdminRegistry({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -431,7 +469,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(result).toBeDefined()
   })
 
-  it('✅ checks if BnM token is supported for transfer', async function () {
+  it('checks if BnM token is supported for transfer', async function () {
     const result = await ccipSdkClient.isTokenSupported({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -441,7 +479,7 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     expect(result).toBe(true)
   })
 
-  it('✅ transfers tokens | pays in native token', async function () {
+  it('transfers tokens > pays in native token', async function () {
     await ccipSdkClient.approveRouter({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
@@ -460,15 +498,31 @@ describe.only('√ (Hedera -> Sepolia) all critical functionality in CCIP Client
     })
 
     _messageId = result.messageId
-    ccipSend_txHash = result.txHash
+    tokenTransfer_txHash = result.txHash
 
     expect(result.txReceipt!.status).toEqual('success')
   })
 
-  it('✅ gets transfer status & gets transaction receipt', async function () {
+  it('CCIP message (sending) tx OK > paid in native token', async function () {
+    const testMessage = Viem.encodeAbiParameters([{ type: 'string', name: 'message' }], ['Hello from Hedera Testnet!'])
+
+    const result = await ccipSdkClient.sendCCIPMessage({
+      client: hederaTestnetClient,
+      routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
+      destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      destinationAccount: sepoliaClient.account!.address, // TODO @zeuslawyer deploy contract for receiver
+      data: testMessage,
+    })
+
+    expect(result.txReceipt!.status).toEqual('success')
+    expect(result.messageId).toBeDefined()
+    expect(result.txHash).toBeDefined()
+  })
+
+  it('gets transfer status & gets transaction receipt', async function () {
     const ccipSend_txReceipt = await ccipSdkClient.getTransactionReceipt({
       client: hederaTestnetClient,
-      hash: ccipSend_txHash,
+      hash: tokenTransfer_txHash,
     })
 
     const transferStatus = await ccipSdkClient.getTransferStatus({

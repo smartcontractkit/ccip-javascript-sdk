@@ -757,6 +757,31 @@ export const createClient = (): Client => {
     return transferPoolTokenOutboundLimit as RateLimiterState
   }
 
+  /*
+   * Internal only helper function to scale fee decimals for non-standard chains
+   * @param fee - The fee to scale
+   * @param chain - The chain to scale the fee for.
+   * @returns The scaled fee if the chain's native token does not use 18 decimals. Otherwise the original fee.
+   */
+  function scaleFeeDecimals(fee: bigint, chain: Viem.Chain): bigint {
+    const scaleFactorForChain: Record<string, number> = { hedera: 10 }
+
+    const nonStandardChain = Object.keys(scaleFactorForChain).find((nonStandardChain) => {
+      return chain.name.toLowerCase().includes(nonStandardChain) // Tests that 'Hedera Testnet' includes "hedera"
+    })
+
+    if (nonStandardChain) {
+      const scaledFee = fee * BigInt(10 ** scaleFactorForChain[nonStandardChain])
+      console.info(
+        `scaleFeeDecimals(): Source chain '${chain.name}' has non-standard decimals. Scaling fee by ${scaleFactorForChain[nonStandardChain]} decimals`,
+      )
+      return scaledFee
+    }
+
+    // Unchanged.
+    return fee
+  }
+
   async function getFee(options: Parameters<Client['getFee']>[0]) {
     checkIsAddressValid(
       options.routerAddress,
@@ -786,12 +811,15 @@ export const createClient = (): Client => {
       }
     }
 
-    return (await readContract(options.client, {
+    const fee = (await readContract(options.client, {
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'getFee',
       args: buildArgs(options),
     })) as bigint
+
+    // Scale fee if needed based on chain
+    return scaleFeeDecimals(fee, options.client.chain!)
   }
 
   async function getTokenAdminRegistry(options: Parameters<Client['getTokenAdminRegistry']>[0]) {
@@ -859,16 +887,14 @@ export const createClient = (): Client => {
       }
     }
 
-    const writeContractParameters = {
+    const writeContractParameters: any = {
       chain: options.client.chain,
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'ccipSend',
       args: buildArgs(options),
       account: options.client.account!,
-      ...(!options.feeTokenAddress && {
-        value: await getFee(options),
-      }),
+      value: options.feeTokenAddress ? undefined : await getFee(options), // Only add native token value if no fee token is specified
       ...options.writeContractParameters,
     }
 
