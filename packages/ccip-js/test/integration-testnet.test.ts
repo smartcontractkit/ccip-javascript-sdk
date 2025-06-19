@@ -1,11 +1,12 @@
 import { expect, it, afterAll, beforeAll, describe } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
+import { parseEther } from 'viem'
 import { sepolia, avalancheFuji, hederaTestnet } from 'viem/chains'
+
 import { privateKeyToAccount } from 'viem/accounts'
 import bridgeToken from '../artifacts-compile/BridgeToken.json'
 import { DEFAULT_ANVIL_PRIVATE_KEY } from './helpers/constants'
-import { parseEther } from 'viem'
 
 const ccipSdkClient = CCIP.createClient()
 const bridgeTokenAbi = bridgeToken.contracts['src/contracts/BridgeToken.sol:BridgeToken'].bridgeTokenAbi
@@ -37,7 +38,7 @@ if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   )
 }
 
-describe('Integration: Fuji -> Sepolia', () => {
+describe.skip('Integration: Fuji -> Sepolia', () => {
   let avalancheFujiClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_fuji: any
@@ -268,6 +269,7 @@ describe('Integration: Fuji -> Sepolia', () => {
     })
 
     it('CCIP message (sending) tx OK > paid in LINK', async function () {
+      const testReceiverContract = '0xDDe1c31f052eeAceF8204Ff1C7993eb4adeb1EBD' // on Sepolia
       const testMessage = Viem.encodeAbiParameters(
         [{ type: 'string', name: 'message' }],
         ['Hello from Avalanche Fuji!'],
@@ -278,7 +280,7 @@ describe('Integration: Fuji -> Sepolia', () => {
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
-        destinationAccount: sepoliaClient.account!.address, // TODO @zeuslawyer deploy contract for receiver
+        destinationAccount: testReceiverContract,
         data: testMessage,
         feeTokenAddress: LINK_TOKEN_FUJI,
       })
@@ -295,10 +297,14 @@ describe('Integration: Fuji -> Sepolia', () => {
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
-        destinationAccount: sepoliaClient.account!.address,
+        destinationAccount: testReceiverContract,
         data: testMessage,
         feeTokenAddress: LINK_TOKEN_FUJI,
       })
+
+      console.info(
+        `Avalanche Fuji --> Sepolia sendCCIPMessage MessageId: ${result.messageId} <> Sent to: ${testReceiverContract} on Sepolia`,
+      )
 
       expect(result.txReceipt!.status).toEqual('success')
       expect(result.messageId).toBeDefined()
@@ -505,18 +511,30 @@ describe.only('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
 
   it('CCIP message (sending) tx OK > paid in native token', async function () {
     const testMessage = Viem.encodeAbiParameters([{ type: 'string', name: 'message' }], ['Hello from Hedera Testnet!'])
+    const testReceiverContract = '0xd1C330A20712F5BfF3244eDD90ED010f39c68A56' // on Sepolia
 
     const result = await ccipSdkClient.sendCCIPMessage({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
       destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
-      destinationAccount: sepoliaClient.account!.address, // TODO @zeuslawyer deploy contract for receiver
+      destinationAccount: testReceiverContract,
       data: testMessage,
     })
+
+    console.info(
+      `Hedera Testnet --> Sepolia sendCCIPMessage MessageId: ${result.messageId} <> Sent to: ${testReceiverContract} on Hedera`,
+    )
 
     expect(result.txReceipt!.status).toEqual('success')
     expect(result.messageId).toBeDefined()
     expect(result.txHash).toBeDefined()
+
+    const messageTxReceipt = await ccipSdkClient.getTransactionReceipt({
+      client: hederaTestnetClient,
+      hash: result.txHash,
+    })
+    expect(messageTxReceipt).toBeDefined()
+    expect(messageTxReceipt.status).toEqual('success')
   })
 
   it('gets transfer status & gets transaction receipt', async function () {
@@ -534,7 +552,6 @@ describe.only('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     })
 
     expect(transferStatus).toBeDefined()
-
     expect(ccipSend_txReceipt).toBeDefined()
     expect(ccipSend_txReceipt.status).toEqual('success')
     expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(hederaTestnetClient.account!.address.toLowerCase())
