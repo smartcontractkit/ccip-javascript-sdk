@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.24;
 
-import {IFeeQuoter} from '@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IFeeQuoter.sol';
-import {OwnerIsCreator} from '@chainlink/contracts-ccip/src/v0.8/shared/access/OwnerIsCreator.sol';
-import {Internal} from '@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Internal.sol';
-import {USDPriceWith18Decimals} from '@chainlink/contracts-ccip/src/v0.8/ccip/libraries/USDPriceWith18Decimals.sol';
+import {IFeeQuoter} from '@chainlink/contracts-ccip/contracts/interfaces/IFeeQuoter.sol';
+import {OwnerIsCreator} from '@chainlink/contracts/src/v0.8/shared/access/OwnerIsCreator.sol';
+import {Internal} from '@chainlink/contracts-ccip/contracts/libraries/Internal.sol';
+import {USDPriceWith18Decimals} from '@chainlink/contracts-ccip/contracts/libraries/USDPriceWith18Decimals.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 // import {EnumerableSet} from "../vendor/openzeppelin-solidity/v4.8.0/utils/structs/EnumerableSet.sol";

@@ -5,17 +5,23 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](https://github.com/smartcontractkit/ccip-javascript-sdk/blob/main/LICENSE)
 [![SDK Documentation](https://img.shields.io/static/v1?label=sdk-docs&message=latest&color=blue)](https://docs.chain.link/ccip/ccip-javascript-sdk/)
+
 </div>
 
 # CCIP JavaScript SDK
 
-The CCIP JavaScript SDK includes two packages:
-  - [`ccip-js`](/packages/ccip-js/README.md): A TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers.
-  - [`ccip-react-components`](/packages/ccip-react-components/README.md): A set of prebuilt ready-to-use UI components built on top of `ccip-js`.
+### Start here
 
-  Using both packages, you can add a fully featured CCIP bridge to your app that can be styled to match your app design.
-  
-  To view more detailed documentation and more examples, visit the [Chainlink Javascript SDK Documentation](https://docs.chain.link/ccip/ccip-javascript-sdk/).
+The CCIP JavaScript SDK is a monorepo for two packages:
+
+- [`ccip-js`](/packages/ccip-js/README.md): A TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers.
+- [`ccip-react-components`](/packages/ccip-react-components/README.md): A set of prebuilt ready-to-use React UI components. This package depends on `ccip-js`.
+
+Using both packages, you can add a fully featured CCIP bridge to your app that can be styled to match your app design.
+
+To view more detailed documentation and more examples, visit the [Chainlink Javascript SDK Documentation](https://docs.chain.link/ccip/ccip-javascript-sdk/). Development specific information is also found in individual READMEs inside the `./packages/<<PACKAGE_NAME>>` directory.
+
+There is also an example implementation of a front end NextJS app that uses these packages in `./examples/nextjs`. That has its own README as well.
 
 ### Prerequisites
 
@@ -29,7 +35,6 @@ git clone https://github.com/smartcontractkit/ccip-javascript-sdk.git
 
 3. Run `pnpm install`
 
-
 ### Run the example app
 
 ```sh
@@ -42,9 +47,12 @@ pnpm dev-example
 
 ### Build packages
 
-If you want to make changes to the package code, you need to rebuild the packages and make sure package.json file to point to the updated local versions. 
+If you want to make changes to the package code, you need to rebuild the packages.
+Then:
 
-Make sure to build the `ccip-js` package before you build the `ccip-react-components` package. The React components depend on the JS package.
+1. Make sure to build the `ccip-js` package before you build the `ccip-react-components` package. The React components depend on the JS package.
+
+2. Make sure your client's package.json file to points to the updated local versions or use npm link or equivalent in your downstream client code. You can see examples of this in the steps below.
 
 Follow these steps:
 
@@ -73,8 +81,28 @@ pnpm build-components
 "@chainlink/ccip-react-components": "link:../../packages/ccip-react-components",
 ```
 
+## Contributing
+
+Contributions to either repos are welcome! Please open an issue or submit a pull request using the process below.
+
+1. Fork the repository.
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/ccip-javascript-sdk.git`
+3. Navigate to directory: `cd ccip-javascript-sdk`
+4. Fetch all branches: `git fetch origin`
+5. Switch to develop branch: `git checkout develop`
+6. Install dependencies: `pnpm install`
+7. Create a feature branch: `git checkout -b feature/my-feature`
+8. Commit your changes
+9. Push to the branch (git push origin feature/my-feature).
+10. Open a pull request from your fork to the `develop` branch of this repo.
+
+🚨 Always branch off from `develop` when creating your feature branch.
+
 ## Resources
 
+- [ccip-js README](./packages/ccip-js/README.md)
+- [ccip-react-components README](./packages/ccip-react-components/README.md)
+- [examples/nextjs README](./examples/nextjs/README.md)
 - [Chainlink CCIP Javascript SDK Documentation](https://docs.chain.link/ccip/ccip-javascript-sdk/)
 - [Chainlink CCIP Documentation](https://docs.chain.link/ccip)
 - [Chainlink CCIP Directory](https://docs.chain.link/ccip/directory)

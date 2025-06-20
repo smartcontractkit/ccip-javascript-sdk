@@ -605,26 +605,17 @@ folder. From there, the relevant ABI arrays must be manually moved to `./src/abi
 
 #### Running tests
 
-1. cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
+1. Integration tests against testnets are favored in the ccip-js package.
 
-2. open a new terminal window and run `foundryup` followed by `anvil` - requires that you've [installed Foundry Anvil](https://book.getfoundry.sh/anvil/).
-   <b?>Note:</b> that Anvil is only needed for the integrations tests inside `./test` which uses the [Chainlink Local](https://github.com/smartcontractkit/chainlink-local) simulator. Actual testnet and mainnet behavior may differ from time to time and passing these tests does not guarantee testnet or mainnet behavior.
+2. Start by cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
 
-3. Back in the first terminal, inside, `packages/ccip-js` run `export PRIVATE_KEY=xxxxxx` to set your private key and then run `pnpm t:int` or `pnpm t:uint`.
+3. Back in the first terminal, inside, `packages/ccip-js` run `export PRIVATE_KEY=0x.....` to set your private key and then run `pnpm t:int`. If you're in the entire repo's root you can run the workspace filtering command `pnpm test-ccip-js`
 
-Note some tests are flaky - this is under investigation. You can choose to run just the mocked test or the testnet integration tests using `pnpm jest <<name of test file>>`.
-
-Note further that we have set a 180000ms (3 mins) timeout on the jest config. This can cause the testnet integration test to "hang" for the entire duration.
+Note further that we have set a 180000ms (3 mins) timeout on the jest config. This can cause the testnet integration test to appear to "hang"until timeout completes.
 
 ### Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on GitHub.
-
-1. Fork the repository.
-1. Create your feature branch (git checkout -b feature/my-feature).
-1. Commit your changes (git commit -m 'Add some feature').
-1. Push to the branch (git push origin feature/my-feature).
-1. Open a pull request.
+Please see the main README.
 
 ## License
 
