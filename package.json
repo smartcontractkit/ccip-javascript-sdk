@@ -6,7 +6,7 @@
     "build-components": "pnpm --filter ccip-react-components run build",
     "dev-example": "pnpm --filter example-nextjs run dev",
     "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist examples/nextjs/node_modules examples/nextjs/.next",
-    "test-ccip-js": "pnpm --filter ccip-js run test",
+    "test-ccip-js": "pnpm --filter ccip-js run t:int",
     "test-components": "pnpm --filter ccip-react-components run test"
   },
   "devDependencies": {

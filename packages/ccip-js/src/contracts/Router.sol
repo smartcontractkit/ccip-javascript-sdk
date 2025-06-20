@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity 0.8.24;
-import { Router } from "@chainlink/contracts-ccip/src/v0.8/ccip/Router.sol";
+import { Router } from "@chainlink/contracts-ccip/contracts/Router.sol";
 
 // import {
 //     ITypeAndVersion,
