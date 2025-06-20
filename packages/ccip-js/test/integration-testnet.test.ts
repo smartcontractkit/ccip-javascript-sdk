@@ -344,7 +344,7 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 })
 
-describe.only('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
+describe('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
   let hederaTestnetClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_hedera: any
@@ -416,7 +416,7 @@ describe.only('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     expect(hederaOnRampAddress).toBeDefined()
   })
 
-  it.only('lists supported fee tokens', async function () {
+  it('lists supported fee tokens', async function () {
     const result = await ccipClient.getSupportedFeeTokens({
       client: hederaTestnetClient,
       routerAddress: HEDERA_TESTNET_CCIP_ROUTER_ADDRESS,
