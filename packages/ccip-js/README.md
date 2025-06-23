@@ -117,6 +117,22 @@ const walletClient = createWalletClient({
   transport: custom(window.ethereum!),
 })
 
+// Using ethers.js signer & provider
+import { ethers } from 'ethers'
+import {
+  ethersSignerToWalletClient,
+  ethersProviderToPublicClient,
+} from '@chainlink/ccip-js'
+
+const ethersProvider = new ethers.JsonRpcProvider('https://rpc.example.com')
+const ethersSigner = new ethers.Wallet(PRIVATE_KEY, ethersProvider)
+
+const ethersWalletClient = await ethersSignerToWalletClient(ethersSigner, mainnet)
+const ethersPublicClient = ethersProviderToPublicClient(ethersProvider, mainnet)
+
+// The SDK methods accept Viem clients. The adapters above allow
+// passing ethers providers and signers by converting them to Viem clients.
+
 // Approve Router to transfer tokens on user's behalf
 const { txHash, txReceipt } = await ccipClient.approveRouter({
   client: walletClient,
