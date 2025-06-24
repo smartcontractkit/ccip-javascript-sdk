@@ -766,14 +766,14 @@ export const createClient = (): Client => {
   function scaleFeeDecimals(fee: bigint, chain: Viem.Chain): bigint {
     const scaleFactorForChain: Record<string, number> = { hedera: 10 }
 
-    const nonStandardChain = Object.keys(scaleFactorForChain).find((nonStandardChain) => {
+    const isNonStandardDecimals = Object.keys(scaleFactorForChain).find((nonStandardChain) => {
       return chain.name.toLowerCase().includes(nonStandardChain) // Tests that 'Hedera Testnet' includes "hedera"
     })
 
-    if (nonStandardChain) {
-      const scaledFee = fee * BigInt(10 ** scaleFactorForChain[nonStandardChain])
+    if (isNonStandardDecimals) {
+      const scaledFee = fee * BigInt(10 ** scaleFactorForChain[isNonStandardDecimals])
       console.info(
-        `scaleFeeDecimals(): Source chain '${chain.name}' has non-standard decimals. Scaling fee by ${scaleFactorForChain[nonStandardChain]} decimals`,
+        `scaleFeeDecimals(): Source chain '${chain.name}' has non-standard decimals. Scaling fee by ${scaleFactorForChain[isNonStandardDecimals]} decimals`,
       )
       return scaledFee
     }
