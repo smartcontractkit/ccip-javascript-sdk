@@ -21,7 +21,7 @@
     "react-dom": "18",
     "typescript": "^5",
     "viem": "2.21.25",
-    "wagmi": "^2.12.7"
+    "wagmi": "2.12.7"
   },
   "devDependencies": {
     "@types/node": "^20",
