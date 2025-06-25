@@ -28,7 +28,7 @@
     "coverage": "vitest --environment jsdom run --coverage"
   },
   "dependencies": {
-    "@chainlink/ccip-js": "^0.2.4",
+    "@chainlink/ccip-js": "workspace:^",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
