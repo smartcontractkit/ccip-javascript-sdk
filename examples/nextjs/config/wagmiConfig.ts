@@ -1,4 +1,4 @@
-import { http, createConfig, Config } from 'wagmi';
+import { http, createConfig, Config } from "wagmi";
 import {
   arbitrumSepolia,
   avalancheFuji,
@@ -7,11 +7,13 @@ import {
   optimismSepolia,
   polygonAmoy,
   sepolia,
-} from 'viem/chains';
-import { injected } from 'wagmi/connectors';
+  hederaTestnet,
+} from "viem/chains";
+import { injected } from "wagmi/connectors";
 
 export const wagmiConfig: Config = createConfig({
   chains: [
+    hederaTestnet,
     arbitrumSepolia,
     avalancheFuji,
     baseSepolia,
@@ -22,6 +24,7 @@ export const wagmiConfig: Config = createConfig({
   ],
   connectors: [injected()],
   transports: {
+    [hederaTestnet.id]: http(),
     [arbitrumSepolia.id]: http(),
     [avalancheFuji.id]: http(),
     [baseSepolia.id]: http(),
