@@ -1,8 +1,35 @@
 # CCIP-JS
 
-CCIP-JS is a TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers. The library utilizes types and helper functions from [Viem](https://viem.sh/).
+CCIP-JS is a TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers. The library supports both [Viem](https://viem.sh/) and [ethers.js](https://docs.ethers.org/v6/) clients, giving developers flexibility in their preferred Ethereum library.
 
 To learn more about CCIP, refer to the [CCIP documentation](https://docs.chain.link/ccip).
+
+## Ethers.js Support
+
+CCIP-JS now includes first-class support for ethers.js, allowing you to use either ethers.js or viem clients interchangeably. The library provides adapter patterns to ensure compatibility between the two libraries.
+
+### Key Features for ethers.js Users
+
+- **Seamless Integration**: Use existing ethers.js providers and signers with CCIP-JS
+- **Type Safety**: Full TypeScript support for all ethers.js operations
+- **Unified API**: Same method signatures as viem, making it easy to switch between libraries
+- **Automatic Type Conversion**: Handles type differences between ethers.js and viem automatically
+
+### When to Use ethers.js vs Viem
+
+- **Use ethers.js if**:
+  - You have an existing codebase using ethers.js
+  - You prefer ethers.js's API and developer experience
+  - You need features specific to ethers.js
+
+- **Use viem if**:
+  - You're starting a new project without legacy dependencies
+  - You want to use the latest Ethereum tooling
+  - You need better TypeScript integration
+
+### Migration Guide
+
+If you're migrating from viem to ethers.js, most method signatures remain the same. The main changes involve how you initialize and pass the client.
 
 // ... existing code ...
 
@@ -72,95 +99,92 @@ It can also be imported as a scripting dependency inside [Remix IDE scripts](htt
 
 ## Installation
 
-To install the package, use the following command:
+### With Viem
+```bash
+npm install @chainlink/ccip-js viem
+```
 
-```sh
-npm install @chainlink/ccip-js
+### With ethers.js
+```bash
+npm install @chainlink/ccip-js ethers@6
 ```
 
 Or with Yarn:
 
 ```sh
-yarn add @chainlink/ccip-js
+yarn add @chainlink/ccip-js viem
 ```
 
 Or with PNPM:
 
 ```sh
-pnpm add @chainlink/ccip-js
+pnpm add @chainlink/ccip-js viem
 ```
 
 ## Usage
 
-This example code covers the following steps:
-
-- Initialize CCIP-JS Client for mainnet
-- Approve tokens for transfer
-- Get fee for the transfer
-- Send the transfer through CCIP using one of the following options for fee payment:
-  - Using the native token fee
-  - Using the provided supported token for fee payment
+### Initializing with Viem
 
 ```typescript
-import * as CCIP from '@chainlink/ccip-js'
-import { createWalletClient, custom } from 'viem'
+import { createClient } from '@chainlink/ccip-js'
+import { createPublicClient, createWalletClient, http } from 'viem'
+import { privateKeyToAccount } from 'viem/accounts'
 import { mainnet } from 'viem/chains'
 
-// Initialize CCIP-JS Client for mainnet
-const ccipClient = CCIP.createClient()
 const publicClient = createPublicClient({
   chain: mainnet,
-  transport: http(),
+  transport: http()
 })
+
+const account = privateKeyToAccount('0x...')
+
 const walletClient = createWalletClient({
+  account,
   chain: mainnet,
-  transport: custom(window.ethereum!),
+  transport: http()
 })
 
-// Approve Router to transfer tokens on user's behalf
-const { txHash, txReceipt } = await ccipClient.approveRouter({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  waitForReceipt: true,
+const client = createClient()
+```
+
+### Initializing with ethers.js
+
+```typescript
+import { createClient } from '@chainlink/ccip-js'
+import { ethers } from 'ethers'
+
+// Using JsonRpcProvider
+const provider = new ethers.JsonRpcProvider('YOUR_RPC_URL')
+const signer = new ethers.Wallet('YOUR_PRIVATE_KEY', provider)
+
+// Or using BrowserProvider (for browser wallets like MetaMask)
+// const provider = new ethers.BrowserProvider(window.ethereum)
+// const signer = await provider.getSigner()
+
+const client = createClient()
+```
+
+### Using ethers.js with the Client
+
+All client methods work the same way whether you're using ethers.js or viem. The library handles the underlying differences automatically.
+
+```typescript
+// Example: Getting token balance
+const balance = await client.getTokenBalance({
+  client: signer, // or provider for read-only operations
+  owner: '0x1234...',
+  tokenAddress: '0xTokenAddress'
 })
 
-console.log(`Transfer approved. Transaction hash: ${txHash}. Transaction receipt: ${txReceipt}`)
-
-// Get fee for the transfer
-const fee = await ccipClient.getFee({
-  client: publicClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
+// Example: Transferring tokens
+const { txHash } = await client.transferTokens({
+  client: signer,
+  routerAddress: '0xRouterAddress',
+  tokenAddress: '0xTokenAddress',
+  recipient: '0xRecipient',
+  amount: ethers.parseEther('1.0'),
   destinationChainSelector: '1234',
-})
-
-console.log(`Fee: ${fee.toLocaleString()}`)
-
-// Variant 1: Transfer via CCIP using native token fee
-const { txHash, messageId } = await client.transferTokens({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
-  destinationChainSelector: '1234',
-})
-
-console.log(`Transfer success. Transaction hash: ${txHash}. Message ID: ${messageId}`)
-
-// Variant 2: Transfer via CCIP using the provided supported token for fee payment
-const { txHash, messageId } = await client.transferTokens({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
-  destinationChainSelector: '1234',
-  feeTokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+  feeToken: '0xFeeToken'
 })
 ```
 
@@ -382,6 +406,8 @@ enum TransferStatus {
 
 ### Client Methods
 
+All client methods work with both ethers.js and viem clients. The examples below show both approaches.
+
 #### approveRouter
 
 Approve the CCIP router to spend tokens for transfers and fees on behalf of the user. Returns the transaction hash and optionally the transaction receipt.
@@ -410,14 +436,23 @@ approveRouter(options: {
 
 #### getAllowance
 
-Retrieves the allowance of a specified account for a cross-chain transfer.
+Retrieves the allowance for a specific token and spender. Returns a promise that resolves to the allowance amount as a bigint.
 
 ```typescript
+// With viem
 getAllowance(options: {
   client: Viem.Client
   routerAddress: Viem.Address
   tokenAddress: Viem.Address
   account: Viem.Address
+}): Promise<bigint>
+
+// With ethers.js
+getAllowance(options: {
+  client: ethers.Provider | ethers.Signer
+  routerAddress: string
+  tokenAddress: string
+  account: string
 }): Promise<bigint>
 ```
 
