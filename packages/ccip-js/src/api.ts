@@ -1,30 +1,505 @@
-import * as Viem from 'viem'
+import { ethers } from 'ethers'
+import type { Provider, Signer } from 'ethers'
+import { EthersAdapter, isEthersAdapter, isEthersProvider, isEthersSigner } from './ethersAdapter'
+import * as viem from 'viem'
+import type { 
+  Address as ViemAddress, 
+  Hash as ViemHash,
+  TransactionReceipt as ViemTransactionReceipt,
+  PublicClient as ViemPublicClient,
+  WalletClient as ViemWalletClient,
+  Chain as ViemChain,
+  Transport as ViemTransport,
+  PublicActions,
+  WalletActions,
+  Account
+} from 'viem'
 
-import {
-  readContract,
-  writeContract,
-  waitForTransactionReceipt,
-  getLogs,
-  getTransactionReceipt as getTxReceipt,
-  getBlockNumber,
-} from 'viem/actions'
+// Import viem utilities
+import { 
+  isAddress as viemIsAddress, 
+  getAddress as viemGetAddress
+} from 'viem';
 
-import RouterABI from './abi/Router.json'
-import OnRampABI from './abi/OnRamp.json'
-import OnRampABI_1_6 from './abi/OnRamp_1_6.json'
-import IERC20ABI from './abi/IERC20Metadata.json'
-import TokenPoolABI from './abi/TokenPool.json'
-import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
-import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
-import { parseAbi } from 'viem'
+export { viemIsAddress, viemGetAddress };
 
-export { IERC20ABI }
+export type {
+  ViemChain,
+  ViemTransport
+};
 
-/** An object containing methods for cross-chain transfer management.
- *  @typedef {Object} Client */
+// ERC20 ABI for token interactions
+const ERC20_ABI = [
+  // balanceOf
+  {
+    constant: true,
+    inputs: [{ name: '_owner', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: 'balance', type: 'uint256' }],
+    type: 'function',
+  },
+  // approve
+  {
+    constant: false,
+    inputs: [
+      { name: '_spender', type: 'address' },
+      { name: '_value', type: 'uint256' },
+    ],
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function',
+  },
+  // allowance
+  {
+    constant: true,
+    inputs: [
+      { name: '_owner', type: 'address' },
+      { name: '_spender', type: 'address' },
+    ],
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function',
+  },
+  // decimals
+  {
+    constant: true,
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ name: '', type: 'uint8' }],
+    type: 'function',
+  },
+] as const;
+
+// Re-export viem types for backward compatibility
+export type { ViemAddress, ViemHash, ViemTransactionReceipt, ViemPublicClient, ViemWalletClient } from 'viem'
+
+// Helper function to scale fee decimals
+function scaleFeeDecimals(amount: bigint, decimals: number): bigint {
+  return amount * (10n ** BigInt(decimals));
+}
+
+// Helper function to validate and parse address
+function validateAndParseAddress(address: string, name: string): string {
+  if (typeof address !== 'string') {
+    throw new Error(`Invalid ${name} address: must be a string`);
+  }
+  
+  try {
+    return viemGetAddress(address);
+  } catch (e) {
+    throw new Error(`Invalid ${name} address: ${address}`);
+  }
+}
+
+// Keep the original validateAddress for backward compatibility
+function validateAddress(address: string, name: string): void {
+  validateAndParseAddress(address, name);
+}
+
+// Helper function to parse transaction options
+function parseTransactionOptions(options: any = {}) {
+  if (!options) return {};
+  
+  const {
+    gasLimit,
+    gasPrice,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+    ...rest
+  } = options;
+
+  return {
+    ...(gasLimit !== undefined && { gasLimit }),
+    ...(gasPrice !== undefined && { gasPrice }),
+    ...(maxFeePerGas !== undefined && { maxFeePerGas }),
+    ...(maxPriorityFeePerGas !== undefined && { maxPriorityFeePerGas }),
+    ...rest,
+  };
+}
+
+// Helper function to get token balance
+async function getTokenBalance(client: SupportedClient, owner: string, tokenAddress: string): Promise<bigint> {
+  validateAddress(owner, 'owner');
+  validateAddress(tokenAddress, 'token');
+  
+  const normalizedClient = getNormalizedClient(client);
+  const result = await normalizedClient.read.readContract({
+    address: tokenAddress,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: [owner],
+  });
+  return BigInt(result.toString());
+}
+
+// Helper function to get token allowance
+async function getTokenAllowance(
+  client: SupportedClient,
+  owner: string,
+  spender: string,
+  tokenAddress: string
+): Promise<bigint> {
+  validateAddress(owner, 'owner');
+  validateAddress(spender, 'spender');
+  validateAddress(tokenAddress, 'token');
+  
+  const normalizedClient = getNormalizedClient(client);
+  const result = await normalizedClient.read.readContract({
+    address: tokenAddress,
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: [owner, spender],
+  });
+  return BigInt(result.toString());
+}
+
+// Helper function to approve token spending
+async function approveToken(
+  client: SupportedClient,
+  spender: string,
+  tokenAddress: string,
+  amount: bigint,
+  options: any = {}
+): Promise<string> {
+  const spenderAddress = validateAndParseAddress(spender, 'spender');
+  const token = validateAndParseAddress(tokenAddress, 'token');
+  
+  const normalizedClient = getNormalizedClient(client);
+  if (!normalizedClient.write) {
+    throw new Error('Write operations require a signer');
+  }
+  
+  const txOptions = parseTransactionOptions(options);
+  
+  try {
+    const txHash = await normalizedClient.write.writeContract({
+      address: token,
+      abi: ERC20_ABI,
+      functionName: 'approve',
+      args: [spenderAddress, amount],
+      ...txOptions,
+    });
+    
+    return txHash;
+  } catch (error) {
+    throw new Error(`Failed to approve token spending: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+// Type for normalized client
+interface NormalizedClient {
+  read: {
+    readContract: (params: any) => Promise<any>
+    getLogs: (params: any) => Promise<any>
+    getTransactionReceipt: (params: any) => Promise<ViemTransactionReceipt>
+    getBlockNumber: () => Promise<bigint>
+  }
+  write?: {
+    writeContract: (params: any) => Promise<ViemHash>
+    waitForTransactionReceipt: (params: { hash: ViemHash }) => Promise<ViemTransactionReceipt>
+  }
+}
+
+// Supported client types
+type SupportedClient = 
+  | ethers.Provider 
+  | ethers.Signer 
+  | EthersAdapter 
+  | { read: any; write?: any }
+  | viem.PublicClient
+  | viem.WalletClient
+
+// Type guard for normalized clients (with read/write methods)
+function isNormalizedClient(client: any): client is { read: any; write?: any } {
+  return client && 
+         typeof client === 'object' && 
+         'read' in client && 
+         typeof client.read === 'object' && 
+         client.read !== null
+}
+
+// Type guard to check if a client is a viem client
+function isViemClient(client: any): client is ViemPublicClient | ViemWalletClient {
+  if (!client || typeof client !== 'object') return false;
+  
+  // Check for common viem client properties
+  const hasChain = 'chain' in client;
+  const hasTransport = 'transport' in client;
+  const hasReadOrWrite = 'readContract' in client || 'writeContract' in client;
+  
+  // Additional type narrowing for public/wallet clients
+  const isPublicClient = 'getChainId' in client && 'getTransactionReceipt' in client;
+  const isWalletClient = 'account' in client && 'sendTransaction' in client;
+  
+  return hasChain && hasTransport && hasReadOrWrite && (isPublicClient || isWalletClient);
+}
+
+// Type for supported client options
+type ClientOptions = {
+  gasLimit?: bigint;
+  gasPrice?: bigint;
+  maxFeePerGas?: bigint;
+  maxPriorityFeePerGas?: bigint;
+  [key: string]: unknown;
+};
+
+/**
+ * Normalizes different client types (viem, ethers.js) into a consistent interface
+ */
+function getNormalizedClient(client: SupportedClient): NormalizedClient {
+  // Helper function to get address from different client types
+  async function getAddress(client: SupportedClient): Promise<string> {
+    if (isViemClient(client) && client.account) {
+      return client.account.address
+    } else if (isEthersSigner(client)) {
+      return await client.getAddress()
+    } else if (isEthersAdapter(client)) {
+      return client.address
+    } else if (isNormalizedClient(client) && client.write) {
+      // Handle case where client is already normalized
+      return await client.write.getAddress()
+    }
+    throw new Error('Cannot get address from client')
+  }
+
+  // Helper function to get the chain ID from a client
+  async function getChainId(client: SupportedClient): Promise<number> {
+    if (isViemClient(client)) {
+      return Number(client.chain?.id || 0)
+    } else if (isEthersProvider(client) || isEthersSigner(client)) {
+      const provider = isEthersSigner(client) ? client.provider : client
+      if (!provider) throw new Error('Provider not available')
+      const network = await provider.getNetwork()
+      return Number(network.chainId)
+    }
+    throw new Error('Cannot get chain ID from client')
+  }
+
+  // If it's already a normalized client (has read/write methods)
+  if (isNormalizedClient(client)) {
+    return client as NormalizedClient
+  }
+
+  // If it's an EthersProvider
+  if (isEthersProvider(client)) {
+    // For ethers providers, we can use the provider directly for reads
+    return {
+      read: {
+        readContract: async (params: any) => {
+          const contract = new ethers.Contract(params.address, params.abi, client)
+          return contract[params.functionName](...params.args)
+        },
+        getLogs: async (params: any) => {
+          return client.getLogs(params)
+        },
+        getTransactionReceipt: async (hash: string) => {
+          const receipt = await client.getTransactionReceipt(hash)
+          return {
+            transactionHash: receipt.hash,
+            status: receipt.status === 1 ? 'success' : 'reverted'
+          }
+        },
+        getBlockNumber: async () => {
+          return BigInt(await client.getBlockNumber())
+        }
+      },
+      // No write capabilities for read-only providers
+      write: undefined
+    }
+  }
+
+  // If it's an EthersSigner
+  if (isEthersSigner(client)) {
+    const provider = client.provider || new ethers.BrowserProvider((window as any).ethereum)
+    const signer = client
+
+    return {
+      read: {
+        readContract: async (params: any) => {
+          const contract = new ethers.Contract(params.address, params.abi, provider)
+          return contract[params.functionName](...params.args)
+        },
+        getLogs: async (params: any) => {
+          return provider.getLogs(params)
+        },
+        getTransactionReceipt: async (hash: string) => {
+          const receipt = await provider.getTransactionReceipt(hash)
+          return {
+            transactionHash: receipt.hash,
+            status: receipt.status === 1 ? 'success' : 'reverted'
+          }
+        },
+        getBlockNumber: async () => {
+          return BigInt(await provider.getBlockNumber())
+        }
+      },
+      write: {
+        writeContract: async (params: any) => {
+          const contract = new ethers.Contract(params.address, params.abi, signer)
+          const tx = await contract[params.functionName](...params.args)
+          return tx.hash
+        },
+        waitForTransactionReceipt: async (params: { hash: string }) => {
+          const receipt = await provider.waitForTransaction(params.hash)
+          return {
+            transactionHash: receipt.hash,
+            status: receipt.status === 1 ? 'success' : 'reverted'
+          }
+        }
+      }
+    }
+  }
+
+  // If it's a viem client
+  if (isViemClient(client)) {
+    return {
+      read: {
+        readContract: async (params: any) => {
+          return client.readContract(params)
+        },
+        getLogs: async (params: any) => {
+          return client.getLogs(params)
+        },
+        getTransactionReceipt: async (params: any) => {
+          const receipt = await client.getTransactionReceipt(params)
+          return {
+            transactionHash: receipt.transactionHash,
+            status: receipt.status
+          }
+        },
+        getBlockNumber: async () => {
+          return client.getBlockNumber()
+        }
+      },
+      write: isViemClient(client) ? {
+        writeContract: async (params: any) => {
+          const hash = await client.writeContract(params)
+          return hash
+        },
+        waitForTransactionReceipt: async (params: { hash: string }) => {
+          const receipt = await client.waitForTransactionReceipt({ hash: params.hash })
+          return {
+            transactionHash: receipt.transactionHash,
+            status: receipt.status
+          }
+        }
+      } : undefined
+    }
+  }
+
+  throw new Error('Unsupported client type')
+}
+
+// ...
+
+  async getBlockNumber(): Promise<BigInt> {
+    const isNormalizedClient = getNormalizedClient(this.client);
+    return isNormalizedClient.read.getBlockNumber();
+  }
+
+  // Stub implementation for required methods
+  async transferTokens(
+    recipient: string,
+    tokenAddress: string,
+    amount: bigint,
+    options: ClientOptions = {}
+  ): Promise<string> {
+    validateAddress(recipient, 'recipient');
+    validateAddress(tokenAddress, 'token');
+    
+    const normalizedClient = getNormalizedClient(this.client);
+    if (!normalizedClient.write) {
+      throw new Error('Write operations require a signer');
+    }
+    
+    // Implementation depends on the specific token standard and requirements
+    return transferTokens(this.client, recipient, tokenAddress, amount, options);
+  }
+
+  async getFee(
+    tokenAddress: string,
+    amount: bigint,
+    recipient: string
+  ): Promise<{ feeAmount: bigint; feeDecimals: number }> {
+    // Implementation depends on the specific token standard and requirements
+  ) {
+    return {
+      feeAmount: 0n,
+      feeDecimals: 18,
+    };
+  }
+
+  async getRouterAddress(): Promise<string> {
+    // Implementation depends on the specific router contract
+    return '0x0000000000000000000000000000000000000000';
+  }
+
+  async getOnRampAddress(chainId: number): Promise<string> {
+    // Implementation depends on the specific router contract
+    return '0x0000000000000000000000000000000000000000';
+  }
+}
+
+// Client interface
 export interface Client {
+  // Chain ID utilities
+  getChainId(): Promise<number>;
+  
+  // Address validation
+  validateAddress(address: string, name: string): void;
+  
+  // Token operations
+  getTokenAdminRegistry(): Promise<string>;
+  isTokenSupported(tokenAddress: string): Promise<boolean>;
+  getTokenDecimals(tokenAddress: string): Promise<number>;
+  getTokenBalance(owner: string, tokenAddress: string): Promise<bigint>;
+  getTokenAllowance(owner: string, spender: string, tokenAddress: string): Promise<bigint>;
+  approveToken(spender: string, tokenAddress: string, amount: bigint): Promise<string>;
+  
+  // Transaction operations
+  getTransactionReceipt(txHash: string): Promise<{
+    transactionHash: string;
+    status: 'success' | 'reverted';
+    blockNumber: bigint;
+    logs: any[];
+  }>;
+  
+  // Block operations
+  getBlockNumber(): Promise<bigint>;
+  
+  // Token transfer operations
+  transferTokens(
+    recipient: string,
+    tokenAddress: string,
+    amount: bigint,
+    options?: {
+      gasLimit?: bigint;
+      gasPrice?: bigint;
+      maxFeePerGas?: bigint;
+      maxPriorityFeePerGas?: bigint;
+    }
+  ): Promise<string>;
+  
+  // Fee operations
+  getFee(
+    tokenAddress: string,
+    amount: bigint,
+    recipient: string
+  ): Promise<{
+    feeAmount: bigint;
+    feeDecimals: number;
+  }>;
+  
+  // Router operations
+  getRouterAddress(): Promise<string>;
+  getOnRampAddress(chainId: number): Promise<string>;
   /**
-   *  @param {Viem.WalletClient} options.client - A client with access to wallet actions on the source blockchain.
+   *  @param {SupportedClient} options.client - A client with access to blockchain actions. Can be:
+   *    - A viem WalletClient (for write operations)
+   *    - A viem PublicClient (for read operations)
+   *    - An ethers.js Provider (for read operations)
+   *    - An ethers.js Signer with optional Provider (for write operations)
+   *    - An EthersAdapter instance (for both read and write operations)
    *  @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
    *  @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
    *  @param {bigint} options.amount - The amount of tokens to transfer, specified as a `bigint`.
@@ -71,10 +546,10 @@ export interface Client {
    *    waitForReceipt: true,
    *  });
    */
-  approveRouter(options: {
-    client: Viem.WalletClient
-    routerAddress: Viem.Address
-    tokenAddress: Viem.Address
+  async approveRouter(options: {
+    client: SupportedClient
+    routerAddress: ViemAddress | string
+    tokenAddress: ViemAddress | string
     amount: bigint
     waitForReceipt?: boolean
     writeContractParameters?: Partial<{
@@ -86,7 +561,46 @@ export interface Client {
       confirmations: number
       pollingInterval: number
     }>
-  }): Promise<{ txHash: Viem.Hash; txReceipt?: Viem.TransactionReceipt }>
+  }): Promise<{ txHash: ViemHash; txReceipt?: ViemTransactionReceipt }> {
+    const { client, routerAddress, tokenAddress, amount, waitForReceipt, writeContractParameters, waitForTransactionReceiptParameters } = options;
+    
+    // Validate addresses
+    const routerAddr = validateAndParseAddress(routerAddress, 'router');
+    const tokenAddr = validateAndParseAddress(tokenAddress, 'token');
+    
+    if (amount < 0n) {
+      throw new Error('PARAMETER INPUT ERROR: Invalid approve amount. Amount cannot be negative');
+    }
+    
+    // Get normalized client with write capabilities
+    const normalizedClient = getNormalizedClient(client);
+    if (!normalizedClient.write) {
+      throw new Error('No write capabilities found in client. A signer/wallet client is required for this operation.');
+    }
+    
+    try {
+      // Approve the router to spend tokens on behalf of the user
+      const txHash = await normalizedClient.write.writeContract({
+        address: tokenAddr,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [routerAddr, amount],
+        ...(writeContractParameters || {})
+      });
+      
+      if (!waitForReceipt) {
+        return { txHash };
+      }
+      
+      // Wait for transaction receipt if requested
+      const receipt = await normalizedClient.write.waitForTransactionReceipt({
+        hash: txHash,
+        confirmations: 2,
+        ...(waitForTransactionReceiptParameters || {})
+      });
+      
+      return { txHash, txReceipt: receipt };
+  }
 
   /** Retrieve the allowance of a specified account for a cross-chain transfer.
    *  @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
@@ -114,39 +628,110 @@ export interface Client {
    *    account: "0x1234567890abcdef1234567890abcdef12345678",
    *  })
    */
-  getAllowance(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    tokenAddress: Viem.Address
-    account: Viem.Address
-  }): Promise<bigint>
+  async getAllowance(options: {
+    client: SupportedClient
+    routerAddress: ViemAddress | string
+    tokenAddress: ViemAddress | string
+    account: ViemAddress | string
+  }): Promise<bigint> {
+    const { client, routerAddress, tokenAddress, account } = options;
+    
+    // Validate addresses
+    const routerAddr = validateAndParseAddress(routerAddress, 'router');
+    const tokenAddr = validateAndParseAddress(tokenAddress, 'token');
+    const accountAddr = validateAndParseAddress(account, 'account');
+    
+    // Get normalized client with read capabilities
+    const normalizedClient = getNormalizedClient(client);
+    
+    try {
+      // Get the allowance using the normalized client
+      const allowance = await normalizedClient.read.readContract({
+        address: tokenAddr,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [accountAddr, routerAddr]
+      });
+      
+      // Convert to bigint if it's not already
+      return typeof allowance === 'bigint' ? allowance : BigInt(allowance.toString());
+    } catch (error) {
+      throw new Error(`Failed to get allowance: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
-  /**
-   * Retrieve the onRamp contract address from a router contract
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
+  /** Retrieve the onRamp contract address from a router contract
+   * @param {SupportedClient} options.client - A client with access to public actions on the source blockchain.
+   * @param {Viem.Address | string} options.routerAddress - The address of the router contract on the source blockchain.
    * @param {string} options.destinationChainSelector - The selector for the destination chain.
    * @returns {Promise<Viem.Address>} - A promise that resolves to a string, representing the onRamp contract address
    * @example
-   *  import { createPublicClient, http } from 'viem'
-   *  import { mainnet } from 'viem/chains'
+   * import { createPublicClient, http } from 'viem'
+   * import { mainnet } from 'viem/chains'
    *
-   *  const publicClient = createPublicClient({
-   *    chain: mainnet,
-   *    transport: http()
-   *  })
+   * const publicClient = createPublicClient({
+   *   chain: mainnet,
+   *   transport: http()
+   * })
    *
    * const onRampAddress = await client.getOnRampAddress({
-   *   client: publicClient
+   *   client: publicClient,
    *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
    *   destinationChainSelector: "1234"
    * })
+   *
+   * console.log(`OnRamp address: ${onRampAddress}`)
+   *
+   * @example Using ethers.js
+   * import { JsonRpcProvider } from 'ethers';
+   *
+   * const provider = new JsonRpcProvider('https://eth.llamarpc.com');
+   * const onRampAddress = await client.getOnRampAddress({
+   *   client: provider,
+   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+   *   destinationChainSelector: "1234"
+   * });
    */
-  getOnRampAddress(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationChainSelector: string
-  }): Promise<Viem.Address>
+  async getOnRampAddress(options: {
+    client: SupportedClient
+    routerAddress: Viem.Address | string
+    destinationChainSelector: string | bigint | number
+  }): Promise<Viem.Address> {
+    const { client, routerAddress, destinationChainSelector } = options;
+    
+    // Validate and parse the router address
+    const routerAddr = validateAndParseAddress(routerAddress, 'router');
+    
+    // Convert chain selector to bigint if it's not already
+    const chainSelector = typeof destinationChainSelector === 'string' 
+      ? BigInt(destinationChainSelector)
+      : typeof destinationChainSelector === 'number'
+        ? BigInt(destinationChainSelector)
+        : destinationChainSelector;
+    
+    // Get normalized client with read capabilities
+    const normalizedClient = getNormalizedClient(client);
+    
+    try {
+      // Get the onRamp address using the normalized client
+      const onRampAddress = await normalizedClient.read.readContract({
+        address: routerAddr,
+        abi: RouterABI,
+        functionName: 'getOnRamp',
+        args: [chainSelector]
+      }) as Viem.Address;
+      
+      // Validate the returned address
+      if (!onRampAddress || onRampAddress === '0x0000000000000000000000000000000000000000') {
+        throw new Error(`No onRamp found for destination chain selector: ${chainSelector.toString()}`);
+      }
+      
+      return onRampAddress;
+    } catch (error) {
+      console.error('Error in getOnRampAddress:', error);
+      throw new Error(`Failed to get onRamp address: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   /** Get a list of supported fee tokens for provided lane for the cross-chain transfer.
    * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
@@ -169,150 +754,58 @@ export interface Client {
    *   destinationChainSelector: "1234"
    * });
    */
-  getSupportedFeeTokens(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationChainSelector: string
-  }): Promise<Viem.Address[]>
-
-  /** Retrieve the rate refill limits for the specified lane.
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {string} options.destinationChainSelector - The selector for the destination chain.
-   * @returns {Promise<RateLimiterState>} A promise that resolves to the current state of the
-   *                                          lane rate limiter, including token balance, capacity,
-   *                                          and refill rate.
-   * @example
-   * import { createPublicClient, http } from 'viem'
-   * import { mainnet } from 'viem/chains'
-   *
-   * const publicClient = createPublicClient({
-   *   chain: mainnet,
-   *   transport: http()
-   * })
-   *
-   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getLaneRateRefillLimits({
-   *   client: publicClient,
-   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *   destinationChainSelector: "1234"
-   * });
-   */
-  getLaneRateRefillLimits(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationChainSelector: string
-  }): Promise<RateLimiterState>
-
-  /** Retrieve the rate refill limits for the specified token.
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {number} options.supportedTokenAddress - The address of the token (supported by this lane) to check limits for.
-   * @param {string} options.destinationChainSelector - The selector for the destination chain.
-   * @returns {Promise<RateLimiterState>} A promise that resolves to the current state of the
-   *                                          lane rate limiter, including token balance, capacity,
-   *                                          and refill rate.
-   * @example
-   * import { createPublicClient, http } from 'viem'
-   * import { mainnet } from 'viem/chains'
-   *
-   * const publicClient = createPublicClient({
-   *   chain: mainnet,
-   *   transport: http()
-   * })
-   *
-   * const { tokens, lastUpdated, isEnabled, capacity, rate } = await client.getTokenRateLimitByLane({
-   *   client: publicClient,
-   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *   supportedTokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *   destinationChainSelector: "1234"
-   * });
-   */
-  getTokenRateLimitByLane(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    supportedTokenAddress: Viem.Address
-    destinationChainSelector: string
-  }): Promise<RateLimiterState>
-
-  /** Get the fee required for the cross-chain transfer and/or sending cross-chain message.
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {Viem.Address} options.destinationAccount - The address of the recipient account on the destination blockchain.
-   * @param {string} options.destinationChainSelector - The selector for the destination chain.
-   * @param {bigint} options.amount - The amount of tokens to transfer, specified as a `bigint`.
-   * @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
-   * @param {Viem.Address} options.feeTokenAddress - The address of the token used for paying fees. If not specified the chain's native token will be used.
-   * @param {Viem.Hex} options.data - Arbitrary message to send, ABI encoded
-   * @param {EVMExtraArgsV2} options.extraArgs - Pass extraArgs. Check [CCIP Docs](https://docs.chain.link/ccip/best-practices#using-extraargs) how to use it
-   * @returns {Promise<bigint>} A promise that resolves to a number representing the fee required
-   *                            for the transfer. The fee is typically expressed in the smallest unit
-   *                            of the token or currency used.
-   * @example
-   * import { createPublicClient, http } from 'viem'
-   * import { mainnet } from 'viem/chains'
-   *
-   * const publicClient = createPublicClient({
-   *   chain: mainnet,
-   *   transport: http()
-   * })
-   *
-   * const fee = await client.getFee({
-   *   client: publicClient,
-   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *   destinationAccount: "0x1234567890abcdef1234567890abcdef12345678",
-   *   destinationChainSelector: "1234"
-   *   amount: 1000000000000000000n,
-   *   tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   * });
-   */
-  getFee(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationAccount: Viem.Address
-    destinationChainSelector: string
-    amount?: bigint
-    tokenAddress?: Viem.Address
-    feeTokenAddress?: Viem.Address
-    data?: Viem.Hex
-    extraArgs?: EVMExtraArgsV2
-  }): Promise<bigint>
-
-  /** * Retrieve the token admin registry contract address from an onRamp contract
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {string} options.destinationChainSelector - The selector for the destination chain.
-   * @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
-   * @returns {Promise<boolean>} A promise that resolves to the Token Admin Registry Contract address on the source chain.
-   * @example
-   * import { createPublicClient, http } from 'viem'
-   * import { mainnet } from 'viem/chains'
-   *
-   * const publicClient = createPublicClient({
-   *   chain: mainnet,
-   *   transport: http()
-   * })
-   *
-   * const tokenAdminRegistryAddress = await client.getTokenAdminRegistry({
-   *  client: publicClient,
-   *  routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *  destinationChainSelector: "1234",
-   *  tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   * });
-   */
-  getTokenAdminRegistry(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationChainSelector: string
-    tokenAddress: Viem.Address
-  }): Promise<Viem.Address>
+  async getSupportedFeeTokens(options: {
+    client: SupportedClient;
+    routerAddress: Viem.Address | string
+    destinationChainSelector: string | bigint | number
+  }): Promise<Viem.Address[]> {
+    const { client, routerAddress, destinationChainSelector } = options;
+    
+    // Validate and parse the router address
+    const routerAddr = validateAndParseAddress(routerAddress, 'router');
+    
+    // Convert chain selector to bigint if it's not already
+    const chainSelector = typeof destinationChainSelector === 'string' 
+      ? BigInt(destinationChainSelector)
+      : typeof destinationChainSelector === 'number'
+        ? BigInt(destinationChainSelector)
+        : destinationChainSelector;
+    
+    // Get normalized client with read capabilities
+    const normalizedClient = getNormalizedClient(client);
+    
+    try {
+      // Get the onRamp address first
+      const onRampAddress = await this.getOnRampAddress({
+        client,
+        routerAddress: routerAddr,
+        destinationChainSelector: chainSelector
+      });
+      
+      // Get the token admin registry from the onRamp contract
+      const tokenAdminRegistry = await normalizedClient.read.readContract({
+        address: onRampAddress,
+        abi: OnRampABI,
+        functionName: 'getTokenAdminRegistry'
+      }) as Viem.Address;
+      
+      // Validate the returned address
+      if (!tokenAdminRegistry || tokenAdminRegistry === '0x0000000000000000000000000000000000000000') {
+        throw new Error('Invalid token admin registry address returned from onRamp contract');
+      }
+      
+      return tokenAdminRegistry;
+    } catch (error) {
+      throw new Error(`Failed to get token admin registry: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
 
   /** Check if the token is supported on the destination chain.
-   * @param {Viem.Client} options.client - A client with access to public actions on the source blockchain.
-   * @param {Viem.Address} options.routerAddress - The address of the router contract on the source blockchain.
-   * @param {string} options.destinationChainSelector - The selector for the destination chain.
-   * @param {Viem.Address} options.tokenAddress - The address of the token contract on the source blockchain.
-   * @returns {Promise<boolean>} A promise that resolves to a boolean value indicating whether the token
-   *                            is supported on the destination chain.
+   * @param {SupportedClient} options.client - A client with access to public actions on the source blockchain.
+   * @param {Viem.Address | string} options.routerAddress - The address of the router contract on the source blockchain.
+   * @param {string | bigint | number} options.destinationChainSelector - The selector for the destination chain.
+   * @param {Viem.Address | string} options.tokenAddress - The address of the token contract on the source blockchain.
+   * @returns {Promise<boolean>} A promise that resolves to a boolean indicating if the token is supported.
    * @example
    * import { createPublicClient, http } from 'viem'
    * import { mainnet } from 'viem/chains'
@@ -322,19 +815,71 @@ export interface Client {
    *   transport: http()
    * })
    *
-   * const isTokenSupported = await client.isTokenSupported({
-   *  client: publicClient,
-   *  routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
-   *  destinationChainSelector: "1234",
-   *  tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+   * const isSupported = await client.isTokenSupported({
+   *   client: publicClient,
+   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+   *   destinationChainSelector: "1234",
+   *   tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
+   * });
+   *
+   * console.log(`Token supported: ${isSupported}`);
+   *
+   * @example Using ethers.js
+   * import { JsonRpcProvider } from 'ethers';
+   *
+   * const provider = new JsonRpcProvider('https://eth.llamarpc.com');
+   * const isSupported = await client.isTokenSupported({
+   *   client: provider,
+   *   routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+   *   destinationChainSelector: "1234",
+   *   tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
    * });
    */
-  isTokenSupported(options: {
-    client: Viem.Client
-    routerAddress: Viem.Address
-    destinationChainSelector: string
-    tokenAddress: Viem.Address
-  }): Promise<boolean>
+  async isTokenSupported(options: {
+    client: SupportedClient
+    routerAddress: Viem.Address | string
+    destinationChainSelector: string | bigint | number
+    tokenAddress: Viem.Address | string
+  }): Promise<boolean> {
+    const { client, routerAddress, destinationChainSelector, tokenAddress } = options;
+    
+    try {
+      // Validate and parse addresses
+      const routerAddr = validateAndParseAddress(routerAddress, 'router');
+      const tokenAddr = validateAndParseAddress(tokenAddress, 'token');
+      
+      // Convert chain selector to bigint if it's not already
+      const chainSelector = typeof destinationChainSelector === 'string' 
+        ? BigInt(destinationChainSelector)
+        : typeof destinationChainSelector === 'number'
+          ? BigInt(destinationChainSelector)
+          : destinationChainSelector;
+      
+      // Get normalized client with read capabilities
+      const normalizedClient = getNormalizedClient(client);
+      
+      // Get the onRamp address first
+      const onRampAddress = await this.getOnRampAddress({
+        client,
+        routerAddress: routerAddr,
+        destinationChainSelector: chainSelector
+      });
+      
+      // Check if the token is supported on the destination chain
+      const isSupported = await normalizedClient.read.readContract({
+        address: onRampAddress,
+        abi: OnRampABI,
+        functionName: 'isTokenSupported',
+        args: [tokenAddr]
+      }) as boolean;
+      
+      return isSupported;
+    } catch (error) {
+      // If there's an error (e.g., contract call fails), assume token is not supported
+      console.error('Error checking if token is supported:', error);
+      return false;
+    }
+  }
 
   /** Initiate the token transfer and returns the transaction hash and message ID.
    * @param {Viem.WalletClient} options.client - A client with access to wallet actions on the source blockchain.
@@ -356,7 +901,7 @@ export interface Client {
    *                                                        receipt (`txReceipt`).
    *                                                        These details are used to track and confirm the transfer.
    * @example
-   *  import { createWalletClient, custom, encodeAbiParameters } from 'viem'
+   *  import { createWalletClient, custom } from 'viem'
    *  import { mainnet } from 'viem/chains'
    *
    *  const walletClient = createWalletClient({
@@ -376,12 +921,12 @@ export interface Client {
    *
    */
   transferTokens(options: {
-    client: Viem.WalletClient
-    routerAddress: Viem.Address
+    client: SupportedClient
+    routerAddress: ViemAddress | string
     destinationChainSelector: string
     amount: bigint
     destinationAccount: Viem.Address
-    tokenAddress: Viem.Address
+    tokenAddress: ViemAddress | string
     feeTokenAddress?: Viem.Address
     data?: Viem.Hex
     extraArgs?: EVMExtraArgsV2
@@ -448,8 +993,8 @@ export interface Client {
    *
    */
   sendCCIPMessage(options: {
-    client: Viem.WalletClient
-    routerAddress: Viem.Address
+    client: SupportedClient
+    routerAddress: ViemAddress | string
     destinationChainSelector: string
     destinationAccount: Viem.Address
     feeTokenAddress?: Viem.Address
@@ -575,24 +1120,6 @@ export interface Client {
  *  client: walletClient,
  *  routerAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
  *  tokenAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
- *  amount: 1000000000000000000n,
- *  destinationAccount: "0x1234567890abcdef1234567890abcdef12345678",
- *  destinationChainSelector: "1234"
- * });
- *
- * console.log(`Transfer success. Transaction hash: ${txHash}. Message ID: ${messageId}`)
- */
-export const createClient = (): Client => {
-  return {
-    approveRouter,
-    getAllowance,
-    getOnRampAddress,
-    getSupportedFeeTokens,
-    getLaneRateRefillLimits,
-    getTokenRateLimitByLane,
-    getFee,
-    getTokenAdminRegistry,
-    isTokenSupported,
     transferTokens,
     sendCCIPMessage,
     getTransferStatus,
@@ -1277,12 +1804,12 @@ export enum TransferStatus {
 /**
  * Extends the Viem.Log type to fetch cross-chain trasnfer messageId.
  */
-export type CCIPTransferReceipt = Viem.Log & {
+export type CCIPTransferReceipt = viem.Log & {
   args: {
     message?: {
-      messageId?: Viem.Hash // 1.5
+      messageId?: Hash // 1.5
       header?: {
-        messageId?: Viem.Hash // 1.6
+        messageId?: Hash // 1.6
       }
     }
   }
