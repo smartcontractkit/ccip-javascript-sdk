@@ -26,4 +26,6 @@ export const config: Config = {
     shape: { radius: 4 },
   },
   showFaucet: true,
+  // Enable EIP-7702 support for atomic transactions
+  useEip7702: true,
 };

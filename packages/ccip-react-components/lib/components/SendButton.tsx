@@ -42,6 +42,7 @@ export function SendButton({
     feeTokenAddress,
     feeAmount,
     feeTokenBalance,
+    useEip7702,
   } = useAppContext();
 
   const { data: walletClient } = useWalletClient();
@@ -71,7 +72,7 @@ export function SendButton({
     address: feeTokenAddress,
     functionName: 'allowance',
     args: [destinationAccount, routerAddress],
-    query: { enabled: feeTokenSymbol === 'LINK' },
+    query: { enabled: feeTokenSymbol === 'LINK' && !useEip7702 },
   });
 
   const { data: isTokenSupported, isPending: isTokenSupportedPending } =
@@ -126,6 +127,7 @@ export function SendButton({
       destinationAccount: Address;
       tokenAddress: Address;
       feeTokenAddress?: Address;
+      useEip7702?: boolean;
     }) => await ccipClient.transferTokens(options),
     onSuccess: ({ messageId, txHash }) => {
       setMessageId(messageId);
@@ -166,7 +168,8 @@ export function SendButton({
     balance &&
     amount &&
     parseUnits(amount, balance.decimals) >
-      ((tokenAllowance as bigint) || BigInt(0));
+      ((tokenAllowance as bigint) || BigInt(0)) &&
+    !useEip7702; // Skip approval if EIP-7702 is enabled
 
   if (!isTokenSupportedPending && !isTokenSupported) {
     return <Error message="Token is not supported on destination chain" />;
@@ -270,6 +273,7 @@ export function SendButton({
             tokenAddress,
             destinationAccount,
             feeTokenAddress,
+            useEip7702: useEip7702, // Use EIP-7702 if enabled
           })
         }
       >

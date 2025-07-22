@@ -344,7 +344,20 @@ const config: Config = { theme:
       radius?: number;
     };
   };}
+
+### EIP-7702 Support
+
+You can enable EIP-7702 support for atomic transactions. When enabled, the component will use EIP-7702 `sendCalls` for single-transaction transfers instead of the legacy two-step approve + transfer flow.
+
+```typescript
+import { Config } from 'ccip-react-components';
+const config: Config = { 
+  // Enable EIP-7702 support for atomic transactions
+  useEip7702: true,
+};
 ```
+
+**Note**: When EIP-7702 is enabled, the component will attempt to use atomic transactions. If the wallet or chain doesn't support EIP-7702, it will automatically fall back to the legacy two-step flow.
 
 ### Variants
 
