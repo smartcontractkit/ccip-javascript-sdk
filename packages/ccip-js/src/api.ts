@@ -346,7 +346,6 @@ export interface Client {
    * @param {Viem.Address} options.feeTokenAddress - The address of the token used for paying fees. If not specified the chain's native token will be used.
    * @param {Viem.Hex} options.data - Arbitrary data to send along with the transaction. ABI encoded
    * @param {EVMExtraArgsV2} options.extraArgs - Pass extraArgs. Check [CCIP Docs](https://docs.chain.link/ccip/best-practices#using-extraargs) how to use it
-   * @param {boolean} options.useEip7702 - Try EIP‑7702 if wallet + chain say yes (default: true)
    * @param {Object} options.writeContractParameters
    *  - Override the **optional** write contract parameters for the 'approve' method.
    * @param {Object} options.waitForTransactionReceiptParameters
@@ -386,7 +385,6 @@ export interface Client {
     feeTokenAddress?: Viem.Address
     data?: Viem.Hex
     extraArgs?: EVMExtraArgsV2
-    useEip7702?: boolean
     writeContractParameters?: Partial<{
       gas: bigint
       gasPrice: bigint
@@ -889,113 +887,20 @@ export const createClient = (): Client => {
       }
     }
 
-    // Use EIP-7702 if user has enabled it
-    const use7702 = options.useEip7702 === true
-    var txReceipt: Viem.TransactionReceipt | undefined;
-    var transferTokensTxHash: `0x${string}`;
-    const args = buildArgs(options)
-    const feeValue = options.feeTokenAddress ? await getFee(options) : undefined
-    const approveFeeCall = {
-      to: options.feeTokenAddress,
-      chain: options.client.chain,
-      abi: Viem.erc20Abi,
-      address: options.feeTokenAddress,
-      functionName: 'approve',
-      args: [options.routerAddress, feeValue || 0n],
-      account: options.client.account!,
-      ...options.writeContractParameters,
-    } as const;
-    const approveCall = {
-      to: options.tokenAddress,
-      chain: options.client.chain,
-      abi: Viem.erc20Abi,
-      address: options.tokenAddress,
-      functionName: 'approve',
-      args: [options.routerAddress, options.amount],
-      account: options.client.account!,
-      ...options.writeContractParameters,
-    } as const;
-    const transferCall: any = {
-      to: options.routerAddress,
+    const writeContractParameters: any = {
       chain: options.client.chain,
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'ccipSend',
-      args,
+      args: buildArgs(options),
       account: options.client.account!,
-      value: options.feeTokenAddress ? undefined : feeValue,
+      value: options.feeTokenAddress ? undefined : await getFee(options), // Only add native token value if no fee token is specified
       ...options.writeContractParameters,
-    } as const;
-
-    // try EIP7702 flow
-    try {
-      if (!use7702) throw new Error('EIP-7702 is not enabled')
-
-      console.info('transferTokens(): Using EIP-7702')
-
-      const calls = [approveCall, transferCall];
-      if (options.feeTokenAddress) calls.unshift(approveFeeCall);
-
-      const bundleId = (await (options.client as Viem.WalletClient).sendCalls({
-        calls,
-        experimental_fallback: true,
-        ...options.writeContractParameters,
-      })).id as string
-      console.info('transferTokens(): EIP-7702 bundleId: ', bundleId)
-
-      const { status, receipts } = (await (options.client as Viem.WalletClient).waitForCallsStatus({ id: bundleId }));
-      if (status === 'failure') throw new Error('Transaction failed');
-
-      transferTokensTxHash = receipts?.[0]?.transactionHash as `0x${string}`;
-      if (!transferTokensTxHash) throw new Error('Transaction hash not found');
-
-      console.info('transferTokens(): EIP-7702 txHash: ', transferTokensTxHash)
-    }
-    // if EIP-7702 fails, fall back to legacy flow
-    catch (error: any) {
-      // Check if the error is due to user rejecting the upgrade
-      // OR if the error is due to EIP-7702 not being enabled
-      if (error?.name === 'AtomicReadyWalletRejectedUpgradeError' ||
-        error?.message?.includes('user rejected the upgrade') ||
-        error?.message?.includes('User rejected account upgrade') ||
-        error?.message?.includes('EIP-7702 is not enabled')
-      ) {
-        console.warn('transferTokens(): EIP-7702 Failed, falling back to legacy flow')
-
-        // Legacy 2-step fallback flow
-        // First, check if approval is needed
-        const currentAllowance = await getAllowance({
-          client: options.client,
-          routerAddress: options.routerAddress,
-          tokenAddress: options.tokenAddress,
-          account: options.client.account!.address,
-        })
-
-        // If approval is needed, do the approval first
-        if (currentAllowance < options.amount) {
-          console.info('transferTokens(): Approval needed, approving tokens first')
-
-          const approveTxHash = await writeContract(options.client, approveCall)
-
-          // Wait for approval transaction to be confirmed
-          await waitForTransactionReceipt(options.client, {
-            hash: approveTxHash,
-            confirmations: 2,
-            ...options.waitForTransactionReceiptParameters,
-          })
-
-          console.info('transferTokens(): Approval completed, proceeding with transfer')
-        }
-
-        transferTokensTxHash = await writeContract(options.client, transferCall)
-
-      } else {
-        // Re-throw other errors
-        throw error
-      }
     }
 
-    txReceipt = await waitForTransactionReceipt(options.client, {
+    const transferTokensTxHash = await writeContract(options.client, writeContractParameters)
+
+    const txReceipt = await waitForTransactionReceipt(options.client, {
       hash: transferTokensTxHash,
       confirmations: 2,
       ...options.waitForTransactionReceiptParameters,

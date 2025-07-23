@@ -13,14 +13,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chainlink/ccip-js": "workspace:*",
-    "@chainlink/ccip-react-components": "workspace:*",
+    "@chainlink/ccip-js": "^0.2.1",
+    "@chainlink/ccip-react-components": "^0.3.0",
     "@tanstack/react-query": "^5.37.1",
     "next": "14.2.3",
     "react": "18",
     "react-dom": "18",
     "typescript": "^5",
-    "viem": "2.31.6",
+    "viem": "2.21.25",
     "wagmi": "2.12.7"
   },
   "devDependencies": {

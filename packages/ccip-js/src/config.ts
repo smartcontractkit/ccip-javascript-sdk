@@ -12,28 +12,46 @@ export const ExecutionStateChangedABI = {
   name: 'ExecutionStateChanged',
   inputs: [
     {
-      "name": "sequenceNumber",
-      "type": "uint64",
-      "indexed": true,
-      "internalType": "uint64"
+      name: 'sourceChainSelector',
+      type: 'uint64',
+      indexed: true,
+      internalType: 'uint64',
     },
     {
-      "name": "messageId",
-      "type": "bytes32",
-      "indexed": true,
-      "internalType": "bytes32"
+      name: 'sequenceNumber',
+      type: 'uint64',
+      indexed: true,
+      internalType: 'uint64',
     },
     {
-      "name": "state",
-      "type": "uint8",
-      "indexed": false,
-      "internalType": "enum Internal.MessageExecutionState"
+      name: 'messageId',
+      type: 'bytes32',
+      indexed: true,
+      internalType: 'bytes32',
     },
     {
-      "name": "returnData",
-      "type": "bytes",
-      "indexed": false,
-      "internalType": "bytes"
-    }
+      name: 'messageHash',
+      type: 'bytes32',
+      indexed: false,
+      internalType: 'bytes32',
+    },
+    {
+      name: 'state',
+      type: 'uint8',
+      indexed: false,
+      internalType: 'enum Internal.MessageExecutionState',
+    },
+    {
+      name: 'returnData',
+      type: 'bytes',
+      indexed: false,
+      internalType: 'bytes',
+    },
+    {
+      name: 'gasUsed',
+      type: 'uint256',
+      indexed: false,
+      internalType: 'uint256',
+    },
   ],
 } as const

@@ -119,11 +119,6 @@ export type Config = {
   walletConfig?: WalletConfig;
   /** Display faucet button for testnet chains */
   showFaucet?: boolean;
-  /** Enable EIP-7702 support for atomic transactions (default: true)
-   * When enabled, the component will use EIP-7702 sendCalls for single-transaction transfers
-   * instead of the legacy two-step approve + transfer flow.
-   */
-  useEip7702?: boolean;
 };
 
 export type WalletConfig = {

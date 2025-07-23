@@ -38,7 +38,6 @@ export const Context = createContext<{
   feeTokenBalance?: bigint;
   isConnectOpen?: boolean;
   setIsConnectOpen: (open: boolean) => void;
-  useEip7702?: boolean;
 }>({
   chains: [],
   chainsInfo: [],
@@ -86,7 +85,6 @@ export const ContextProvider = ({
       variant: configProp?.variant,
       walletConfig: configProp?.walletConfig,
       showFaucet: configProp?.showFaucet,
-      useEip7702: configProp?.useEip7702 ?? true,
     }),
     [configProp]
   );
@@ -178,7 +176,6 @@ export const ContextProvider = ({
         feeTokenBalance,
         isConnectOpen,
         setIsConnectOpen: (o: boolean) => setIsConnectOpen(o),
-        useEip7702: config.useEip7702,
       }}
     >
       {children}

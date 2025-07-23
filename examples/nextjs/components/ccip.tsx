@@ -178,7 +178,6 @@ function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient
   const [data, setData] = useState<Hex>();
   const [messageId, setMessageId] = useState<string>();
   const [txHash, setTxHash] = useState<string>();
-  const [useEip7702, setUseEip7702] = useState<boolean>(true);
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -240,16 +239,6 @@ function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient
           onChange={({ target }) => setAmount(target.value)}
         />
       </div>
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="useEip7702"
-          checked={useEip7702}
-          onChange={({ target }) => setUseEip7702(target.checked)}
-          className="rounded border-slate-300"
-        />
-        <label htmlFor="useEip7702" className="text-sm">Use EIP-7702</label>
-      </div>
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
@@ -262,7 +251,6 @@ function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient
               destinationAccount: destinationAccount as Address,
               tokenAddress: tokenAddress as Address,
               data,
-              useEip7702: useEip7702,
             });
             setMessageId(result.messageId);
             setTxHash(result.txHash);
