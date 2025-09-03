@@ -118,49 +118,91 @@ const walletClient = createWalletClient({
 })
 
 // Approve Router to transfer tokens on user's behalf
-const { txHash, txReceipt } = await ccipClient.approveRouter({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  waitForReceipt: true,
-})
+async function main() {
+  const { txHash, txReceipt } = await ccipClient.approveRouter({
+    client: walletClient,
+    routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    amount: 1000000000000000000n,
+    waitForReceipt: true,
+  })
 
-console.log(`Transfer approved. Transaction hash: ${txHash}. Transaction receipt: ${txReceipt}`)
+  console.log(`Transfer approved. Transaction hash: ${txHash}. Transaction receipt: ${txReceipt}`)
 
 // Get fee for the transfer
-const fee = await ccipClient.getFee({
-  client: publicClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
-  destinationChainSelector: '1234',
-})
+  const fee = await ccipClient.getFee({
+    client: publicClient,
+    routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    amount: 1000000000000000000n,
+    destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
+    destinationChainSelector: '1234',
+  })
 
-console.log(`Fee: ${fee.toLocaleString()}`)
+  console.log(`Fee: ${fee.toLocaleString()}`)
 
 // Variant 1: Transfer via CCIP using native token fee
-const { txHash, messageId } = await client.transferTokens({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
-  destinationChainSelector: '1234',
-})
+  const { txHash, messageId } = await client.transferTokens({
+    client: walletClient,
+    routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    amount: 1000000000000000000n,
+    destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
+    destinationChainSelector: '1234',
+  })
 
-console.log(`Transfer success. Transaction hash: ${txHash}. Message ID: ${messageId}`)
+  console.log(`Transfer success. Transaction hash: ${txHash}. Message ID: ${messageId}`)
 
 // Variant 2: Transfer via CCIP using the provided supported token for fee payment
-const { txHash, messageId } = await client.transferTokens({
-  client: walletClient,
-  routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
-  amount: 1000000000000000000n,
-  destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
-  destinationChainSelector: '1234',
-  feeTokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+  const { txHash: txHash2, messageId: messageId2 } = await client.transferTokens({
+    client: walletClient,
+    routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    amount: 1000000000000000000n,
+    destinationAccount: '0x1234567890abcdef1234567890abcdef12345678',
+    destinationChainSelector: '1234',
+    feeTokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+  })
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})
+```
+
+### Using ethers.js
+
+You can pass ethers providers/signers by adapting them to Viem clients with the provided helpers. The client methods now accept either Viem clients or ethers Provider/Signer where applicable (e.g. `approveRouter`, `transferTokens`, `sendCCIPMessage`, reads). Avoid hardcoding secrets; load keys from environment variables and wrap usage in an async function.
+
+```typescript
+import 'dotenv/config'
+import { ethers } from 'ethers'
+import * as CCIP from '@chainlink/ccip-js'
+import { mainnet } from 'viem/chains'
+
+async function main() {
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL!)
+  const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider)
+
+  const walletClient = await CCIP.ethersSignerToWalletClient(signer, mainnet)
+  const publicClient = CCIP.ethersProviderToPublicClient(provider, mainnet)
+
+  const ccipClient = CCIP.createClient()
+
+  const { txHash } = await ccipClient.approveRouter({
+    client: walletClient,
+    routerAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
+    amount: 1000000000000000000n,
+  })
+
+  console.log('approve tx hash', txHash)
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
 })
 ```
 

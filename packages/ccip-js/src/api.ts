@@ -1,13 +1,6 @@
 import * as Viem from 'viem'
 
-import {
-  readContract,
-  writeContract,
-  waitForTransactionReceipt,
-  getLogs,
-  getTransactionReceipt as getTxReceipt,
-  getBlockNumber,
-} from 'viem/actions'
+// Using compat adapters for ethers/Viem interop where appropriate
 
 import RouterABI from './abi/Router.json'
 import OnRampABI from './abi/OnRamp.json'
@@ -17,6 +10,28 @@ import TokenPoolABI from './abi/TokenPool.json'
 import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
 import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
 import { parseAbi } from 'viem'
+export {
+  ethersProviderToTransport,
+  ethersSignerToAccount,
+  ethersProviderToPublicClient,
+  ethersSignerToWalletClient,
+  EthersAdapter,
+  readContractCompat,
+  writeContractCompat,
+  waitForTransactionReceiptCompat,
+  getTransactionReceiptCompat,
+  getBlockNumberCompat,
+  getLogsCompat,
+} from './adapters/ethers'
+
+import {
+  readContractCompat as readCompat,
+  writeContractCompat as writeCompat,
+  waitForTransactionReceiptCompat as waitCompat,
+  getTransactionReceiptCompat as getTxReceiptCompat,
+  getBlockNumberCompat as getBlockNumberCompatLocal,
+  getLogsCompat as getLogsCompatLocal,
+} from './adapters/ethers'
 
 export { IERC20ABI }
 
@@ -72,7 +87,7 @@ export interface Client {
    *  });
    */
   approveRouter(options: {
-    client: Viem.WalletClient
+    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     amount: bigint
@@ -115,7 +130,7 @@ export interface Client {
    *  })
    */
   getAllowance(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     account: Viem.Address
@@ -143,7 +158,7 @@ export interface Client {
    * })
    */
   getOnRampAddress(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<Viem.Address>
@@ -170,7 +185,7 @@ export interface Client {
    * });
    */
   getSupportedFeeTokens(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
@@ -198,7 +213,7 @@ export interface Client {
    * });
    */
   getLaneRateRefillLimits(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
@@ -228,7 +243,7 @@ export interface Client {
    * });
    */
   getTokenRateLimitByLane(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
     destinationChainSelector: string
@@ -266,7 +281,7 @@ export interface Client {
    * });
    */
   getFee(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationAccount: Viem.Address
     destinationChainSelector: string
@@ -300,7 +315,7 @@ export interface Client {
    * });
    */
   getTokenAdminRegistry(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     tokenAddress: Viem.Address
@@ -330,7 +345,7 @@ export interface Client {
    * });
    */
   isTokenSupported(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     tokenAddress: Viem.Address
@@ -376,7 +391,7 @@ export interface Client {
    *
    */
   transferTokens(options: {
-    client: Viem.WalletClient
+    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     amount: bigint
@@ -448,7 +463,7 @@ export interface Client {
    *
    */
   sendCCIPMessage(options: {
-    client: Viem.WalletClient
+    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     destinationAccount: Viem.Address
@@ -491,7 +506,7 @@ export interface Client {
    * });
    */
   getTransferStatus(options: {
-    client: Viem.Client
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
     destinationRouterAddress: Viem.Address
     sourceChainSelector: string
     messageId: Viem.Hash
@@ -519,7 +534,10 @@ export interface Client {
    *   hash: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef"
    * });
    */
-  getTransactionReceipt(options: { client: Viem.Client; hash: Viem.Hash }): Promise<Viem.TransactionReceipt>
+  getTransactionReceipt(options: {
+    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    hash: Viem.Hash
+  }): Promise<Viem.TransactionReceipt>
 }
 
 /**
@@ -615,25 +633,30 @@ export const createClient = (): Client => {
       throw new Error('PARAMETER INPUT ERROR: Invalid approve amount. Amount can not be negative')
     }
 
-    const approveTxHash = await writeContract(options.client, {
-      chain: options.client.chain,
-      account: options.client.account!,
-      abi: IERC20ABI,
-      address: options.tokenAddress,
-      functionName: 'approve',
-      args: [options.routerAddress, options.amount],
-      ...options.writeContractParameters,
-    })
+    const approveTxHash = await writeCompat(
+      options.client as any,
+      {
+        abi: IERC20ABI,
+        address: options.tokenAddress,
+        functionName: 'approve',
+        args: [options.routerAddress, options.amount],
+        account: (options.client as any).account,
+        ...options.writeContractParameters,
+      } as any,
+    )
 
     if (!options.waitForReceipt) {
       return { txHash: approveTxHash }
     }
 
-    const txReceipt = await waitForTransactionReceipt(options.client, {
-      hash: approveTxHash,
-      confirmations: 2,
-      ...options.waitForTransactionReceiptParameters,
-    })
+    const txReceipt = await waitCompat(
+      options.client as any,
+      {
+        hash: approveTxHash,
+        confirmations: 2,
+        ...options.waitForTransactionReceiptParameters,
+      } as any,
+    )
 
     return { txHash: approveTxHash, txReceipt: txReceipt as Viem.TransactionReceipt }
   }
@@ -649,7 +672,7 @@ export const createClient = (): Client => {
     )
     checkIsAddressValid(options.account, `PARAMETER INPUT ERROR: Account address ${options.account} is not valid`)
 
-    const allowance = await readContract(options.client, {
+    const allowance = await readCompat(options.client as any, {
       abi: IERC20ABI,
       address: options.tokenAddress,
       functionName: 'allowance',
@@ -664,7 +687,7 @@ export const createClient = (): Client => {
       `PARAMETER INPUT ERROR: Router address ${options.routerAddress} is not valid`,
     )
 
-    const onRampAddress = (await readContract(options.client, {
+    const onRampAddress = (await readCompat(options.client as any, {
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'getOnRamp',
@@ -682,13 +705,13 @@ export const createClient = (): Client => {
   async function getSupportedFeeTokens(options: Parameters<Client['getSupportedFeeTokens']>[0]) {
     const onRampAddress = await getOnRampAddress(options)
 
-    const dynamicConfig = await readContract(options.client, {
+    const dynamicConfig = await readCompat(options.client as any, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'getDynamicConfig',
     })
 
-    const typeAndVersion = await readContract(options.client, {
+    const typeAndVersion = await readCompat(options.client as any, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'typeAndVersion',
@@ -708,7 +731,7 @@ export const createClient = (): Client => {
       `CONTRACT CALL ERROR: Price regisry '${priceRegistryOrFeeQuoter}' is not valid. Execution can not be continued`,
     )
 
-    const feeTokens = await readContract(options.client, {
+    const feeTokens = await readCompat(options.client as any, {
       abi: parseAbi(['function getFeeTokens() returns (address[] feeTokens)']), // same signature for both PriceRegistry and FeeQuoter
       address: priceRegistryOrFeeQuoter as Viem.Address,
       functionName: 'getFeeTokens',
@@ -719,7 +742,7 @@ export const createClient = (): Client => {
   async function getLaneRateRefillLimits(options: Parameters<Client['getLaneRateRefillLimits']>[0]) {
     const onRampAddress = await getOnRampAddress(options)
 
-    const currentRateLimiterState = await readContract(options.client, {
+    const currentRateLimiterState = await readCompat(options.client as any, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'currentRateLimiterState',
@@ -735,7 +758,7 @@ export const createClient = (): Client => {
 
     const onRampAddress = await getOnRampAddress(options)
 
-    const laneTokenTransferPool = (await readContract(options.client, {
+    const laneTokenTransferPool = (await readCompat(options.client as any, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'getPoolBySourceToken',
@@ -747,7 +770,7 @@ export const createClient = (): Client => {
       `CONTRACT CALL ERROR: Token pool for ${options.supportedTokenAddress} is missing. Execution can not be continued`,
     )
 
-    const transferPoolTokenOutboundLimit = await readContract(options.client, {
+    const transferPoolTokenOutboundLimit = await readCompat(options.client as any, {
       abi: TokenPoolABI,
       address: laneTokenTransferPool as Viem.Address,
       functionName: 'getCurrentOutboundRateLimiterState',
@@ -763,11 +786,12 @@ export const createClient = (): Client => {
    * @param chain - The chain to scale the fee for.
    * @returns The scaled fee if the chain's native token does not use 18 decimals. Otherwise the original fee.
    */
-  function scaleFeeDecimals(fee: bigint, chain: Viem.Chain): bigint {
+  function scaleFeeDecimals(fee: bigint, chain?: Viem.Chain): bigint {
+    if (!chain) return fee
     const scaleFactorForChain: Record<string, number> = { hedera: 10 }
 
     const isNonStandardDecimals = Object.keys(scaleFactorForChain).find((nonStandardChain) => {
-      return chain.name.toLowerCase().includes(nonStandardChain) // Tests that 'Hedera Testnet' includes "hedera"
+      return chain!.name.toLowerCase().includes(nonStandardChain) // Tests that 'Hedera Testnet' includes "hedera"
     })
 
     if (isNonStandardDecimals) {
@@ -811,15 +835,19 @@ export const createClient = (): Client => {
       }
     }
 
-    const fee = (await readContract(options.client, {
+    const fee = (await readCompat(options.client as any, {
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'getFee',
       args: buildArgs(options),
     })) as bigint
 
-    // Scale fee if needed based on chain
-    return scaleFeeDecimals(fee, options.client.chain!)
+    // Scale fee if needed based on chain; best-effort for both viem and ethers clients
+    try {
+      const viemChain = (options.client as any)?.chain as Viem.Chain | undefined
+      if (viemChain) return scaleFeeDecimals(fee, viemChain)
+    } catch {}
+    return scaleFeeDecimals(fee)
   }
 
   async function getTokenAdminRegistry(options: Parameters<Client['getTokenAdminRegistry']>[0]) {
@@ -829,7 +857,7 @@ export const createClient = (): Client => {
 
     const onRampAddress = await getOnRampAddress(options)
 
-    const staticConfig = await readContract(options.client, {
+    const staticConfig = await readCompat(options.client as any, {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'getStaticConfig',
@@ -847,7 +875,7 @@ export const createClient = (): Client => {
   async function isTokenSupported(options: Parameters<Client['isTokenSupported']>[0]) {
     const tokenAdminRegistryAddress = await getTokenAdminRegistry(options)
 
-    const tokenPoolAddress = (await readContract(options.client, {
+    const tokenPoolAddress = (await readCompat(options.client as any, {
       abi: TokenAdminRegistryABI,
       address: tokenAdminRegistryAddress,
       functionName: 'getPool',
@@ -858,7 +886,7 @@ export const createClient = (): Client => {
       return false
     }
 
-    const isSupported = (await readContract(options.client, {
+    const isSupported = (await readCompat(options.client as any, {
       abi: TokenPoolABI,
       address: tokenPoolAddress,
       functionName: 'isSupportedChain',
@@ -887,27 +915,27 @@ export const createClient = (): Client => {
       }
     }
 
-    const writeContractParameters: any = {
-      chain: options.client.chain,
-      abi: RouterABI,
-      address: options.routerAddress,
-      functionName: 'ccipSend',
-      args: buildArgs(options),
-      account: options.client.account!,
-      value: options.feeTokenAddress ? undefined : await getFee(options), // Only add native token value if no fee token is specified
-      ...options.writeContractParameters,
-    }
+    const transferTokensTxHash = await writeCompat(
+      options.client as any,
+      {
+        abi: RouterABI,
+        address: options.routerAddress,
+        functionName: 'ccipSend',
+        args: buildArgs(options),
+        ...(options.feeTokenAddress ? {} : { value: await getFee(options) }),
+        ...((options.client as any)?.account ? { account: (options.client as any).account } : {}),
+        ...options.writeContractParameters,
+      } as any,
+    )
 
-    const transferTokensTxHash = await writeContract(options.client, writeContractParameters)
-
-    const txReceipt = await waitForTransactionReceipt(options.client, {
+    const txReceipt = await waitCompat(options.client as any, {
       hash: transferTokensTxHash,
       confirmations: 2,
       ...options.waitForTransactionReceiptParameters,
     })
 
     const onRamp = await getOnRampAddress(options)
-    const typeAndVersion = await readContract(options.client, {
+    const typeAndVersion = await readCompat(options.client as any, {
       abi: parseAbi(['function typeAndVersion() returns (string)']),
       address: onRamp,
       functionName: 'typeAndVersion',
@@ -957,29 +985,27 @@ export const createClient = (): Client => {
       }
     }
 
-    const writeContractParameters = {
-      chain: options.client.chain,
-      abi: RouterABI,
-      address: options.routerAddress,
-      functionName: 'ccipSend',
-      args: buildArgs(options),
-      account: options.client.account!,
-      ...(!options.feeTokenAddress && {
-        value: await getFee(options),
-      }),
-      ...options.writeContractParameters,
-    }
+    const transferTokensTxHash = await writeCompat(
+      options.client as any,
+      {
+        abi: RouterABI,
+        address: options.routerAddress,
+        functionName: 'ccipSend',
+        args: buildArgs(options),
+        ...(!options.feeTokenAddress && { value: await getFee(options) }),
+        ...((options.client as any)?.account ? { account: (options.client as any).account } : {}),
+        ...options.writeContractParameters,
+      } as any,
+    )
 
-    const transferTokensTxHash = await writeContract(options.client, writeContractParameters)
-
-    const txReceipt = await waitForTransactionReceipt(options.client, {
+    const txReceipt = await waitCompat(options.client as any, {
       hash: transferTokensTxHash,
       confirmations: 2,
       ...options.waitForTransactionReceiptParameters,
     })
 
     const onRamp = await getOnRampAddress(options)
-    const typeAndVersion = await readContract(options.client, {
+    const typeAndVersion = await readCompat(options.client as any, {
       abi: parseAbi(['function typeAndVersion() returns (string)']),
       address: onRamp,
       functionName: 'typeAndVersion',
@@ -1028,7 +1054,7 @@ export const createClient = (): Client => {
       throw new Error('PARAMETER INPUT ERROR: Source chain selector is missing or invalid')
     }
 
-    const offRamps = (await readContract(options.client, {
+    const offRamps = (await readCompat(options.client as any, {
       abi: RouterABI,
       address: options.destinationRouterAddress,
       functionName: 'getOffRamps',
@@ -1043,18 +1069,19 @@ export const createClient = (): Client => {
 
     let fromBlock = options.fromBlockNumber
     if (!fromBlock) {
-      const blockNumber = await getBlockNumber(options.client)
+      const blockNumber = await getBlockNumberCompatLocal(options.client as any)
       fromBlock = blockNumber - BigInt(TRANSFER_STATUS_FROM_BLOCK_SHIFT)
     }
     for (const offRamp of matchingOffRamps) {
-      const logs = await getLogs(options.client, {
+      const logs = await getLogsCompatLocal(options.client as any, {
         event: ExecutionStateChangedABI,
         address: offRamp.offRamp,
         args: { messageId: options.messageId },
         fromBlock,
       })
       if (logs && logs.length > 0) {
-        const { state } = logs[0].args
+        const first = logs[0] as any
+        const { state } = first.args ?? {}
         if (state) return state as TransferStatus
       }
     }
@@ -1068,7 +1095,7 @@ export const createClient = (): Client => {
       throw new Error(`PARAMETER INPUT ERROR: ${options.hash} is not a valid transaction hash`)
     }
 
-    return await getTxReceipt(options.client, { hash: options.hash })
+    return await getTxReceiptCompat(options.client as any, { hash: options.hash })
   }
 
   function buildArgs(options: {
@@ -1123,12 +1150,10 @@ export const createClient = (): Client => {
     }
   }
 
-  function checikIsWalletAccountValid(options: { client: Viem.Client }) {
-    if (!options.client.account) {
-      throw new Error('WALLET ERROR: account is not valid')
-    }
-
-    checkIsAddressValid(options.client.account.address, 'WALLET ERROR: account address is not valid')
+  function checikIsWalletAccountValid(options: { client: any }) {
+    const account = (options.client as any)?.account
+    if (!account) return
+    checkIsAddressValid(account.address as Viem.Address, 'WALLET ERROR: account address is not valid')
   }
 }
 
