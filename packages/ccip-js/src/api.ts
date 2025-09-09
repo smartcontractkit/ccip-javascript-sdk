@@ -26,7 +26,7 @@ export {
 
 import {
   readContractCompat as readCompat,
-  writeContractCompat as writeCompat,
+  writeContractCompat as writeContract,
   waitForTransactionReceiptCompat as waitCompat,
   getTransactionReceiptCompat as getTxReceiptCompat,
   getBlockNumberCompat as getBlockNumberCompatLocal,
@@ -635,7 +635,7 @@ export const createClient = (): Client => {
       throw new Error('PARAMETER INPUT ERROR: Invalid approve amount. Amount can not be negative')
     }
 
-    const approveTxHash = await writeCompat(
+    const approveTxHash = await writeContract(
       options.client as any,
       {
         abi: IERC20ABI,
@@ -917,7 +917,7 @@ export const createClient = (): Client => {
       }
     }
 
-    const transferTokensTxHash = await writeCompat(
+    const transferTokensTxHash = await writeContract(
       options.client as any,
       {
         abi: RouterABI,
@@ -987,7 +987,7 @@ export const createClient = (): Client => {
       }
     }
 
-    const transferTokensTxHash = await writeCompat(
+    const transferTokensTxHash = await writeContract(
       options.client as any,
       {
         abi: RouterABI,
