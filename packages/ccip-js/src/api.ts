@@ -33,6 +33,8 @@ import {
   getLogsCompat as getLogsCompatLocal,
 } from './adapters/ethers'
 
+import type { SupportedClient } from './adapters/ethers'
+
 export { IERC20ABI }
 
 /** An object containing methods for cross-chain transfer management.
@@ -87,7 +89,7 @@ export interface Client {
    *  });
    */
   approveRouter(options: {
-    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
+    client: Viem.WalletClient | SupportedClient
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     amount: bigint
@@ -130,7 +132,7 @@ export interface Client {
    *  })
    */
   getAllowance(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     tokenAddress: Viem.Address
     account: Viem.Address
@@ -158,7 +160,7 @@ export interface Client {
    * })
    */
   getOnRampAddress(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<Viem.Address>
@@ -185,7 +187,7 @@ export interface Client {
    * });
    */
   getSupportedFeeTokens(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<Viem.Address[]>
@@ -213,7 +215,7 @@ export interface Client {
    * });
    */
   getLaneRateRefillLimits(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
   }): Promise<RateLimiterState>
@@ -243,7 +245,7 @@ export interface Client {
    * });
    */
   getTokenRateLimitByLane(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     supportedTokenAddress: Viem.Address
     destinationChainSelector: string
@@ -281,7 +283,7 @@ export interface Client {
    * });
    */
   getFee(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationAccount: Viem.Address
     destinationChainSelector: string
@@ -315,7 +317,7 @@ export interface Client {
    * });
    */
   getTokenAdminRegistry(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     tokenAddress: Viem.Address
@@ -345,7 +347,7 @@ export interface Client {
    * });
    */
   isTokenSupported(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     tokenAddress: Viem.Address
@@ -391,7 +393,7 @@ export interface Client {
    *
    */
   transferTokens(options: {
-    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
+    client: Viem.WalletClient | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     amount: bigint
@@ -463,7 +465,7 @@ export interface Client {
    *
    */
   sendCCIPMessage(options: {
-    client: Viem.WalletClient | import('./adapters/ethers').SupportedClient
+    client: Viem.WalletClient | SupportedClient
     routerAddress: Viem.Address
     destinationChainSelector: string
     destinationAccount: Viem.Address
@@ -506,7 +508,7 @@ export interface Client {
    * });
    */
   getTransferStatus(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     destinationRouterAddress: Viem.Address
     sourceChainSelector: string
     messageId: Viem.Hash
@@ -535,7 +537,7 @@ export interface Client {
    * });
    */
   getTransactionReceipt(options: {
-    client: Viem.Client | import('./adapters/ethers').SupportedClient
+    client: Viem.Client | SupportedClient
     hash: Viem.Hash
   }): Promise<Viem.TransactionReceipt>
 }
