@@ -735,7 +735,7 @@ export const createClient = (): Client => {
     )
 
     const feeTokens = await readCompat(options.client as any, {
-      abi: parseAbi(['function getFeeTokens() returns (address[] feeTokens)']), // same signature for both PriceRegistry and FeeQuoter
+      abi: parseAbi(['function getFeeTokens() view returns (address[] feeTokens)']), // same signature for both PriceRegistry and FeeQuoter
       address: priceRegistryOrFeeQuoter as Viem.Address,
       functionName: 'getFeeTokens',
     })
