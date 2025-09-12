@@ -22,6 +22,7 @@ export {
   getTransactionReceiptCompat,
   getBlockNumberCompat,
   getLogsCompat,
+  SupportedClient,
 } from './adapters/ethers'
 
 import {
@@ -848,7 +849,7 @@ export const createClient = (): Client => {
     try {
       const viemChain = (options.client as any)?.chain as Viem.Chain | undefined
       if (viemChain) return scaleFeeDecimals(fee, viemChain)
-    } catch {}
+    } catch { }
     return scaleFeeDecimals(fee)
   }
 

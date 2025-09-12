@@ -21,7 +21,7 @@ import {
   isAddressEqual,
 } from 'viem'
 import { toAccount } from 'viem/accounts'
-import type { Provider, Signer, TypedDataField } from 'ethers'
+import type { Provider, Signer, TypedDataField, BrowserProvider } from 'ethers'
 import { Contract, type TransactionReceipt as EthersTxReceipt, type TransactionResponse } from 'ethers'
 import {
   readContract as viemReadContract,
@@ -262,7 +262,8 @@ export function isEthersSigner(signer: any): signer is Signer {
 /**
  * Union of supported client types: viem Client/WalletClient, ethers Provider, or ethers Signer.
  */
-export type SupportedClient = ViemClient | WalletClient | Provider | (Signer & { provider?: Provider })
+
+export type SupportedClient = ViemClient | WalletClient | Provider | Signer | BrowserProvider
 
 /**
  * Attempts to adapt the provided client to a viem PublicClient if possible.

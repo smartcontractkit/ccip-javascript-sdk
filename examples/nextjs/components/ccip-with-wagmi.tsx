@@ -23,7 +23,7 @@ export function CCIP() {
 
   return (
     <div className="m-2 p-2 w-full grid md:grid-cols-2 gap-2">
-      <ConnectWallet />
+      {!publicClient && !walletClient && <ConnectWallet />}
       {publicClient && (
         <>
           <GetAllowance publicClient={publicClient} />

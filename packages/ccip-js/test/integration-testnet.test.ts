@@ -40,7 +40,7 @@ if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   )
 }
 
-describe('Integration: Fuji -> Sepolia', () => {
+describe.only('Integration: Fuji -> Sepolia', () => {
   let avalancheFujiClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_fuji: any
