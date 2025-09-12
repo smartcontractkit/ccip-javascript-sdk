@@ -7,6 +7,7 @@ import { sepolia, avalancheFuji, hederaTestnet } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import bridgeToken from '../artifacts-compile/BridgeToken.json'
 import { DEFAULT_ANVIL_PRIVATE_KEY } from './helpers/constants'
+import { JsonRpcProvider, Wallet, Contract } from 'ethers'
 
 const ccipClient = CCIP.createClient()
 const bridgeTokenAbi = bridgeToken.contracts['src/contracts/BridgeToken.sol:BridgeToken'].bridgeTokenAbi
@@ -20,8 +21,7 @@ const WRAPPED_HBAR = '0xb1F616b8134F602c3Bb465fB5b5e6565cCAd37Ed'
 const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
 const LINK_TOKEN_HEDERA = '0x90a386d59b9A6a4795a011e8f032Fc21ED6FEFb6'
 
-// 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
-// which is called  in approveRouter()
+
 // TODO @zeuslawyer: https://prajjwaldimri.medium.com/why-is-my-jest-runner-not-closing-bc4f6632c959 - tests are passing but jest is not closing. Viem transport issue? why?
 // currently timeout set to 180000ms in jest.config.js
 
@@ -36,11 +36,11 @@ const privateKey = process.env.PRIVATE_KEY as Viem.Hex
 
 if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   throw new Error(
-    "Developer's PRIVATE_KEY for Ethereum Sepolia and Avalanche Fuji must be set for integration testing on",
+    "Developer's PRIVATE_KEY for Ethereum Sepolia and Avalanche Fuji must be set in terminal for integration testing on testnet",
   )
 }
 
-describe.only('Integration: Fuji -> Sepolia', () => {
+describe('[Viem]Integration: Fuji -> Sepolia', () => {
   let avalancheFujiClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_fuji: any
@@ -108,7 +108,7 @@ describe.only('Integration: Fuji -> Sepolia', () => {
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
       })
-      expect(avalancheFujiOnRampAddress).toEqual('0x75b9a75Ee1fFef6BE7c4F842a041De7c6153CF4E')
+      expect(avalancheFujiOnRampAddress).toEqual('0x75b9a75Ee1fFef6BE7c4F842a041De7c6153CF4E' as `0x${string}`)
     })
 
     it('lists supported fee tokens', async function () {
@@ -131,7 +131,7 @@ describe.only('Integration: Fuji -> Sepolia', () => {
 
       // this implicitly asserts that the values are defined as well.
       expect(typeof tokens).toBe('bigint')
-      expect(typeof lastUpdated).toBe('number')
+      expect(typeof lastUpdated).toBe('bigint') // Changed to bigint
       expect(typeof isEnabled).toBe('boolean')
       expect(typeof capacity).toBe('bigint')
       expect(typeof rate).toBe('bigint')
@@ -335,7 +335,7 @@ describe.only('Integration: Fuji -> Sepolia', () => {
       expect(ccipSend_txReceipt).toBeDefined()
       expect(ccipSend_txReceipt.status).toEqual('success')
       expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(avalancheFujiClient.account!.address.toLowerCase())
-      expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS.toLowerCase())
+      expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS.toLowerCase() as `0x${string}`)
     })
   })
 
@@ -344,7 +344,7 @@ describe.only('Integration: Fuji -> Sepolia', () => {
   })
 })
 
-describe('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
+describe('[Viem](Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
   let hederaTestnetClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_hedera: any
@@ -561,6 +561,323 @@ describe('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in
     expect(ccipSend_txReceipt).toBeDefined()
     expect(ccipSend_txReceipt.status).toEqual('success')
     expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(hederaTestnetClient.account!.address.toLowerCase())
-    expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(HEDERA_TESTNET_CCIP_ROUTER_ADDRESS.toLowerCase())
+    expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(HEDERA_TESTNET_CCIP_ROUTER_ADDRESS.toLowerCase() as `0x${string}`)
+  })
+})
+
+describe.only('[Ethers]Integration: Fuji -> Sepolia', () => {
+  let avalancheFujiProvider: JsonRpcProvider
+  let avalancheFujiSigner: Wallet
+  let sepoliaProvider: JsonRpcProvider
+  let sepoliaSigner: Wallet
+  let bnmToken_fuji: any
+  let _messageId: `0x${string}`
+  let tokenTransfer_txHash: `0x${string}`
+
+  const AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS = '0xF694E193200268f9a4868e4Aa017A0118C9a8177'
+  const approvedAmount = parseEther('0.000000001')
+
+  beforeAll(async () => {
+    avalancheFujiProvider = new JsonRpcProvider(AVALANCHE_FUJI_RPC_URL)
+    try {
+      await avalancheFujiProvider.ready
+      await avalancheFujiProvider.getBlockNumber()
+    } catch (error) {
+      console.log('ERROR : avalancheFujiProvider', error)
+
+
+      avalancheFujiSigner = new Wallet(privateKey, avalancheFujiProvider)
+
+      sepoliaProvider = new JsonRpcProvider(SEPOLIA_RPC_URL)
+      sepoliaSigner = new Wallet(privateKey, sepoliaProvider)
+
+      bnmToken_fuji = new Contract(
+        '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4', // CCIP BnM on Avalanche Fuji
+        bridgeTokenAbi,
+        avalancheFujiSigner,
+      )
+
+      // Check that contract is properly instantiated
+      if (!bnmToken_fuji.target) {
+        throw new Error('Contract target is undefined - contract not properly instantiated')
+      }
+      expect(bnmToken_fuji.target).toEqual('0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4' as `0x${string}`)
+
+      const bnmBalance = await bnmToken_fuji.balanceOf(avalancheFujiSigner.address)
+      if (parseInt(bnmBalance) <= approvedAmount) {
+        await bnmToken_fuji.drip(avalancheFujiSigner.address)
+        console.log(' ℹ️ | Dripped 1 CCIP BnM token to account: ', avalancheFujiSigner.address)
+      }
+    })
+
+  describe('√ (Fuji -> Sepolia) all critical functionality in CCIP Client', () => {
+    it('should approve BnM spend, given valid input', async () => {
+      const ccipApprove = await ccipClient.approveRouter({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: approvedAmount,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        waitForReceipt: true,
+      })
+
+      // ccipApprove.txReceipt!.status == 'success' && console.log(' | Approved CCIP BnM token on Avalanche Fuji'
+      await expect(ccipApprove.txReceipt!.status).toEqual('success')
+    })
+
+    it('fetches token allowance', async function () {
+      const allowance = await ccipClient.getAllowance({
+        client: avalancheFujiSigner,
+        account: avalancheFujiSigner.address as `0x${string}`,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+      })
+      expect(allowance).toEqual(approvedAmount)
+    })
+
+    it('returns on-ramp address', async function () {
+      const avalancheFujiOnRampAddress = await ccipClient.getOnRampAddress({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+      expect(avalancheFujiOnRampAddress).toEqual('0x75b9a75Ee1fFef6BE7c4F842a041De7c6153CF4E' as `0x${string}`)
+    })
+
+    it.only('lists supported fee tokens', async function () {
+      const result = await ccipClient.getSupportedFeeTokens({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+      expect(result.length).toEqual(2)
+      expect(result.includes(LINK_TOKEN_FUJI)).toBe(true)
+      expect(result.includes(WRAPPED_NATIVE_AVAX)).toBe(true)
+    })
+
+    it('fetched lane rate refill limits are defined', async function () {
+      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipClient.getLaneRateRefillLimits({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+
+      // this implicitly asserts that the values are defined as well.
+      expect(typeof tokens).toBe('bigint')
+      expect(typeof lastUpdated).toBe('bigint') // Both Ethers and Viem return bigint for timestamps
+      expect(typeof isEnabled).toBe('boolean')
+      expect(typeof capacity).toBe('bigint')
+      expect(typeof rate).toBe('bigint')
+    })
+
+    it('returns token rate limit by lane', async function () {
+      const { tokens, lastUpdated, isEnabled, capacity, rate } = await ccipClient.getTokenRateLimitByLane({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        supportedTokenAddress: bnmToken_fuji.target as `0x${string}`,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+
+      // this implicitly asserts that the values are defined as well.
+      expect(typeof tokens).toBe('bigint')
+      expect(typeof lastUpdated).toBe('bigint') // Both Ethers and Viem return bigint for timestamps
+      expect(typeof isEnabled).toBe('boolean')
+      expect(typeof capacity).toBe('bigint')
+      expect(typeof rate).toBe('bigint')
+    })
+
+    it('returns fee estimate', async function () {
+      const fee_link = await ccipClient.getFee({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        amount: approvedAmount,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaSigner.address as `0x${string}`,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+      const fee_native = await ccipClient.getFee({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        amount: approvedAmount,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaSigner.address as `0x${string}`,
+        feeTokenAddress: WRAPPED_NATIVE_AVAX,
+      })
+
+      expect(fee_link).toBeGreaterThan(1000n)
+      expect(fee_native).toBeGreaterThan(1000n)
+    })
+    it('returns token admin registry', async function () {
+      const result = await ccipClient.getTokenAdminRegistry({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+
+      const CCIP_ADMIN_REGISTRY_ADDRESS = '0xA92053a4a3922084d992fD2835bdBa4caC6877e6'
+      expect(result).toEqual(CCIP_ADMIN_REGISTRY_ADDRESS as `0x${string}`)
+    })
+
+    it('checks if BnM token is supported for transfer', async function () {
+      const result = await ccipClient.isTokenSupported({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+      })
+      expect(result).toBe(true)
+    })
+
+    it('transfers tokens | pay in LINK', async function () {
+      await ccipClient.approveRouter({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: approvedAmount,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        waitForReceipt: true,
+      })
+
+      // approve LINK spend
+      const fee_link = await ccipClient.getFee({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        amount: approvedAmount,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaSigner.address as `0x${string}`,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+      await ccipClient.approveRouter({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: fee_link,
+        tokenAddress: LINK_TOKEN_FUJI,
+        waitForReceipt: true,
+      })
+      const allowance = await ccipClient.getAllowance({
+        client: avalancheFujiSigner, // Use signer for ethers
+        account: avalancheFujiSigner.address as `0x${string}`,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+      })
+
+      expect(allowance).toBeGreaterThanOrEqual(approvedAmount)
+
+      const result = await ccipClient.transferTokens({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaSigner.address as `0x${string}`,
+        amount: approvedAmount,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+
+      _messageId = result.messageId
+      tokenTransfer_txHash = result.txHash
+
+      expect(result.txReceipt!.status).toEqual('success')
+    })
+
+    it('transfers tokens > pays in native token', async function () {
+      await ccipClient.approveRouter({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: approvedAmount,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        waitForReceipt: true,
+      })
+
+      const result = await ccipClient.transferTokens({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        tokenAddress: bnmToken_fuji.target as `0x${string}`,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: sepoliaSigner.address as `0x${string}`,
+        amount: approvedAmount,
+      })
+
+      expect(result.txReceipt!.status).toEqual('success')
+    })
+
+    it('CCIP message (sending) tx OK > paid in LINK', async function () {
+      const testReceiverContract = '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4' as `0x${string}` // using BnM token contract as receiver for testing
+      const testMessage = Viem.encodeAbiParameters(
+        [{ type: 'string', name: 'message' }],
+        ['Hello from Avalanche Fuji!'],
+      )
+
+      // Get fee in LINK and approve it
+      const fee_link = await ccipClient.getFee({
+        client: avalancheFujiSigner, // Use signer for ethers
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: testReceiverContract,
+        data: testMessage,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+
+      await ccipClient.approveRouter({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        amount: fee_link,
+        tokenAddress: LINK_TOKEN_FUJI,
+        waitForReceipt: true,
+      })
+
+      const result = await ccipClient.sendCCIPMessage({
+        client: avalancheFujiSigner,
+        routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
+        destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
+        destinationAccount: testReceiverContract,
+        data: testMessage,
+        feeTokenAddress: LINK_TOKEN_FUJI,
+      })
+
+      console.info(
+        `Avalanche Fuji --> Sepolia sendCCIPMessage MessageId: ${result.messageId} <> Sent to: ${testReceiverContract} on Sepolia`,
+      )
+
+      expect(result.txReceipt!.status).toEqual('success')
+      expect(result.messageId).toBeDefined()
+      expect(result.txHash).toBeDefined()
+    })
+
+    it('gets transfer status & gets transaction receipt', async function () {
+      // Skip if tokenTransfer_txHash is not set (previous test failed)
+      if (!tokenTransfer_txHash) {
+        console.warn('Skipping transfer status test - tokenTransfer_txHash not set')
+        return
+      }
+
+      const ccipSend_txReceipt = await ccipClient.getTransactionReceipt({
+        client: avalancheFujiSigner, // Use signer for ethers
+        hash: tokenTransfer_txHash,
+      })
+
+      const FUJI_CHAIN_SELECTOR = '14767482510784806043'
+      const SEPOLIA_ROUTER_ADDRESS = '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59'
+
+      const transferStatus = await ccipClient.getTransferStatus({
+        client: sepoliaSigner, // Use signer for ethers
+        sourceChainSelector: FUJI_CHAIN_SELECTOR,
+        destinationRouterAddress: SEPOLIA_ROUTER_ADDRESS as `0x${string}`,
+        fromBlockNumber: ccipSend_txReceipt.blockNumber ? ccipSend_txReceipt.blockNumber : undefined,
+        messageId: _messageId,
+      })
+
+      expect(transferStatus).toBeDefined()
+
+      expect(ccipSend_txReceipt).toBeDefined()
+      expect(ccipSend_txReceipt.status).toEqual('success')
+      expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(avalancheFujiSigner.address.toLowerCase())
+      expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS.toLowerCase() as `0x${string}`)
+    })
+  })
+
+  afterAll(async () => {
+    console.info('✅ | Ethers Integration tests completed. Waiting for timeout...')
   })
 })

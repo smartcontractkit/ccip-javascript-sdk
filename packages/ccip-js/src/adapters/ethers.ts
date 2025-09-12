@@ -9,6 +9,13 @@ import type {
   TransactionReceipt as ViemTransactionReceipt,
   AbiEvent,
 } from 'viem'
+
+import type {
+  ContractCallArgs,
+  TransactionArgs,
+  ReceiptArgs,
+  LogsArgs,
+} from './types'
 import {
   createPublicClient,
   createWalletClient,
@@ -300,13 +307,13 @@ async function toViemWalletClient(client: SupportedClient, chain?: Chain): Promi
  */
 export async function readContractCompat(
   client: SupportedClient,
-  args: Parameters<typeof viemReadContract>[1] & { chain?: Chain },
+  args: ContractCallArgs,
 ) {
   if (isEthersProvider(client) || isEthersSigner(client)) {
     const provider: Provider | undefined = (isEthersSigner(client) ? (client as any).provider : client) as Provider
     if (!provider) throw new Error('Unsupported client for readContract: signer has no provider')
-    const contract = new Contract(args.address as Address, args.abi as any[], provider)
-    return (contract as any)[(args as any).functionName](...(((args as any).args as any[]) || []))
+    const contract = new Contract(args.address, args.abi, provider)
+    return (contract as any)[args.functionName](...(args.args || []))
   }
   const viemClient = toViemPublicClient(client, args.chain)
   if (!viemClient) throw new Error('Unsupported client for readContract')
@@ -319,18 +326,18 @@ export async function readContractCompat(
  */
 export async function writeContractCompat(
   client: SupportedClient,
-  args: Parameters<typeof viemWriteContract>[1] & { chain?: Chain },
+  args: TransactionArgs,
 ) {
   if (isEthersSigner(client)) {
     const signer = client as Signer
-    const contract = new Contract(args.address as Address, args.abi as any[], signer)
-    const txResponse: TransactionResponse = await (contract as any)[(args as any).functionName](
-      ...(((args as any).args as any[]) || []),
+    const contract = new Contract(args.address, args.abi, signer)
+    const txResponse: TransactionResponse = await (contract as any)[args.functionName](
+      ...(args.args || []),
       {
-        value: (args as any).value !== undefined ? (args as any).value.toString() : undefined,
-        gasLimit: (args as any).gas,
-        gasPrice: (args as any).gasPrice,
-        nonce: (args as any).nonce,
+        value: args.value !== undefined ? args.value.toString() : undefined,
+        gasLimit: args.gas,
+        gasPrice: args.gasPrice,
+        nonce: args.nonce,
       },
     )
     return txResponse.hash as Hex
@@ -346,15 +353,15 @@ export async function writeContractCompat(
  */
 export async function waitForTransactionReceiptCompat(
   client: SupportedClient,
-  args: Parameters<typeof viemWaitForTransactionReceipt>[1] & { chain?: Chain },
+  args: ReceiptArgs,
 ) {
   if (isEthersProvider(client) || isEthersSigner(client)) {
     const provider: Provider | undefined = (isEthersSigner(client) ? (client as any).provider : client) as Provider
     if (!provider) throw new Error('Unsupported client for waitForTransactionReceipt: signer has no provider')
     const maybe = await provider.waitForTransaction(
-      (args as any).hash,
-      (args as any).confirmations,
-      (args as any).timeout,
+      args.hash,
+      args.confirmations,
+      args.timeout,
     )
     if (!maybe) throw new Error('Transaction receipt not found')
     return formatEthersReceipt(maybe)
@@ -370,12 +377,12 @@ export async function waitForTransactionReceiptCompat(
  */
 export async function getTransactionReceiptCompat(
   client: SupportedClient,
-  args: Parameters<typeof viemGetTransactionReceipt>[1] & { chain?: Chain },
+  args: ReceiptArgs,
 ) {
   if (isEthersProvider(client) || isEthersSigner(client)) {
     const provider: Provider | undefined = (isEthersSigner(client) ? (client as any).provider : client) as Provider
     if (!provider) throw new Error('Unsupported client for getTransactionReceipt: signer has no provider')
-    const maybe = await provider.getTransactionReceipt((args as any).hash)
+    const maybe = await provider.getTransactionReceipt(args.hash)
     if (!maybe) throw new Error('Transaction receipt not found')
     return formatEthersReceipt(maybe)
   }
@@ -406,17 +413,17 @@ export async function getBlockNumberCompat(client: SupportedClient, chain?: Chai
  */
 export async function getLogsCompat(
   client: SupportedClient,
-  args: Parameters<typeof viemGetLogs>[1] & { chain?: Chain },
+  args: LogsArgs,
 ) {
   if (isEthersProvider(client) || isEthersSigner(client)) {
     const provider: Provider | undefined = (isEthersSigner(client) ? (client as any).provider : client) as Provider
     if (!provider) throw new Error('Unsupported client for getLogs: signer has no provider')
-    const abiEvent = (args as any).event as AbiEvent | undefined
-    const address = (args as any).address as Address | undefined
-    const fromBlock = (args as any).fromBlock ? ((args as any).fromBlock as bigint).toString() : undefined
-    const toBlock = (args as any).toBlock ? ((args as any).toBlock as bigint).toString() : undefined
+    const abiEvent = args.event as AbiEvent | undefined
+    const address = args.address as Address | undefined
+    const fromBlock = args.fromBlock ? args.fromBlock.toString() : undefined
+    const toBlock = args.toBlock ? args.toBlock.toString() : undefined
     const topics: (string | null)[] | undefined = abiEvent
-      ? buildTopicsFromEventAndArgs(abiEvent, (args as any).args)
+      ? buildTopicsFromEventAndArgs(abiEvent, args.args)
       : undefined
     const filter: any = { address, topics, fromBlock, toBlock }
     const logs = await provider.getLogs(filter)
