@@ -584,7 +584,7 @@ describe.only('[Ethers]Integration: Fuji -> Sepolia', () => {
       await avalancheFujiProvider.getBlockNumber()
     } catch (error) {
       console.log('ERROR : avalancheFujiProvider', error)
-
+    }
 
       avalancheFujiSigner = new Wallet(privateKey, avalancheFujiProvider)
 
