@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient, IERC20ABI, RateLimiterState, TransferStatus, SupportedClient } from "@chainlink/ccip-js";
+import { createClient, IERC20ABI, RateLimiterState, TransferStatus } from "@chainlink/ccip-js";
 import {
     Address,
     encodeAbiParameters,
@@ -12,9 +12,9 @@ import {
     TransactionReceipt,
     WalletClient,
 } from "viem";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 
-import { ethers, BrowserProvider, Signer } from "ethers"; // Added BrowserProvider, Signer
+import { ethers, BrowserProvider, Signer } from "ethers";
 
 const ccipClient = createClient();
 
@@ -74,9 +74,8 @@ function ConnectWallet({ setEthersProvider, setEthersSigner, setEthersErrorMessa
     const [switchChainError, setSwitchChainError] = useState<string | null>(null);
 
     const availableChains = [
-        { id: 43113, name: "Avalanche Fuji", hexId: "0xA28A" }, // Example: Avalanche Fuji testnet
-        { id: 11155111, name: "Sepolia", hexId: "0xAA36A7" }, // Example: Sepolia testnet
-        // Add other chains as needed
+        { id: 43113, name: "Avalanche Fuji", hexId: "0xA28A" },
+        { id: 11155111, name: "Sepolia", hexId: "0xAA36A7" },
     ];
 
     useEffect(() => {
@@ -239,7 +238,7 @@ function ConnectWallet({ setEthersProvider, setEthersSigner, setEthersErrorMessa
     );
 }
 
-function ApproveRouter({ ethersSigner }: { ethersSigner: SupportedClient }) { // Changed WalletClient to SupportedClient
+function ApproveRouter({ ethersSigner }: { ethersSigner: Signer }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
     const [amount, setAmount] = useState<string>();
@@ -283,7 +282,7 @@ function ApproveRouter({ ethersSigner }: { ethersSigner: SupportedClient }) { //
                 onClick={async () => {
                     if (routerAddress && amount && tokenAddress) {
                         const result = await ccipClient.approveRouter({
-                            client: ethersSigner, // Now accepts SupportedClient
+                            client: ethersSigner,
                             routerAddress: routerAddress as Address,
                             amount: parseEther(amount),
                             tokenAddress: tokenAddress as Address,
@@ -304,7 +303,7 @@ function ApproveRouter({ ethersSigner }: { ethersSigner: SupportedClient }) { //
     );
 }
 
-function TransferTokensAndMessage({ ethersSigner }: { ethersSigner: SupportedClient }) { // Changed WalletClient to SupportedClient
+function TransferTokensAndMessage({ ethersSigner }: { ethersSigner: Signer }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
     const [amount, setAmount] = useState<string>();
@@ -379,7 +378,7 @@ function TransferTokensAndMessage({ ethersSigner }: { ethersSigner: SupportedCli
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
                         const result = await ccipClient.transferTokens({
-                            client: ethersSigner, // Now accepts SupportedClient
+                            client: ethersSigner,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                             amount: parseEther(amount),
@@ -410,7 +409,7 @@ function TransferTokensAndMessage({ ethersSigner }: { ethersSigner: SupportedCli
     );
 }
 
-function SendCCIPMessage({ ethersSigner }: { ethersSigner: SupportedClient }) { // Changed WalletClient to SupportedClient
+function SendCCIPMessage({ ethersSigner }: { ethersSigner: Signer }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [destinationAccount, setDestinationAccount] = useState<string>();
@@ -463,7 +462,7 @@ function SendCCIPMessage({ ethersSigner }: { ethersSigner: SupportedClient }) { 
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && destinationAccount && data) {
                         const result = await ccipClient.sendCCIPMessage({
-                            client: ethersSigner, // Now accepts SupportedClient
+                            client: ethersSigner,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                             destinationAccount: destinationAccount as Address,
@@ -492,7 +491,7 @@ function SendCCIPMessage({ ethersSigner }: { ethersSigner: SupportedClient }) { 
     );
 }
 
-function SendFunctionData({ ethersSigner }: { ethersSigner: SupportedClient }) { // Changed WalletClient to SupportedClient
+function SendFunctionData({ ethersSigner }: { ethersSigner: Signer }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [destinationAccount, setDestinationAccount] = useState<string>();
@@ -550,7 +549,7 @@ function SendFunctionData({ ethersSigner }: { ethersSigner: SupportedClient }) {
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && destinationAccount && amount) {
                         const result = await ccipClient.sendCCIPMessage({
-                            client: ethersSigner, // Now accepts SupportedClient
+                            client: ethersSigner,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                             destinationAccount: destinationAccount as Address,
@@ -583,7 +582,7 @@ function SendFunctionData({ ethersSigner }: { ethersSigner: SupportedClient }) {
     );
 }
 
-function GetAllowance({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetAllowance({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
     const [account, setAccount] = useState<string>();
@@ -625,7 +624,7 @@ function GetAllowance({ ethersProvider }: { ethersProvider: SupportedClient }) {
                 onClick={async () => {
                     if (account && routerAddress && tokenAddress) {
                         const result = await ccipClient.getAllowance({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             tokenAddress: tokenAddress as Address,
                             account: account as Address,
@@ -646,7 +645,7 @@ function GetAllowance({ ethersProvider }: { ethersProvider: SupportedClient }) {
     );
 }
 
-function GetOnRampAddress({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetOnRampAddress({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [onRamp, setOnRamp] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
@@ -677,7 +676,7 @@ function GetOnRampAddress({ ethersProvider }: { ethersProvider: SupportedClient 
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector) {
                         const result = await ccipClient.getOnRampAddress({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                         });
@@ -697,7 +696,7 @@ function GetOnRampAddress({ ethersProvider }: { ethersProvider: SupportedClient 
     );
 }
 
-function GetSupportedFeeTokens({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetSupportedFeeTokens({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [supportedFeeTokens, setSupportedFeeTokens] = useState<Address[]>();
@@ -728,7 +727,7 @@ function GetSupportedFeeTokens({ ethersProvider }: { ethersProvider: SupportedCl
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector) {
                         const supportedFeeTokens = await ccipClient.getSupportedFeeTokens({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                         });
@@ -754,7 +753,7 @@ function GetSupportedFeeTokens({ ethersProvider }: { ethersProvider: SupportedCl
     );
 }
 
-function GetLaneRateRefillLimits({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetLaneRateRefillLimits({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [rateLimits, setRateLimits] = useState<RateLimiterState>();
@@ -785,7 +784,7 @@ function GetLaneRateRefillLimits({ ethersProvider }: { ethersProvider: Supported
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector) {
                         const rateLimiterState = await ccipClient.getLaneRateRefillLimits({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                         });
@@ -815,7 +814,7 @@ function GetLaneRateRefillLimits({ ethersProvider }: { ethersProvider: Supported
     );
 }
 
-function GetTokenRateLimitByLane({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetTokenRateLimitByLane({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
@@ -856,7 +855,7 @@ function GetTokenRateLimitByLane({ ethersProvider }: { ethersProvider: Supported
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && tokenAddress) {
                         const tokenRateLimiterState = await ccipClient.getTokenRateLimitByLane({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                             supportedTokenAddress: tokenAddress as Address,
@@ -889,7 +888,7 @@ function GetTokenRateLimitByLane({ ethersProvider }: { ethersProvider: Supported
     );
 }
 
-function IsTokenSupported({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function IsTokenSupported({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
@@ -930,7 +929,7 @@ function IsTokenSupported({ ethersProvider }: { ethersProvider: SupportedClient 
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && tokenAddress) {
                         const tokenSupported = await ccipClient.isTokenSupported({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             tokenAddress: tokenAddress as Address,
                             destinationChainSelector,
@@ -951,7 +950,7 @@ function IsTokenSupported({ ethersProvider }: { ethersProvider: SupportedClient 
     );
 }
 
-function GetTokenAdminRegistry({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetTokenAdminRegistry({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
@@ -991,7 +990,7 @@ function GetTokenAdminRegistry({ ethersProvider }: { ethersProvider: SupportedCl
                 onClick={async () => {
                     if (routerAddress && tokenAddress && destinationChainSelector) {
                         const tokenAdminRegistryResult = await ccipClient.getTokenAdminRegistry({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             tokenAddress: tokenAddress as Address,
                             destinationChainSelector,
@@ -1012,7 +1011,7 @@ function GetTokenAdminRegistry({ ethersProvider }: { ethersProvider: SupportedCl
     );
 }
 
-function GetTransactionReceipt({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetTransactionReceipt({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [hash, setHash] = useState<string>();
     const [transactionReceipt, setTransactionReceipt] = useState<TransactionReceipt>();
 
@@ -1035,7 +1034,7 @@ function GetTransactionReceipt({ ethersProvider }: { ethersProvider: SupportedCl
                 onClick={async () => {
                     if (hash) {
                         const transactionReceiptResult = await ccipClient.getTransactionReceipt({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             hash: hash as Hash,
                         });
                         setTransactionReceipt(transactionReceiptResult);
@@ -1067,7 +1066,7 @@ function GetTransactionReceipt({ ethersProvider }: { ethersProvider: SupportedCl
     );
 }
 
-function GetFee({ ethersProvider }: { ethersProvider: SupportedClient }) { // Changed PublicClient to SupportedClient
+function GetFee({ ethersProvider }: { ethersProvider: BrowserProvider }) {
     const [routerAddress, setRouterAddress] = useState<string>();
     const [tokenAddress, setTokenAddress] = useState<string>();
     const [amount, setAmount] = useState<string>();
@@ -1141,7 +1140,7 @@ function GetFee({ ethersProvider }: { ethersProvider: SupportedClient }) { // Ch
                 onClick={async () => {
                     if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
                         const result = await ccipClient.getFee({
-                            client: ethersProvider, // Now accepts SupportedClient
+                            client: ethersProvider,
                             routerAddress: routerAddress as Address,
                             destinationChainSelector,
                             amount: parseEther(amount),
