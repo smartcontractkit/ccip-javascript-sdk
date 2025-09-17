@@ -489,13 +489,18 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (account && routerAddress && tokenAddress) {
-            const result = await ccipClient.getAllowance({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              tokenAddress: tokenAddress as Address,
-              account: account as Address,
-            });
-            setAllowance(result.toLocaleString());
+            console.log('Debugging:  Getting allowance with>>>  ', account, routerAddress, tokenAddress)
+            try {
+              const result = await ccipClient.getAllowance({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                tokenAddress: tokenAddress as Address,
+                account: account as Address,
+              });
+              setAllowance(result.toLocaleString());
+            } catch (error) {
+              console.error(' Debugging: Error getting allowance>>>  ', error)
+            }
           }
         }}
       >

@@ -565,7 +565,7 @@ describe('[Viem](Hedera(custom decimals) -> Sepolia) all critical functionality 
   })
 })
 
-describe.only('[Ethers]Integration: Fuji -> Sepolia', () => {
+describe('[Ethers]Integration: Fuji -> Sepolia', () => {
   let avalancheFujiProvider: JsonRpcProvider
   let avalancheFujiSigner: Wallet
   let sepoliaProvider: JsonRpcProvider
@@ -586,29 +586,29 @@ describe.only('[Ethers]Integration: Fuji -> Sepolia', () => {
       console.log('ERROR : avalancheFujiProvider', error)
     }
 
-      avalancheFujiSigner = new Wallet(privateKey, avalancheFujiProvider)
+    avalancheFujiSigner = new Wallet(privateKey, avalancheFujiProvider)
 
-      sepoliaProvider = new JsonRpcProvider(SEPOLIA_RPC_URL)
-      sepoliaSigner = new Wallet(privateKey, sepoliaProvider)
+    sepoliaProvider = new JsonRpcProvider(SEPOLIA_RPC_URL)
+    sepoliaSigner = new Wallet(privateKey, sepoliaProvider)
 
-      bnmToken_fuji = new Contract(
-        '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4', // CCIP BnM on Avalanche Fuji
-        bridgeTokenAbi,
-        avalancheFujiSigner,
-      )
+    bnmToken_fuji = new Contract(
+      '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4', // CCIP BnM on Avalanche Fuji
+      bridgeTokenAbi,
+      avalancheFujiSigner,
+    )
 
-      // Check that contract is properly instantiated
-      if (!bnmToken_fuji.target) {
-        throw new Error('Contract target is undefined - contract not properly instantiated')
-      }
-      expect(bnmToken_fuji.target).toEqual('0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4' as `0x${string}`)
+    // Check that contract is properly instantiated
+    if (!bnmToken_fuji.target) {
+      throw new Error('Contract target is undefined - contract not properly instantiated')
+    }
+    expect(bnmToken_fuji.target).toEqual('0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4' as `0x${string}`)
 
-      const bnmBalance = await bnmToken_fuji.balanceOf(avalancheFujiSigner.address)
-      if (parseInt(bnmBalance) <= approvedAmount) {
-        await bnmToken_fuji.drip(avalancheFujiSigner.address)
-        console.log(' ℹ️ | Dripped 1 CCIP BnM token to account: ', avalancheFujiSigner.address)
-      }
-    })
+    const bnmBalance = await bnmToken_fuji.balanceOf(avalancheFujiSigner.address)
+    if (parseInt(bnmBalance) <= approvedAmount) {
+      await bnmToken_fuji.drip(avalancheFujiSigner.address)
+      console.log(' ℹ️ | Dripped 1 CCIP BnM token to account: ', avalancheFujiSigner.address)
+    }
+  })
 
   describe('√ (Fuji -> Sepolia) all critical functionality in CCIP Client', () => {
     it('should approve BnM spend, given valid input', async () => {
@@ -643,7 +643,7 @@ describe.only('[Ethers]Integration: Fuji -> Sepolia', () => {
       expect(avalancheFujiOnRampAddress).toEqual('0x75b9a75Ee1fFef6BE7c4F842a041De7c6153CF4E' as `0x${string}`)
     })
 
-    it.only('lists supported fee tokens', async function () {
+    it('lists supported fee tokens', async function () {
       const result = await ccipClient.getSupportedFeeTokens({
         client: avalancheFujiSigner,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
