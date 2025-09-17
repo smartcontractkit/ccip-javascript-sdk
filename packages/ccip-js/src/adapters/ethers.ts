@@ -318,7 +318,11 @@ export async function readContractCompat(
     const provider: Provider | undefined = (isEthersSigner(client) ? (client as any).provider : client) as Provider
     if (!provider) throw new Error('Unsupported client for readContract: signer has no provider')
     const contract = new Contract(args.address, args.abi, provider)
-    return (contract as any)[args.functionName](...(args.args || []))
+    const fn = (contract as any)[args.functionName]
+    if (fn && typeof fn.staticCall === 'function') {
+      return fn.staticCall(...(args.args || []))
+    }
+    return fn(...(args.args || []))
   }
   const viemClient = toViemPublicClient(client, args.chain)
   if (!viemClient) throw new Error('Unsupported client for readContract')
@@ -334,8 +338,9 @@ export async function writeContractCompat(
   args: TransactionArgs,
 ) {
   if (isEthersSigner(client)) {
-    const signer = client as Signer
-    const contract = new Contract(args.address, args.abi, signer)
+    const provider: Provider | undefined = (client as any).provider as Provider | undefined
+    if (!provider) throw new Error('Unsupported client for writeContract: signer has no provider')
+    const contract = new Contract(args.address, args.abi, client as Signer)
     const txResponse: TransactionResponse = await (contract as any)[args.functionName](
       ...(args.args || []),
       {
@@ -425,8 +430,8 @@ export async function getLogsCompat(
     if (!provider) throw new Error('Unsupported client for getLogs: signer has no provider')
     const abiEvent = args.event as AbiEvent | undefined
     const address = args.address as Address | undefined
-    const fromBlock = args.fromBlock ? args.fromBlock.toString() : undefined
-    const toBlock = args.toBlock ? args.toBlock.toString() : undefined
+    const fromBlock = args.fromBlock !== undefined ? BigInt(args.fromBlock as any) : undefined
+    const toBlock = args.toBlock !== undefined ? BigInt(args.toBlock as any) : undefined
     const topics: (string | null)[] | undefined = abiEvent
       ? buildTopicsFromEventAndArgs(abiEvent, args.args)
       : undefined

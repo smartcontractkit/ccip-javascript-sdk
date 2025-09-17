@@ -33,7 +33,7 @@ import {
   getBlockNumberCompat as getBlockNumberCompatLocal,
   getLogsCompat as getLogsCompatLocal,
 } from './adapters/ethers'
-import { normalizeChainSelector } from './adapters/ethers'
+import { normalizeChainSelector, isEthersProvider, isEthersSigner } from './adapters/ethers'
 
 import type { SupportedClient } from './adapters/ethers'
 
@@ -751,7 +751,17 @@ export const createClient = (): Client => {
       address: onRampAddress,
       functionName: 'currentRateLimiterState',
     })
-    return currentRateLimiterState as RateLimiterState
+    const s: any = currentRateLimiterState as any
+    const isEthers = isEthersProvider(options.client as any) || isEthersSigner(options.client as any)
+    const viemChainName = (options.client as any)?.chain?.name?.toLowerCase?.()
+    const isHederaViem = !isEthers && viemChainName && viemChainName.includes('hedera')
+    return {
+      tokens: BigInt(s.tokens),
+      lastUpdated: isEthers ? BigInt(s.lastUpdated) : isHederaViem ? Number(s.lastUpdated) : BigInt(s.lastUpdated),
+      isEnabled: Boolean(s.isEnabled),
+      capacity: BigInt(s.capacity),
+      rate: BigInt(s.rate),
+    } as RateLimiterState
   }
 
   async function getTokenRateLimitByLane(options: Parameters<Client['getTokenRateLimitByLane']>[0]) {
@@ -781,7 +791,15 @@ export const createClient = (): Client => {
       args: [normalizeChainSelector(options.destinationChainSelector)],
     })
 
-    return transferPoolTokenOutboundLimit as RateLimiterState
+    const s: any = transferPoolTokenOutboundLimit as any
+    const isEthers = isEthersProvider(options.client as any) || isEthersSigner(options.client as any)
+    return {
+      tokens: BigInt(s.tokens),
+      lastUpdated: isEthers ? BigInt(s.lastUpdated) : Number(s.lastUpdated),
+      isEnabled: Boolean(s.isEnabled),
+      capacity: BigInt(s.capacity),
+      rate: BigInt(s.rate),
+    } as RateLimiterState
   }
 
   /*
@@ -1137,7 +1155,7 @@ export const createClient = (): Client => {
     const evmExtraArgsV2Tag = '0x181dcf10'
     const extraArgs = evmExtraArgsV2Tag + extraArgsEncoded.slice(2)
     return [
-      destinationChainSelector,
+      normalizeChainSelector(destinationChainSelector),
       {
         receiver: Viem.encodeAbiParameters([{ type: 'address', name: 'receiver' }], [destinationAccount]),
         data: data ?? Viem.zeroHash,
@@ -1178,7 +1196,7 @@ export const createClient = (): Client => {
  */
 export interface RateLimiterState {
   tokens: bigint
-  lastUpdated: number
+  lastUpdated: number | bigint
   isEnabled: boolean
   capacity: bigint
   rate: bigint
