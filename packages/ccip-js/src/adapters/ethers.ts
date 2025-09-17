@@ -256,7 +256,12 @@ export class EthersAdapter {
  * Type guard: returns true if the value is an ethers Provider.
  */
 export function isEthersProvider(provider: any): provider is Provider {
-  return provider && typeof provider.getBlockNumber === 'function'
+  return (
+    !!provider &&
+    typeof provider.getBlockNumber === 'function' &&
+    typeof (provider as any).getNetwork === 'function' &&
+    !(provider as any).transport
+  )
 }
 
 /**

@@ -33,6 +33,7 @@ import {
   getBlockNumberCompat as getBlockNumberCompatLocal,
   getLogsCompat as getLogsCompatLocal,
 } from './adapters/ethers'
+import { normalizeChainSelector } from './adapters/ethers'
 
 import type { SupportedClient } from './adapters/ethers'
 
@@ -694,7 +695,7 @@ export const createClient = (): Client => {
       abi: RouterABI,
       address: options.routerAddress,
       functionName: 'getOnRamp',
-      args: [options.destinationChainSelector],
+      args: [normalizeChainSelector(options.destinationChainSelector)],
     })) as Viem.Address
 
     checkIsAddressValid(
@@ -765,7 +766,7 @@ export const createClient = (): Client => {
       abi: OnRampABI,
       address: onRampAddress,
       functionName: 'getPoolBySourceToken',
-      args: [options.destinationChainSelector, options.supportedTokenAddress],
+      args: [normalizeChainSelector(options.destinationChainSelector), options.supportedTokenAddress],
     })) as Viem.Address
 
     checkIsAddressValid(
@@ -777,7 +778,7 @@ export const createClient = (): Client => {
       abi: TokenPoolABI,
       address: laneTokenTransferPool as Viem.Address,
       functionName: 'getCurrentOutboundRateLimiterState',
-      args: [options.destinationChainSelector],
+      args: [normalizeChainSelector(options.destinationChainSelector)],
     })
 
     return transferPoolTokenOutboundLimit as RateLimiterState
@@ -893,7 +894,7 @@ export const createClient = (): Client => {
       abi: TokenPoolABI,
       address: tokenPoolAddress,
       functionName: 'isSupportedChain',
-      args: [options.destinationChainSelector],
+      args: [normalizeChainSelector(options.destinationChainSelector)],
     })) as boolean
 
     return isSupported

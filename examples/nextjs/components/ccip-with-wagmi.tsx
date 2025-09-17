@@ -453,6 +453,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [account, setAccount] = useState<string>();
   const [allowance, setAllowance] = useState<string>();
+  const [error, setError] = useState<string>();
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Get allowance:</h2>
@@ -488,8 +489,8 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (account && routerAddress && tokenAddress) {
-            console.log('Debugging:  Getting allowance with>>>  ', account, routerAddress, tokenAddress)
             try {
               const result = await ccipClient.getAllowance({
                 client: publicClient,
@@ -498,8 +499,8 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
                 account: account as Address,
               });
               setAllowance(result.toLocaleString());
-            } catch (error) {
-              console.error(' Debugging: Error getting allowance>>>  ', error)
+            } catch (err: any) {
+              setError(err?.message || String(err));
             }
           }
         }}
@@ -512,6 +513,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
           <code className="w-full whitespace-pre-wrap break-all">{allowance}</code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -520,6 +522,7 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [onRamp, setOnRamp] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
+  const [error, setError] = useState<string>();
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Get On-ramp address:</h2>
@@ -545,13 +548,18 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector) {
-            const result = await ccipClient.getOnRampAddress({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              destinationChainSelector,
-            });
-            setOnRamp(result);
+            try {
+              const result = await ccipClient.getOnRampAddress({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                destinationChainSelector,
+              });
+              setOnRamp(result);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -563,6 +571,7 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
           <code className="w-full whitespace-pre-wrap break-all">{onRamp}</code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -571,6 +580,7 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [supportedFeeTokens, setSupportedFeeTokens] = useState<Address[]>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -596,13 +606,18 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector) {
-            const supportedFeeTokens = await ccipClient.getSupportedFeeTokens({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              destinationChainSelector,
-            });
-            setSupportedFeeTokens(supportedFeeTokens);
+            try {
+              const supportedFeeTokens = await ccipClient.getSupportedFeeTokens({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                destinationChainSelector,
+              });
+              setSupportedFeeTokens(supportedFeeTokens);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -620,6 +635,7 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
           </code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -628,6 +644,7 @@ function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient 
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [rateLimits, setRateLimits] = useState<RateLimiterState>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -653,13 +670,18 @@ function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient 
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector) {
-            const rateLimiterState = await ccipClient.getLaneRateRefillLimits({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              destinationChainSelector,
-            });
-            setRateLimits(rateLimiterState);
+            try {
+              const rateLimiterState = await ccipClient.getLaneRateRefillLimits({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                destinationChainSelector,
+              });
+              setRateLimits(rateLimiterState);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -681,6 +703,7 @@ function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient 
           </code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -690,6 +713,7 @@ function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient 
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [tokenRateLimits, setTokenRateLimits] = useState<RateLimiterState>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -724,14 +748,19 @@ function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient 
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector && tokenAddress) {
-            const tokenRateLimiterState = await ccipClient.getTokenRateLimitByLane({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              destinationChainSelector,
-              supportedTokenAddress: tokenAddress as Address,
-            });
-            setTokenRateLimits(tokenRateLimiterState);
+            try {
+              const tokenRateLimiterState = await ccipClient.getTokenRateLimitByLane({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                destinationChainSelector,
+                supportedTokenAddress: tokenAddress as Address,
+              });
+              setTokenRateLimits(tokenRateLimiterState);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -755,6 +784,7 @@ function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient 
           </div>
         </>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -764,6 +794,7 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [isTokenSupported, setIsTokenSupported] = useState<string>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -798,14 +829,19 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector && tokenAddress) {
-            const tokenSupported = await ccipClient.isTokenSupported({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              tokenAddress: tokenAddress as Address,
-              destinationChainSelector,
-            });
-            setIsTokenSupported(tokenSupported.toString());
+            try {
+              const tokenSupported = await ccipClient.isTokenSupported({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                tokenAddress: tokenAddress as Address,
+                destinationChainSelector,
+              });
+              setIsTokenSupported(tokenSupported.toString());
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -817,6 +853,7 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
           <code className="w-full whitespace-pre-wrap break-all">{isTokenSupported.toLocaleString()}</code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -826,6 +863,7 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [tokenAdminRegistry, setTokenAdminRegistry] = useState<string>();
+  const [error, setError] = useState<string>();
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Token admin registry:</h2>
@@ -859,14 +897,19 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && tokenAddress && destinationChainSelector) {
-            const tokenAdminRegistryResult = await ccipClient.getTokenAdminRegistry({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              tokenAddress: tokenAddress as Address,
-              destinationChainSelector,
-            });
-            setTokenAdminRegistry(tokenAdminRegistryResult);
+            try {
+              const tokenAdminRegistryResult = await ccipClient.getTokenAdminRegistry({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                tokenAddress: tokenAddress as Address,
+                destinationChainSelector,
+              });
+              setTokenAdminRegistry(tokenAdminRegistryResult);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -878,6 +921,7 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
           <code className="w-full whitespace-pre-wrap break-all">{tokenAdminRegistry.toLocaleString()}</code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -885,6 +929,7 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
 function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient }) {
   const [hash, setHash] = useState<string>();
   const [transactionReceipt, setTransactionReceipt] = useState<TransactionReceipt>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -903,12 +948,17 @@ function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient })
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (hash) {
-            const transactionReceiptResult = await ccipClient.getTransactionReceipt({
-              client: publicClient,
-              hash: hash as Hash,
-            });
-            setTransactionReceipt(transactionReceiptResult);
+            try {
+              const transactionReceiptResult = await ccipClient.getTransactionReceipt({
+                client: publicClient,
+                hash: hash as Hash,
+              });
+              setTransactionReceipt(transactionReceiptResult);
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -933,6 +983,7 @@ function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient })
           </div>
         </>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
@@ -1025,6 +1076,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
   const [destinationAccount, setDestinationAccount] = useState<string>();
   const [data, setData] = useState<Hex>();
   const [fee, setFee] = useState<string>();
+  const [error, setError] = useState<string>();
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
@@ -1089,17 +1141,22 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
       <button
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
+          setError(undefined);
           if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
-            const result = await ccipClient.getFee({
-              client: publicClient,
-              routerAddress: routerAddress as Address,
-              destinationChainSelector,
-              amount: parseEther(amount),
-              destinationAccount: destinationAccount as Address,
-              tokenAddress: tokenAddress as Address,
-              data,
-            });
-            setFee(result.toLocaleString());
+            try {
+              const result = await ccipClient.getFee({
+                client: publicClient,
+                routerAddress: routerAddress as Address,
+                destinationChainSelector,
+                amount: parseEther(amount),
+                destinationAccount: destinationAccount as Address,
+                tokenAddress: tokenAddress as Address,
+                data,
+              });
+              setFee(result.toLocaleString());
+            } catch (err: any) {
+              setError(err?.message || String(err));
+            }
           }
         }}
       >
@@ -1111,6 +1168,7 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
           <code className="w-full whitespace-pre-wrap break-all">{fee}</code>
         </div>
       )}
+      {error && <p className="text-red-500">{error}</p>}
     </div>
   );
 }
