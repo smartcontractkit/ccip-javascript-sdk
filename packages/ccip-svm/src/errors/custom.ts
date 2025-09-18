@@ -85,8 +85,8 @@ export class InvalidInputsTokenIndices extends Error {
     static readonly code = 7007;
     readonly code = 7007;
     readonly name = 'InvalidInputsTokenIndices';
-    readonly msg = 'Invalid pool account account indices';
-    constructor(readonly logs?: string[]) { super('7007: Invalid pool account account indices'); }
+    readonly msg = 'Invalid pool account indices';
+    constructor(readonly logs?: string[]) { super('7007: Invalid pool account indices'); }
 }
 export class InvalidInputsPoolAccounts extends Error {
     static readonly code = 7008;
