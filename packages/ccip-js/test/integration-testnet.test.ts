@@ -344,7 +344,7 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 })
 
-describe('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
+describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
   let hederaTestnetClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_hedera: any

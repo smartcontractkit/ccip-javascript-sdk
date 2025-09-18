@@ -52,9 +52,12 @@ export function ethersProviderToPublicClient(provider: Provider, chain: any): Pu
 
 /** Create a viem WalletClient from an ethers signer. */
 export async function ethersSignerToWalletClient(
-  signer: Signer & { provider: Provider },
+  signer: Signer & { provider: Provider | null },
   chain: any,
 ): Promise<WalletClient> {
+  if (!signer.provider) {
+    throw new Error('ethers signer must be connected to a provider')
+  }
   return createWalletClient({
     chain: chain as any,
     transport: ethersProviderToTransport(signer.provider),
