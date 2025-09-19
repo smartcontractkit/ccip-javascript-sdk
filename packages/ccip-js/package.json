@@ -14,9 +14,9 @@
     "build": "tsc && hardhat compile",
     "lint": "eslint 'src/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
-    "t:int": "pnpm t:int:viem",
+    "t:int": "jest --coverage -u --testMatch=\"**/integration-testnet**.test.ts\" --detectOpenHandles",
     "t:int:viem": "jest --coverage -u --testMatch=\"**/integration-testnet.test.ts\" --detectOpenHandles",
-    "t:int:ethers": "jest --coverage -u --testMatch=\"**/integration-testn*d-ethers.test.ts\" --detectOpenHandles",
+    "t:int:ethers": "jest --coverage -u --testMatch=\"**/integration-testnet-ethers.test.ts\" --detectOpenHandles",
     "t:unit": "jest --coverage -u --testMatch=\"**/unit.test.ts\" ",
     "test:hh": "hardhat test"
   },

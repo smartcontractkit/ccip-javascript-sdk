@@ -17,14 +17,14 @@ import TokenPoolABI from './abi/TokenPool.json'
 import TokenAdminRegistryABI from './abi/TokenAdminRegistry.json'
 import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './config'
 import { parseAbi } from 'viem'
+
+export { IERC20ABI }
 export {
   ethersProviderToTransport,
   ethersSignerToAccount,
   ethersProviderToPublicClient,
   ethersSignerToWalletClient,
 } from './ethers-adapters'
-
-export { IERC20ABI }
 
 /** An object containing methods for cross-chain transfer management.
  *  @typedef {Object} Client */
