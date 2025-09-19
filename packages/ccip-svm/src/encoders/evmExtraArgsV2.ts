@@ -74,8 +74,3 @@ export function decodeEVMExtraArgsV2(data: Uint8Array): EVMExtraArgsV2 {
         allowOutOfOrderExecution
     }
 }
-
-
-
-
-
