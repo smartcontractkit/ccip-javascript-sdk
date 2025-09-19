@@ -1,0 +1,25 @@
+{
+  "name": "@chainlink/ccip-svm",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smartcontractkit/ccip-javascript-sdk.git"
+  },
+  "keywords": [
+    "chainlink",
+    "ccip",
+    "solana"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/smartcontractkit/ccip-javascript-sdk/issues"
+  },
+  "homepage": "https://github.com/smartcontractkit/ccip-javascript-sdk#readme",
+  "dependencies": {
+    "@solana/kit": "^3.0.3",
+    "viem": "^2.37.6"
+  }
+}
