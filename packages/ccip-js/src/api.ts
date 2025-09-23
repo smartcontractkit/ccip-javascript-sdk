@@ -19,6 +19,12 @@ import { TRANSFER_STATUS_FROM_BLOCK_SHIFT, ExecutionStateChangedABI } from './co
 import { parseAbi } from 'viem'
 
 export { IERC20ABI }
+export {
+  ethersProviderToTransport,
+  ethersSignerToAccount,
+  ethersProviderToPublicClient,
+  ethersSignerToWalletClient,
+} from './ethers-adapters'
 
 /** An object containing methods for cross-chain transfer management.
  *  @typedef {Object} Client */

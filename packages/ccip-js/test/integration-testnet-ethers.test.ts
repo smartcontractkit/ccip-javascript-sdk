@@ -3,10 +3,12 @@ import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import { parseEther } from 'viem'
 import { sepolia, avalancheFuji, hederaTestnet } from 'viem/chains'
+import { ethers } from 'ethers'
 
 import { privateKeyToAccount } from 'viem/accounts'
 import bridgeToken from '../artifacts-compile/BridgeToken.json'
 import { DEFAULT_ANVIL_PRIVATE_KEY } from './helpers/constants'
+import { ethersSignerToWalletClient } from '../src/ethers-adapters'
 
 const ccipClient = CCIP.createClient()
 const bridgeTokenAbi = bridgeToken.contracts['src/contracts/BridgeToken.sol:BridgeToken'].bridgeTokenAbi
@@ -19,11 +21,6 @@ const WRAPPED_NATIVE_AVAX = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
 const WRAPPED_HBAR = '0xb1F616b8134F602c3Bb465fB5b5e6565cCAd37Ed'
 const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
 const LINK_TOKEN_HEDERA = '0x90a386d59b9A6a4795a011e8f032Fc21ED6FEFb6'
-
-// 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
-// which is called  in approveRouter()
-// TODO @zeuslawyer: https://prajjwaldimri.medium.com/why-is-my-jest-runner-not-closing-bc4f6632c959 - tests are passing but jest is not closing. Viem transport issue? why?
-// currently timeout set to 180000ms in jest.config.js
 
 if (!SEPOLIA_RPC_URL) {
   throw new Error('SEPOLIA_RPC_URL  must be set')
@@ -40,7 +37,7 @@ if (privateKey === DEFAULT_ANVIL_PRIVATE_KEY) {
   )
 }
 
-describe('Integration: Fuji -> Sepolia', () => {
+describe('Integration (ethers adapter): Fuji -> Sepolia', () => {
   let avalancheFujiClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_fuji: any
@@ -51,11 +48,9 @@ describe('Integration: Fuji -> Sepolia', () => {
   const approvedAmount = parseEther('0.000000001')
 
   beforeAll(async () => {
-    avalancheFujiClient = Viem.createWalletClient({
-      chain: avalancheFuji,
-      transport: Viem.http(AVALANCHE_FUJI_RPC_URL),
-      account: privateKeyToAccount(privateKey),
-    })
+    const ethersProvider = new ethers.JsonRpcProvider(AVALANCHE_FUJI_RPC_URL)
+    const ethersSigner = new ethers.Wallet(privateKey, ethersProvider)
+    avalancheFujiClient = await ethersSignerToWalletClient(ethersSigner, avalancheFuji)
 
     sepoliaClient = Viem.createWalletClient({
       chain: sepolia,
@@ -64,7 +59,7 @@ describe('Integration: Fuji -> Sepolia', () => {
     })
 
     bnmToken_fuji = Viem.getContract({
-      address: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4', // CCIP BnM on Avalanche Fuji
+      address: '0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4',
       abi: bridgeTokenAbi,
       client: avalancheFujiClient,
     })
@@ -88,7 +83,6 @@ describe('Integration: Fuji -> Sepolia', () => {
         waitForReceipt: true,
       })
 
-      // ccipApprove.txReceipt!.status == 'success' && console.log(' | Approved CCIP BnM token on Avalanche Fuji'
       await expect(ccipApprove.txReceipt!.status).toEqual('success')
     })
 
@@ -129,7 +123,6 @@ describe('Integration: Fuji -> Sepolia', () => {
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
       })
 
-      // this implicitly asserts that the values are defined as well.
       expect(typeof tokens).toBe('bigint')
       expect(typeof lastUpdated).toBe('number')
       expect(typeof isEnabled).toBe('boolean')
@@ -145,7 +138,6 @@ describe('Integration: Fuji -> Sepolia', () => {
         destinationChainSelector: SEPOLIA_CHAIN_SELECTOR,
       })
 
-      // this implicitly asserts that the values are defined as well.
       expect(typeof tokens).toBe('bigint')
       expect(typeof lastUpdated).toBe('number')
       expect(typeof isEnabled).toBe('boolean')
@@ -207,7 +199,6 @@ describe('Integration: Fuji -> Sepolia', () => {
         waitForReceipt: true,
       })
 
-      // approve LINK spend
       const fee_link = await ccipClient.getFee({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -271,13 +262,12 @@ describe('Integration: Fuji -> Sepolia', () => {
     })
 
     it('CCIP message (sending) tx OK > paid in LINK', async function () {
-      const testReceiverContract = '0xDDe1c31f052eeAceF8204Ff1C7993eb4adeb1EBD' // on Sepolia
+      const testReceiverContract = '0xDDe1c31f052eeAceF8204Ff1C7993eb4adeb1EBD'
       const testMessage = Viem.encodeAbiParameters(
         [{ type: 'string', name: 'message' }],
         ['Hello from Avalanche Fuji!'],
       )
 
-      // Get fee in LINK and approve it
       const fee_link = await ccipClient.getFee({
         client: avalancheFujiClient,
         routerAddress: AVALANCHE_FUJI_CCIP_ROUTER_ADDRESS,
@@ -323,7 +313,7 @@ describe('Integration: Fuji -> Sepolia', () => {
       const SEPOLIA_ROUTER_ADDRESS = '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59'
 
       const transferStatus = await ccipClient.getTransferStatus({
-        client: sepoliaClient, // from the destination chain
+        client: sepoliaClient,
         sourceChainSelector: FUJI_CHAIN_SELECTOR,
         destinationRouterAddress: SEPOLIA_ROUTER_ADDRESS,
         fromBlockNumber: ccipSend_txReceipt.blockNumber ? ccipSend_txReceipt.blockNumber : undefined,
@@ -340,7 +330,7 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 
   afterAll(async () => {
-    console.info('✅ | Testnet Integration tests completed. Waiting for timeout...')
+    console.info('✅ | Ethers-adapter Testnet Integration tests completed. Waiting for timeout...')
   })
 })
 
@@ -351,7 +341,7 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
   let _messageId: `0x${string}`
   let tokenTransfer_txHash: `0x${string}`
   const HEDERA_TESTNET_CCIP_ROUTER_ADDRESS = '0x802C5F84eAD128Ff36fD6a3f8a418e339f467Ce4'
-  const approvedAmount = parseEther('0.00000001') // denoted with 18 decimals
+  const approvedAmount = parseEther('0.00000001')
 
   const HEDERA_CHAIN_SELECTOR = '222782988166878823'
   const SEPOLIA_ROUTER_ADDRESS = '0x0BF3dE8c5D3e8A2B34D2BEeB17ABfCeBaf363A59'
@@ -370,7 +360,7 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     })
 
     bnmToken_hedera = Viem.getContract({
-      address: '0x01Ac06943d2B8327a7845235Ef034741eC1Da352', // CCIP BnM on Hedera Testnet
+      address: '0x01Ac06943d2B8327a7845235Ef034741eC1Da352',
       abi: bridgeTokenAbi,
       client: hederaTestnetClient,
     })
@@ -516,7 +506,7 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
 
   it('CCIP message (sending) tx OK > paid in native token', async function () {
     const testMessage = Viem.encodeAbiParameters([{ type: 'string', name: 'message' }], ['Hello from Hedera Testnet!'])
-    const testReceiverContract = '0xd1C330A20712F5BfF3244eDD90ED010f39c68A56' // on Sepolia
+    const testReceiverContract = '0xd1C330A20712F5BfF3244eDD90ED010f39c68A56'
 
     const result = await ccipClient.sendCCIPMessage({
       client: hederaTestnetClient,
@@ -534,7 +524,6 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     expect(result.messageId).toBeDefined()
     expect(result.txHash).toBeDefined()
 
-    // Also test ccip client.getTransactionReceipt()
     const messageTxReceipt = await ccipClient.getTransactionReceipt({
       client: hederaTestnetClient,
       hash: result.txHash,
@@ -550,7 +539,7 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     })
 
     const transferStatus = await ccipClient.getTransferStatus({
-      client: sepoliaClient, // from the destination chain
+      client: sepoliaClient,
       sourceChainSelector: HEDERA_CHAIN_SELECTOR,
       destinationRouterAddress: SEPOLIA_ROUTER_ADDRESS,
       fromBlockNumber: ccipSend_txReceipt.blockNumber ? ccipSend_txReceipt.blockNumber : undefined,
@@ -564,3 +553,5 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(HEDERA_TESTNET_CCIP_ROUTER_ADDRESS.toLowerCase())
   })
 })
+
+

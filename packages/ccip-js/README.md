@@ -117,6 +117,19 @@ const walletClient = createWalletClient({
   transport: custom(window.ethereum!),
 })
 
+// Using ethers.js signer & provider
+import { ethers } from 'ethers'
+import { ethersSignerToWalletClient, ethersProviderToPublicClient } from '@chainlink/ccip-js'
+
+const ethersProvider = new ethers.JsonRpcProvider('https://rpc.example.com')
+const ethersSigner = new ethers.Wallet(PRIVATE_KEY, ethersProvider)
+
+const ethersWalletClient = await ethersSignerToWalletClient(ethersSigner, mainnet)
+const ethersPublicClient = ethersProviderToPublicClient(ethersProvider, mainnet)
+
+// The SDK methods accept Viem clients. The adapters above allow
+// passing ethers providers and signers by converting them to Viem clients.
+
 // Approve Router to transfer tokens on user's behalf
 const { txHash, txReceipt } = await ccipClient.approveRouter({
   client: walletClient,
@@ -605,7 +618,15 @@ folder. From there, the relevant ABI arrays must be manually moved to `./src/abi
 
 #### Running tests
 
-1. Integration tests against testnets are favored in the ccip-js package.
+1. Integration tests against testnets are favored in the ccip-js package. They require the you set the following environment variables:
+
+```
+PRIVATE_KEY=
+AVALANCHE_FUJI_RPC_URL
+SEPOLIA_RPC_URL
+HEDERA_TESTNET_RPC_URL
+
+```
 
 2. Start by cd into `packages/ccip-js` and then run `pnpm install` OR from the project root you can run `pnpm i -w`
 
