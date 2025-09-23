@@ -1,4 +1,5 @@
 import { encodeAbiParameters, parseAbiParameters, decodeAbiParameters } from 'viem'
+import { toHex, fromHexBuffer } from '../utils/hex'
 
 /**
  * EVM Extra Args V2 tag: bytes4(keccak256("CCIP EVMExtraArgsV2"))
@@ -12,13 +13,16 @@ export interface EVMExtraArgsV2 {
 
 /**
  * Creates properly encoded extraArgs buffer for EVM destinations
+ * More details: https://docs.chain.link/ccip/api-reference/svm/v0.1.1/messages#evmextraargsv2
  * @param gasLimit - Gas limit for execution on destination chain (use 0 for token-only transfers)
  * @param allowOutOfOrderExecution - Whether messages can be executed out of order (default: true)
  * @returns Properly encoded extraArgs as Uint8Array
  */
 export function encodeEVMExtraArgsV2({ gasLimit, allowOutOfOrderExecution = true }: EVMExtraArgsV2): Uint8Array {
   if (allowOutOfOrderExecution === false) {
-    console.warn(`Warning: Setting allowOutOfOrderExecution to false is not recommended for EVM destinations.`)
+    console.warn(
+      `Warning: Setting allowOutOfOrderExecution to false is not recommended for EVM destinations. More details: https://docs.chain.link/ccip/concepts/best-practices/evm#best-practices`,
+    )
   }
 
   // bytes4(keccak256("CCIP EVMExtraArgsV2")) = 0x181dcf10
@@ -29,7 +33,7 @@ export function encodeEVMExtraArgsV2({ gasLimit, allowOutOfOrderExecution = true
     allowOutOfOrderExecution,
   ])
 
-  const encodedExtraArgsBytes = new Uint8Array(Buffer.from(encodedExtraArgs.slice(2), 'hex'))
+  const encodedExtraArgsBytes = fromHexBuffer(encodedExtraArgs)
 
   // abi.encodeWithSelector(EVM_EXTRA_ARGS_V2_TAG, extraArgs)
   const result = new Uint8Array(tag.length + encodedExtraArgsBytes.length)
@@ -59,15 +63,11 @@ export function decodeEVMExtraArgsV2(data: Uint8Array): EVMExtraArgsV2 {
   }
 
   const extraArgsData = data.slice(4)
-  const extraArgsHex =
-    '0x' +
-    Array.from(extraArgsData)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('')
+  const extraArgsHex = toHex(extraArgsData)
 
   const [gasLimit, allowOutOfOrderExecution] = decodeAbiParameters(
     parseAbiParameters('uint128 gasLimit, bool allowOutOfOrderExecution'),
-    extraArgsHex as `0x${string}`,
+    extraArgsHex,
   )
 
   return {

@@ -17,6 +17,7 @@ export interface SVMExtraArgsV1 {
 
 /**
  * Creates properly encoded extraArgs buffer for SVM destinations
+ * More details: https://docs.chain.link/ccip/api-reference/svm/v0.1.1/messages#svmextraargsv1
  * @param options - SVM extra args configuration
  * @returns Properly encoded extraArgs as Uint8Array
  */

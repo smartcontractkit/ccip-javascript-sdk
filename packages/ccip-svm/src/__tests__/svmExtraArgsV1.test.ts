@@ -1,6 +1,7 @@
 import { address } from '@solana/kit'
 import { encodeSVMExtraArgsV1, decodeSVMExtraArgsV1, SVM_EXTRA_ARGS_V1_TAG } from '../encoders/svmExtraArgsV1'
 import { keccak256, toBytes } from 'viem'
+import { fromHexBuffer } from '../utils/hex'
 
 const MOCK_TOKEN_RECEIVER = address('11111111111111111111111111111112') // System Program ID (Devnet)
 const MOCK_ACCOUNT_1 = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA') // Token Program ID (Devnet)
@@ -68,7 +69,7 @@ describe('SVM Extra Args V1', () => {
       expect(tag).toBe(SVM_EXTRA_ARGS_V1_TAG)
 
       if (expectedHex) {
-        expect(encoded).toEqual(new Uint8Array(Buffer.from(expectedHex.slice(2), 'hex')))
+        expect(encoded).toEqual(fromHexBuffer(expectedHex))
       }
     })
   })

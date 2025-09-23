@@ -1,5 +1,6 @@
 import { encodeEVMExtraArgsV2, decodeEVMExtraArgsV2, EVM_EXTRA_ARGS_V2_TAG } from '../encoders/evmExtraArgsV2'
 import { keccak256, toBytes } from 'viem'
+import { fromHexBuffer } from '../utils/hex'
 
 describe('EVM Extra Args V2', () => {
   let consoleSpy: jest.SpyInstance
@@ -50,7 +51,7 @@ describe('EVM Extra Args V2', () => {
 
       if (shouldWarn) {
         expect(consoleSpy).toHaveBeenCalledWith(
-          'Warning: Setting allowOutOfOrderExecution to false is not recommended for EVM destinations.',
+          `Warning: Setting allowOutOfOrderExecution to false is not recommended for EVM destinations. More details: https://docs.chain.link/ccip/concepts/best-practices/evm#best-practices`,
         )
       } else {
         expect(consoleSpy).not.toHaveBeenCalled()
@@ -60,7 +61,7 @@ describe('EVM Extra Args V2', () => {
       expect(encoded.length).toBe(evmExtraArgsV2BytesLength)
       const tag = new DataView(encoded.buffer, encoded.byteOffset, 4).getUint32(0, false)
       expect(tag).toBe(EVM_EXTRA_ARGS_V2_TAG)
-      expect(encoded).toEqual(new Uint8Array(Buffer.from(expected.slice(2), 'hex')))
+      expect(encoded).toEqual(fromHexBuffer(expected))
     })
   })
 
