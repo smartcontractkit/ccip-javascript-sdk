@@ -6,7 +6,11 @@
     "build-components": "pnpm --filter ccip-react-components run build",
     "dev-example": "pnpm --filter example-nextjs run dev",
     "clean": "rm -rf node_modules packages/*/node_modules packages/*/dist examples/nextjs/node_modules examples/nextjs/.next",
+    "test:unit": "pnpm --filter ccip-js run t:unit",
+    "test:int": "pnpm --filter ccip-js run t:int",
+    "test:int:hedera": "pnpm --filter ccip-js run t:int:hedera",
     "test-ccip-js": "pnpm --filter ccip-js run t:int",
+    "lint": "pnpm --filter ccip-js run lint && pnpm --filter ccip-react-components run lint",
     "test-components": "pnpm --filter ccip-react-components run test"
   },
   "devDependencies": {

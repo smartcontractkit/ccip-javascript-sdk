@@ -12,12 +12,11 @@ import feeQuoterJson from '../../artifacts-compile/FeeQuoter.json'
 // replace with your own private key (optional)
 dotenv.config()
 
-if (process.env.PRIVATE_KEY?.slice(0, 2) !== '0x') {
+if (process.env.PRIVATE_KEY && !process.env.PRIVATE_KEY.startsWith('0x')) {
   process.env.PRIVATE_KEY = `0x${process.env.PRIVATE_KEY}`
 }
 
-export const DEFAULT_ANVIL_PRIVATE_KEY =
-  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as Hex
+export const DEFAULT_ANVIL_PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' as Hex
 export const account = privateKeyToAccount(DEFAULT_ANVIL_PRIVATE_KEY)
 
 // bridge token contract

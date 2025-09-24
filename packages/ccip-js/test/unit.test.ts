@@ -9,6 +9,8 @@ const ccipClient = CCIP.createClient()
 const readContractMock = jest.spyOn(viemActions, 'readContract')
 const writeContractMock = jest.spyOn(viemActions, 'writeContract')
 const waitForTransactionReceiptMock = jest.spyOn(viemActions, 'waitForTransactionReceipt')
+const getTransactionReceiptMock = jest.spyOn(viemActions, 'getTransactionReceipt')
+const getBlockNumberMock = jest.spyOn(viemActions, 'getBlockNumber')
 const getLogsMock = jest.spyOn(viemActions, 'getLogs')
 const parseEventLogsMock = jest.spyOn(Viem, 'parseEventLogs')
 
@@ -106,6 +108,64 @@ const mockLogWOMessageId = [
 ]
 
 describe('Unit', () => {
+  beforeEach(() => {
+    readContractMock.mockImplementation(async (_client: any, options: any) => {
+      switch (options.functionName) {
+        case 'getOnRamp':
+          if (options.args && (options.args[0] === '0' || options.args[0] === 0 || options.args[0] === 0n)) {
+            return Viem.zeroAddress
+          }
+          return '0x8f35b097022135e0f46831f798a240cc8c4b0b01'
+        case 'getDynamicConfig':
+          return { priceRegistry: '0x9EF7D57a4ea30b9e37794E55b0C75F2A70275dCc' }
+        case 'typeAndVersion':
+          return 'EVM2EVMOnRamp 1.5.0'
+        case 'getFeeTokens':
+          return [
+            '0x779877A7B0D9E8603169DdbD7836e478b4624789',
+            '0x097D90c9d3E0B50Ca60e1ae45F6A81010f9FB534',
+            '0xc4bF5CbDaBE595361438F8c6a187bDc330539c60',
+          ]
+        case 'currentRateLimiterState':
+          return { tokens: 0n, lastUpdated: 0, isEnabled: false, capacity: 0n, rate: 0n }
+        case 'getPoolBySourceToken':
+          if (options.args && (options.args[0] === '0' || options.args[0] === 0 || options.args[0] === 0n)) {
+            return Viem.zeroAddress
+          }
+          return '0x12492154714fbd28f28219f6fc4315d19de1025b'
+        case 'getCurrentOutboundRateLimiterState':
+          return { tokens: 0n, lastUpdated: 0, isEnabled: false, capacity: 0n, rate: 0n }
+        case 'getOffRamps':
+          return []
+        case 'getStaticConfig':
+          return {
+            tokenAdminRegistry: '0x',
+            linkToken: Viem.zeroAddress,
+            chainSelector: 0n,
+            destChainSelector: 0n,
+            defaultTxGasLimit: 0n,
+            maxNopFeesJuels: 0n,
+            prevOnRamp: Viem.zeroAddress,
+            rmnProxy: Viem.zeroAddress,
+          }
+        case 'getPool':
+          return Viem.zeroAddress
+        case 'allowance':
+          return 0n
+        case 'getFee':
+          return 300000000000000n
+        default:
+          return undefined
+      }
+    })
+    getTransactionReceiptMock.mockResolvedValue({
+      ...mockTxReceipt,
+      blockHash: '0xeb3e2e65c939bd65d6983704a21dda6ae7157079b1e6637ff11bb97228accdc2',
+    } as any)
+    getBlockNumberMock.mockResolvedValue(1000000n as any)
+    getLogsMock.mockResolvedValue([] as any)
+  })
+
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -893,7 +953,6 @@ describe('Unit', () => {
     })
 
     it('should successfully transfer tokens with all inputs', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -914,7 +973,6 @@ describe('Unit', () => {
     })
 
     it('should get txReceipt if transferTokens invoked', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -933,7 +991,6 @@ describe('Unit', () => {
     })
 
     it('should throw if messageId can not be retrieved', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLogWOMessageId as never)
@@ -955,7 +1012,6 @@ describe('Unit', () => {
     })
 
     it('should get messageId on transferTokens', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -1026,7 +1082,6 @@ describe('Unit', () => {
     // })
 
     it('should successfully send message', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -1044,7 +1099,6 @@ describe('Unit', () => {
     })
 
     it('should get txReceipt if transferTokens invoked', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -1062,7 +1116,6 @@ describe('Unit', () => {
     })
 
     it('should throw if messageId can not be retrieved', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLogWOMessageId as never)
@@ -1083,7 +1136,6 @@ describe('Unit', () => {
     })
 
     it('should get messageId on sendCCIPMessage', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)
@@ -1100,7 +1152,6 @@ describe('Unit', () => {
     })
 
     it('should send message with a function as data', async () => {
-      readContractMock.mockResolvedValueOnce(300000000000000n)
       writeContractMock.mockResolvedValueOnce(mockTxHash)
       waitForTransactionReceiptMock.mockResolvedValueOnce(mockTxReceipt)
       parseEventLogsMock.mockReturnValue(mockLog as never)

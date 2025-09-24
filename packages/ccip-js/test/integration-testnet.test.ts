@@ -2,7 +2,7 @@ import { expect, it, afterAll, beforeAll, describe } from '@jest/globals'
 import * as CCIP from '../src/api'
 import * as Viem from 'viem'
 import { parseEther } from 'viem'
-import { sepolia, avalancheFuji, hederaTestnet } from 'viem/chains'
+import { sepolia, avalancheFuji } from 'viem/chains'
 
 import { privateKeyToAccount } from 'viem/accounts'
 import bridgeToken from '../artifacts-compile/BridgeToken.json'
@@ -13,12 +13,9 @@ const bridgeTokenAbi = bridgeToken.contracts['src/contracts/BridgeToken.sol:Brid
 
 const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL
 const AVALANCHE_FUJI_RPC_URL = process.env.AVALANCHE_FUJI_RPC_URL
-const HEDERA_TESTNET_RPC_URL = process.env.HEDERA_TESTNET_RPC_URL || 'https://testnet.hashio.io/api'
 const SEPOLIA_CHAIN_SELECTOR = '16015286601757825753'
 const WRAPPED_NATIVE_AVAX = '0xd00ae08403B9bbb9124bB305C09058E32C39A48c'
-const WRAPPED_HBAR = '0xb1F616b8134F602c3Bb465fB5b5e6565cCAd37Ed'
 const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
-const LINK_TOKEN_HEDERA = '0x90a386d59b9A6a4795a011e8f032Fc21ED6FEFb6'
 
 // 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
 // which is called  in approveRouter()
@@ -53,13 +50,13 @@ describe('Integration: Fuji -> Sepolia', () => {
   beforeAll(async () => {
     avalancheFujiClient = Viem.createWalletClient({
       chain: avalancheFuji,
-      transport: Viem.http(AVALANCHE_FUJI_RPC_URL),
+      transport: Viem.http(AVALANCHE_FUJI_RPC_URL, { fetchOptions: { keepalive: false } }),
       account: privateKeyToAccount(privateKey),
     })
 
     sepoliaClient = Viem.createWalletClient({
       chain: sepolia,
-      transport: Viem.http(SEPOLIA_RPC_URL),
+      transport: Viem.http(SEPOLIA_RPC_URL, { fetchOptions: { keepalive: false } }),
       account: privateKeyToAccount(privateKey),
     })
 
@@ -344,7 +341,10 @@ describe('Integration: Fuji -> Sepolia', () => {
   })
 })
 
-describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
+// Hedera tests moved to integration-hedera.test.ts and are executed via `pnpm t:int:hedera`.
+// Removing this suite eliminates skipped tests in the standard integration run.
+// (Content retained below only to show intent; suite disabled by comment.)
+/* describe('√ (Hedera(custom decimals) -> Sepolia) all critical functionality in CCIP Client', () => {
   let hederaTestnetClient: Viem.WalletClient
   let sepoliaClient: Viem.WalletClient
   let bnmToken_hedera: any
@@ -563,4 +563,4 @@ describe.skip('√ (Hedera(custom decimals) -> Sepolia) all critical functionali
     expect(ccipSend_txReceipt.from.toLowerCase()).toEqual(hederaTestnetClient.account!.address.toLowerCase())
     expect(ccipSend_txReceipt.to!.toLowerCase()).toEqual(HEDERA_TESTNET_CCIP_ROUTER_ADDRESS.toLowerCase())
   })
-})
+}) */

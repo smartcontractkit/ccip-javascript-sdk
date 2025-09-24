@@ -1,5 +1,5 @@
 import type { Provider, Signer, TypedDataField } from 'ethers'
-import type {Address, Hash,  Transport, WalletClient, PublicClient } from 'viem'
+import type { Address, Hash, Transport, WalletClient, PublicClient } from 'viem'
 
 import { custom, createPublicClient, createWalletClient } from 'viem'
 import { toAccount } from 'viem/accounts'
@@ -46,7 +46,10 @@ export async function ethersSignerToAccount(signer: Signer) {
 
 /** Create a viem PublicClient from an ethers provider. */
 export function ethersProviderToPublicClient(provider: Provider, chain: any): PublicClient {
-  return createPublicClient({ chain: chain as any, transport: ethersProviderToTransport(provider) }) as unknown as PublicClient
+  return createPublicClient({
+    chain: chain as any,
+    transport: ethersProviderToTransport(provider),
+  }) as unknown as PublicClient
 }
 
 /** Create a viem WalletClient from an ethers signer. */
