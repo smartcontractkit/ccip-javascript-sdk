@@ -10,7 +10,7 @@ const bridgeTokenAbi = bridgeToken.contracts['src/contracts/BridgeToken.sol:Brid
 const HEDERA_TESTNET_RPC_URL = process.env.HEDERA_TESTNET_RPC_URL || 'https://testnet.hashio.io/api'
 const SEPOLIA_CHAIN_SELECTOR = '16015286601757825753'
 
-describe('Integration: Hedera -> Sepolia', () => {
+describe('Integration (viem): Hedera -> Sepolia', () => {
   let hederaTestnetClient: Viem.Client
   let bnmToken_hedera: any
 
