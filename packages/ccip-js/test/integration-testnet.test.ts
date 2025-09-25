@@ -19,8 +19,10 @@ const LINK_TOKEN_FUJI = '0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846'
 
 // 6m to match https://viem.sh/docs/actions/public/waitForTransactionReceipt.html#timeout-optional,
 // which is called  in approveRouter()
-// TODO @zeuslawyer: https://prajjwaldimri.medium.com/why-is-my-jest-runner-not-closing-bc4f6632c959 - tests are passing but jest is not closing. Viem transport issue? why?
-// currently timeout set to 180000ms in jest.config.js
+// TODO: Tests occasionally hang after completion due to lingering HTTP handles from transports
+// (even with keepalive disabled). Until this is fully resolved, test scripts use --forceExit to
+// ensure CI exits reliably. Revisit and remove --forceExit after addressing open handles.
+// Jest test timeout is 180000ms (configured in jest.config.js).
 
 if (!SEPOLIA_RPC_URL) {
   throw new Error('SEPOLIA_RPC_URL  must be set')
