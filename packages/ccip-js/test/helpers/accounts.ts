@@ -62,7 +62,6 @@ export const getBalance = async ({ isFork }: BalanceOptions) => {
   return balance
 }
 
-
 // export const setAllowance = async ({ isFork, amount, contract }: AllowanceOptions) => {
 //   const client = isFork ? forkClient : testClient
 

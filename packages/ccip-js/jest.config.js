@@ -2,8 +2,9 @@
 export default {
   testEnvironment: 'node',
   transform: {
-    '^.+.tsx?$': ['ts-jest', {}],
+    '^.+\\.tsx?$': ['ts-jest', { useESM: true }],
   },
-  workerThreads: true,
+  extensionsToTreatAsEsm: ['.ts'],
   testTimeout: 180000,
+  setupFilesAfterEnv: ['<rootDir>/test/jest.setup.ts'],
 }

@@ -1,10 +1,10 @@
 import { account } from './constants'
 import { createTestClient, http, publicActions, walletActions } from 'viem'
-import {  sepolia, anvil } from 'viem/chains'
+import { sepolia, anvil } from 'viem/chains'
 
 export const testClient = createTestClient({
   chain: anvil,
-  transport: http(),
+  transport: http(undefined, { fetchOptions: { keepalive: false } }),
   mode: 'anvil',
   account,
 })
@@ -13,7 +13,7 @@ export const testClient = createTestClient({
 
 export const forkClient = createTestClient({
   chain: sepolia,
-  transport: http(),
+  transport: http(undefined, { fetchOptions: { keepalive: false } }),
   mode: 'anvil',
   account,
 })

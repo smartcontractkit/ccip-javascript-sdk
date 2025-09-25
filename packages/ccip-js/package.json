@@ -12,12 +12,13 @@
     "check": "tsc --noEmit",
     "build:watch": "tsc -w",
     "build": "tsc && hardhat compile",
-    "lint": "eslint 'src/**/*.{ts,js}'",
+    "lint": "eslint 'src/**/*.{ts,js}' 'test/**/*.{ts,js}'",
     "format": "prettier --write 'src/**/*.{ts,js,json,md}'",
-    "t:int": "jest --coverage -u --testMatch=\"**/integration-testnet**.test.ts\" --detectOpenHandles",
-    "t:int:viem": "jest --coverage -u --testMatch=\"**/integration-testnet.test.ts\" --detectOpenHandles",
-    "t:int:ethers": "jest --coverage -u --testMatch=\"**/integration-testnet-ethers.test.ts\" --detectOpenHandles",
-    "t:unit": "jest --coverage -u --testMatch=\"**/unit.test.ts\" ",
+    "t:int": "jest --coverage -u --testMatch=\"**/integration-testnet**.test.ts\" --runInBand --detectOpenHandles --forceExit",
+    "t:int:viem": "jest --coverage -u --testMatch=\"**/integration-testnet.test.ts\" --runInBand --detectOpenHandles --forceExit",
+    "t:int:ethers": "jest --coverage -u --testMatch=\"**/integration-testnet-ethers.test.ts\" --runInBand --detectOpenHandles --forceExit",
+    "t:int:hedera": "jest --coverage -u --testMatch=\"**/integration-hedera.test.ts\" --runInBand --detectOpenHandles --forceExit",
+    "t:unit": "jest --coverage -u --testMatch=\"**/unit.test.ts\" --runInBand --detectOpenHandles --forceExit",
     "test:hh": "hardhat test"
   },
   "devDependencies": {
