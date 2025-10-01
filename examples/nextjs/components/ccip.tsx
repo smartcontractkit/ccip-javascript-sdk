@@ -13,53 +13,232 @@ import {
   TransactionReceipt,
   WalletClient,
 } from "viem";
-import { useState } from "react";
+import { custom, createPublicClient, createWalletClient } from "viem";
+import { toAccount } from "viem/accounts";
+import { useEffect, useMemo, useState } from "react";
+import { wagmiConfig } from "@/config/wagmiConfig";
 
 const ccipClient = createClient();
 
+function logAction(providerType: "wagmi" | "ethers", action: string, details?: Record<string, unknown>) {
+  const meta = details ? ` ${JSON.stringify(details)}` : "";
+  console.info(`[CCIP Example] ${action} provider=${providerType}${meta}`);
+}
+
+async function buildViemClientsFromInjected(
+  requestAccounts: boolean,
+): Promise<
+  | {
+      pub: PublicClient;
+      wal: WalletClient;
+      address: string;
+      chainId: number;
+      chainName: string;
+    }
+  | null
+> {
+  const anyWindow: any = window as any;
+  if (!anyWindow?.ethereum) return null;
+
+  const ethersMod: any = await import("ethers");
+  const BrowserProvider = ethersMod.BrowserProvider;
+  const browserProvider = new BrowserProvider(anyWindow.ethereum);
+  if (requestAccounts) {
+    await anyWindow.ethereum.request({ method: "eth_requestAccounts" });
+  }
+  const signer: any = await browserProvider.getSigner();
+  const addr = await signer.getAddress();
+  const network = await browserProvider.getNetwork();
+  const cid = Number(network.chainId);
+  const viemChain = wagmiConfig.chains.find(c => c.id === cid);
+  if (!viemChain) return null;
+  const transport = custom({
+    async request({ method, params }) {
+      return (browserProvider as any).send(method, params as any);
+    },
+  });
+  const pub = createPublicClient({ chain: viemChain as any, transport }) as unknown as PublicClient;
+  const account = await toAccount({
+    address: addr as any,
+    async signMessage({ message }) {
+      const data = typeof message === 'string' ? message : new TextDecoder().decode(message as any);
+      return signer.signMessage(data) as unknown as Hash;
+    },
+    async signTransaction(txn) {
+      return signer.signTransaction({
+        chainId: txn.chainId,
+        data: txn.data,
+        gasLimit: txn.gas,
+        gasPrice: txn.gasPrice,
+        nonce: txn.nonce,
+        to: txn.to,
+        value: txn.value,
+        type: txn.type === 'legacy' ? 0 : txn.type === 'eip2930' ? 1 : txn.type === 'eip1559' ? 2 : undefined,
+        ...(txn.type && txn.accessList ? { accessList: txn.accessList } : {}),
+        ...(txn.maxPriorityFeePerGas ? { maxPriorityFeePerGas: txn.maxPriorityFeePerGas } : {}),
+        ...(txn.maxFeePerGas ? { maxFeePerGas: txn.maxFeePerGas } : {}),
+      } as any) as unknown as Hash;
+    },
+    async signTypedData({ domain, types, message }) {
+      const { EIP712Domain: _removed, ...rest } = types as any;
+      const signTypedData = signer._signTypedData ?? signer.signTypedData;
+      return signTypedData(domain ?? {}, rest as Record<string, any[]>, message) as unknown as Hash;
+    },
+  });
+  const wal = createWalletClient({ chain: viemChain as any, transport, account }) as unknown as WalletClient;
+  return { pub, wal, address: addr, chainId: cid, chainName: viemChain.name };
+}
+
 export function CCIP() {
-  const publicClient = usePublicClient();
-  const { data: walletClient } = useWalletClient();
+  const wagmiPublicClient = usePublicClient();
+  const { data: wagmiWalletClient } = useWalletClient();
+
+  const [providerType, setProviderType] = useState<"wagmi" | "ethers">("wagmi");
+  const [ethersPublicClient, setEthersPublicClient] = useState<PublicClient | null>(null);
+  const [ethersWalletClient, setEthersWalletClient] = useState<WalletClient | null>(null);
+
+  useEffect(() => {
+    async function ensureEthersClients() {
+      if (providerType !== "ethers") return;
+      if (ethersPublicClient && ethersWalletClient) return;
+      try {
+        const built = await buildViemClientsFromInjected(false);
+        if (!built) return;
+        setEthersPublicClient(built.pub);
+        setEthersWalletClient(built.wal);
+      } catch {
+        // noop: user may not have injected provider
+      }
+    }
+    void ensureEthersClients();
+  }, [providerType, ethersPublicClient, ethersWalletClient]);
+
+  // No-op mirror; ConnectWallet manages ethers client creation
+
+  const selectedPublicClient = useMemo(() => {
+    if (providerType === "ethers") return ethersPublicClient ?? wagmiPublicClient;
+    return wagmiPublicClient;
+  }, [providerType, wagmiPublicClient, ethersPublicClient]);
+
+  const selectedWalletClient = useMemo(() => {
+    if (providerType === "ethers") return ethersWalletClient ?? wagmiWalletClient ?? undefined;
+    return wagmiWalletClient ?? undefined;
+  }, [providerType, wagmiWalletClient, ethersWalletClient]);
 
   return (
     <div className="m-2 p-2 w-full grid md:grid-cols-2 gap-2">
-      <ConnectWallet />
-      {publicClient && (
+      <ConnectWallet
+        key={`connect-${providerType}`}
+        providerType={providerType}
+        onProviderTypeChange={setProviderType}
+        setEthersClients={(pub, wal) => {
+          setEthersPublicClient(pub);
+          setEthersWalletClient(wal);
+        }}
+      />
+      {selectedPublicClient && (
         <>
-          <GetAllowance publicClient={publicClient} />
-          <GetOnRampAddress publicClient={publicClient} />
-          <GetSupportedFeeTokens publicClient={publicClient} />
-          <GetLaneRateRefillLimits publicClient={publicClient} />
-          <IsTokenSupported publicClient={publicClient} />
-          <GetTokenRateLimitByLane publicClient={publicClient} />
-          <GetTokenAdminRegistry publicClient={publicClient} />
-          <GetTransactionReceipt publicClient={publicClient} />
-          <GetTransferStatus />
-          <GetFee publicClient={publicClient} />
+          <GetAllowance key={`allow-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetOnRampAddress key={`onramp-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetSupportedFeeTokens key={`feeTokens-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetLaneRateRefillLimits key={`laneRefill-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <IsTokenSupported key={`tokenSupported-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetTokenRateLimitByLane key={`tokenRate-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetTokenAdminRegistry key={`admin-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetTransactionReceipt key={`txrcpt-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
+          <GetTransferStatus key={`status-${providerType}`} providerType={providerType} />
+          <GetFee key={`fee-${providerType}`} providerType={providerType} publicClient={selectedPublicClient} />
         </>
       )}
-      {walletClient && (
+      {selectedWalletClient && (
         <>
-          <ApproveRouter walletClient={walletClient} />
-          <TransferTokensAndMessage walletClient={walletClient} />
-          <SendCCIPMessage walletClient={walletClient} />
-          <SendFunctionData walletClient={walletClient} />
+          <ApproveRouter key={`approve-${providerType}`} providerType={providerType} walletClient={selectedWalletClient} />
+          <TransferTokensAndMessage key={`transfer-${providerType}`} providerType={providerType} walletClient={selectedWalletClient} />
+          <SendCCIPMessage key={`sendmsg-${providerType}`} providerType={providerType} walletClient={selectedWalletClient} />
+          <SendFunctionData key={`sendfunc-${providerType}`} providerType={providerType} walletClient={selectedWalletClient} />
         </>
       )}
     </div>
   );
 }
 
-function ConnectWallet() {
+function ConnectWallet({
+  providerType,
+  onProviderTypeChange,
+  setEthersClients,
+}: {
+  providerType: "wagmi" | "ethers";
+  onProviderTypeChange: (p: "wagmi" | "ethers") => void;
+  setEthersClients: (pub: PublicClient, wal: WalletClient) => void;
+}) {
   const { chain, address } = useAccount();
   const { connectors, connect, isError: isConnectError, error: connectError } = useConnect();
-  const { chains, switchChain, error: switchError, isError: isSwitchError } = useSwitchChain();
+  const { switchChain, error: switchError, isError: isSwitchError } = useSwitchChain();
 
   const [chainId, setChainId] = useState<string>(`${chain?.id}`);
+
+  const [ethersAddress, setEthersAddress] = useState<string>();
+  const [ethersChainId, setEthersChainId] = useState<number>();
+  const [ethersChainName, setEthersChainName] = useState<string>();
+  const [isEthersError, setIsEthersError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (providerType === "wagmi" && chain) {
+      setChainId(`${chain.id}`);
+    }
+  }, [providerType, chain]);
+
+  async function connectWithEthers() {
+    try {
+      setIsEthersError(null);
+      const anyWindow: any = window as any;
+      if (!anyWindow.ethereum) {
+        throw new Error("No injected provider found");
+      }
+      const built = await buildViemClientsFromInjected(true);
+      if (!built) {
+        throw new Error("Connected to unsupported or missing chain");
+      }
+      setEthersAddress(built.address);
+      setEthersChainId(built.chainId);
+      setEthersChainName(built.chainName);
+      setEthersClients(built.pub, built.wal);
+    } catch (e: any) {
+      setIsEthersError(e.message ?? String(e));
+    }
+  }
+
+  async function switchEthersChain(targetId: number) {
+    try {
+      const anyWindow: any = window as any;
+      await anyWindow.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0x" + targetId.toString(16) }],
+      });
+      await connectWithEthers();
+    } catch (e: any) {
+      setIsEthersError(e.message ?? String(e));
+    }
+  }
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
       <h2 className="font-bold">Connect Wallet:</h2>
+      <p className="text-sm text-slate-600">Provider in use: {providerType === "wagmi" ? "WAGMI (viem)" : "Ethers.js (via viem adapters)"}</p>
+      <div className="flex flex-col">
+        <label htmlFor="provider">Provider</label>
+        <select
+          className="border border-slate-300 rounded-md p-1"
+          name="provider"
+          value={providerType}
+          onChange={e => onProviderTypeChange(e.target.value as any)}
+        >
+          <option value="wagmi">WAGMI</option>
+          <option value="ethers">Ethers.js</option>
+        </select>
+      </div>
+
+      {/* Always show WAGMI connectors so wallet options remain visible */}
       <div className="space-x-2">
         {connectors.map(connector => (
           <button
@@ -72,39 +251,62 @@ function ConnectWallet() {
         ))}
       </div>
       {isConnectError && <p className="text-red-500">{connectError.message}</p>}
-      {address && <p>{`Address: ${address}`}</p>}
-      {chain && (
-        <>
-          <p>{`Connected to ${chain.name} (chainId: ${chain.id})`}</p>
-          <div className="flex flex-col">
-            <label htmlFor="chainId">Switch to chain</label>
-            <select
-              className="border border-slate-300 rounded-md p-1"
-              name="chainId"
-              value={chainId}
-              onChange={e => setChainId(e.target.value)}
-            >
-              {chains.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
-            onClick={() => switchChain({ chainId: Number(chainId) })}
-          >
-            Switch
-          </button>
-          {isSwitchError && <p className="text-red-500">{switchError.message}</p>}
-        </>
-      )}
+      {isEthersError && providerType === "ethers" && <p className="text-red-500">{isEthersError}</p>}
+
+      {/* Address line always visible if connected */}
+      {(() => {
+        const addr = ethersAddress || address;
+        return addr ? <p>{`Address: ${addr}`}</p> : null;
+      })()}
+
+      {/* Connected chain line (when known) */}
+      {(() => {
+        const currentName = ethersChainName || chain?.name;
+        const currentId = ethersChainId || chain?.id;
+        return currentId ? <p>{`Connected to ${currentName} (chainId: ${currentId})`}</p> : null;
+      })()}
+
+      {/* Chain switcher always visible */}
+      <div className="flex flex-col">
+        <label htmlFor="switchChain">Switch to chain</label>
+        <select
+          className="border border-slate-300 rounded-md p-1"
+          name="switchChain"
+          value={String(Number(ethersChainId ?? chainId ?? chain?.id ?? wagmiConfig.chains[0].id))}
+          onChange={e => {
+            const id = Number(e.target.value);
+            setChainId(String(id));
+            setEthersChainId(id);
+          }}
+        >
+          {(wagmiConfig.chains).map(c => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button
+        className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
+        onClick={() => {
+          if (providerType === "wagmi") {
+            const id = Number(chainId || chain?.id || wagmiConfig.chains[0].id);
+            switchChain({ chainId: id });
+          } else {
+            const resolved = ethersChainId ?? Number(chainId);
+            const id = typeof resolved === 'number' && !Number.isNaN(resolved) ? resolved : wagmiConfig.chains[0].id;
+            switchEthersChain(Number(id));
+          }
+        }}
+      >
+        Switch
+      </button>
+      {isSwitchError && <p className="text-red-500">{switchError.message}</p>}
     </div>
   );
 }
 
-function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
+function ApproveRouter({ walletClient, providerType }: { walletClient: WalletClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
@@ -147,6 +349,7 @@ function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && amount && tokenAddress) {
+            logAction(providerType, 'ApproveRouter.click', { routerAddress, tokenAddress, amount });
             const result = await ccipClient.approveRouter({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -169,7 +372,7 @@ function ApproveRouter({ walletClient }: { walletClient: WalletClient }) {
   );
 }
 
-function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient }) {
+function TransferTokensAndMessage({ walletClient, providerType }: { walletClient: WalletClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
@@ -243,6 +446,13 @@ function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
+            logAction(providerType, 'TransferTokensAndMessage.click', {
+              routerAddress,
+              destinationChainSelector,
+              destinationAccount,
+              tokenAddress,
+              amount,
+            });
             const result = await ccipClient.transferTokens({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -275,7 +485,7 @@ function TransferTokensAndMessage({ walletClient }: { walletClient: WalletClient
   );
 }
 
-function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
+function SendCCIPMessage({ walletClient, providerType }: { walletClient: WalletClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
@@ -327,6 +537,11 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && destinationAccount && data) {
+            logAction(providerType, 'SendCCIPMessage.click', {
+              routerAddress,
+              destinationChainSelector,
+              destinationAccount,
+            });
             const result = await ccipClient.sendCCIPMessage({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -357,7 +572,7 @@ function SendCCIPMessage({ walletClient }: { walletClient: WalletClient }) {
   );
 }
 
-function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
+function SendFunctionData({ walletClient, providerType }: { walletClient: WalletClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [destinationAccount, setDestinationAccount] = useState<string>();
@@ -414,6 +629,12 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && destinationAccount && amount) {
+            logAction(providerType, 'SendFunctionData.click', {
+              routerAddress,
+              destinationChainSelector,
+              destinationAccount,
+              amount,
+            });
             const result = await ccipClient.sendCCIPMessage({
               client: walletClient,
               routerAddress: routerAddress as Address,
@@ -448,7 +669,7 @@ function SendFunctionData({ walletClient }: { walletClient: WalletClient }) {
   );
 }
 
-function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
+function GetAllowance({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [account, setAccount] = useState<string>();
@@ -489,6 +710,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (account && routerAddress && tokenAddress) {
+            logAction(providerType, 'GetAllowance.click', { routerAddress, tokenAddress, account });
             const result = await ccipClient.getAllowance({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -511,7 +733,7 @@ function GetAllowance({ publicClient }: { publicClient: PublicClient }) {
   );
 }
 
-function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
+function GetOnRampAddress({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [onRamp, setOnRamp] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
@@ -541,6 +763,7 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector) {
+            logAction(providerType, 'GetOnRampAddress.click', { routerAddress, destinationChainSelector });
             const result = await ccipClient.getOnRampAddress({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -562,7 +785,7 @@ function GetOnRampAddress({ publicClient }: { publicClient: PublicClient }) {
   );
 }
 
-function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient }) {
+function GetSupportedFeeTokens({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [supportedFeeTokens, setSupportedFeeTokens] = useState<Address[]>();
@@ -592,6 +815,7 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector) {
+            logAction(providerType, 'GetSupportedFeeTokens.click', { routerAddress, destinationChainSelector });
             const supportedFeeTokens = await ccipClient.getSupportedFeeTokens({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -619,7 +843,7 @@ function GetSupportedFeeTokens({ publicClient }: { publicClient: PublicClient })
   );
 }
 
-function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient }) {
+function GetLaneRateRefillLimits({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [rateLimits, setRateLimits] = useState<RateLimiterState>();
@@ -649,6 +873,7 @@ function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient 
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector) {
+            logAction(providerType, 'GetLaneRateRefillLimits.click', { routerAddress, destinationChainSelector });
             const rateLimiterState = await ccipClient.getLaneRateRefillLimits({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -680,7 +905,7 @@ function GetLaneRateRefillLimits({ publicClient }: { publicClient: PublicClient 
   );
 }
 
-function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient }) {
+function GetTokenRateLimitByLane({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
@@ -720,6 +945,7 @@ function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient 
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && tokenAddress) {
+            logAction(providerType, 'GetTokenRateLimitByLane.click', { routerAddress, destinationChainSelector, tokenAddress });
             const tokenRateLimiterState = await ccipClient.getTokenRateLimitByLane({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -754,7 +980,7 @@ function GetTokenRateLimitByLane({ publicClient }: { publicClient: PublicClient 
   );
 }
 
-function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
+function IsTokenSupported({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
@@ -794,6 +1020,7 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && tokenAddress) {
+            logAction(providerType, 'IsTokenSupported.click', { routerAddress, destinationChainSelector, tokenAddress });
             const tokenSupported = await ccipClient.isTokenSupported({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -816,7 +1043,7 @@ function IsTokenSupported({ publicClient }: { publicClient: PublicClient }) {
   );
 }
 
-function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient }) {
+function GetTokenAdminRegistry({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [destinationChainSelector, setDestinationChainSelector] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
@@ -855,6 +1082,7 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && tokenAddress && destinationChainSelector) {
+            logAction(providerType, 'GetTokenAdminRegistry.click', { routerAddress, destinationChainSelector, tokenAddress });
             const tokenAdminRegistryResult = await ccipClient.getTokenAdminRegistry({
               client: publicClient,
               routerAddress: routerAddress as Address,
@@ -877,7 +1105,7 @@ function GetTokenAdminRegistry({ publicClient }: { publicClient: PublicClient })
   );
 }
 
-function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient }) {
+function GetTransactionReceipt({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [hash, setHash] = useState<string>();
   const [transactionReceipt, setTransactionReceipt] = useState<TransactionReceipt>();
 
@@ -899,6 +1127,7 @@ function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient })
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (hash) {
+            logAction(providerType, 'GetTransactionReceipt.click', { hash });
             const transactionReceiptResult = await ccipClient.getTransactionReceipt({
               client: publicClient,
               hash: hash as Hash,
@@ -932,7 +1161,7 @@ function GetTransactionReceipt({ publicClient }: { publicClient: PublicClient })
   );
 }
 
-function GetTransferStatus() {
+function GetTransferStatus({ providerType }: { providerType: "wagmi" | "ethers" }) {
   const { chains } = useSwitchChain();
   const [destinationRouterAddress, setDestinationRouterAddress] = useState<string>();
   const [destinationChainId, setDestinationChainId] = useState<number>();
@@ -994,6 +1223,12 @@ function GetTransferStatus() {
           className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
           onClick={async () => {
             if (destinationChainPublicClient && destinationRouterAddress && sourceChainSelector && messageId) {
+              logAction(providerType, 'GetTransferStatus.click', {
+                destinationRouterAddress,
+                sourceChainSelector,
+                messageId,
+                destinationChainId,
+              });
               const transferStatusResult = await ccipClient.getTransferStatus({
                 client: destinationChainPublicClient,
                 destinationRouterAddress: destinationRouterAddress as Address,
@@ -1012,7 +1247,7 @@ function GetTransferStatus() {
   );
 }
 
-function GetFee({ publicClient }: { publicClient: PublicClient }) {
+function GetFee({ publicClient, providerType }: { publicClient: PublicClient; providerType: "wagmi" | "ethers" }) {
   const [routerAddress, setRouterAddress] = useState<string>();
   const [tokenAddress, setTokenAddress] = useState<string>();
   const [amount, setAmount] = useState<string>();
@@ -1085,6 +1320,13 @@ function GetFee({ publicClient }: { publicClient: PublicClient }) {
         className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
         onClick={async () => {
           if (routerAddress && destinationChainSelector && amount && destinationAccount && tokenAddress) {
+            logAction(providerType, 'GetFee.click', {
+              routerAddress,
+              destinationChainSelector,
+              destinationAccount,
+              tokenAddress,
+              amount,
+            });
             const result = await ccipClient.getFee({
               client: publicClient,
               routerAddress: routerAddress as Address,
