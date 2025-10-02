@@ -1,10 +1,14 @@
-import { encodeEVMExtraArgsV2, decodeEVMExtraArgsV2, EVM_EXTRA_ARGS_V2_TAG } from '../encoders/evmExtraArgsV2'
+import {
+  encodeEVMExtraArgsV2,
+  decodeEVMExtraArgsV2,
+  EVM_EXTRA_ARGS_V2_TAG,
+  EVM_EXTRA_ARGS_V2_MIN_LENGTH,
+} from '../encoders/evmExtraArgsV2'
 import { keccak256, toBytes } from 'viem'
 import { fromHexBuffer } from '../utils/hex'
 
 describe('EVM Extra Args V2', () => {
   let consoleSpy: jest.SpyInstance
-  const evmExtraArgsV2BytesLength = 68 // 4 bytes tag + 32 bytes gasLimit + 32 bytes bool
 
   beforeEach(() => {
     consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -58,7 +62,7 @@ describe('EVM Extra Args V2', () => {
       }
 
       expect(encoded).toBeInstanceOf(Uint8Array)
-      expect(encoded.length).toBe(evmExtraArgsV2BytesLength)
+      expect(encoded.length).toBe(EVM_EXTRA_ARGS_V2_MIN_LENGTH)
       const tag = new DataView(encoded.buffer, encoded.byteOffset, 4).getUint32(0, false)
       expect(tag).toBe(EVM_EXTRA_ARGS_V2_TAG)
       expect(encoded).toEqual(fromHexBuffer(expected))
@@ -78,13 +82,12 @@ describe('EVM Extra Args V2', () => {
       {
         name: 'data too short',
         data: new Uint8Array(10),
-        expectedError:
-          'Invalid EVM Extra Args V2: data too short, expected at least 68 bytes (4 bytes tag + 32 bytes gasLimit + 32 bytes bool). Example (100_000 gasLimit and true): 0x181dcf1000000000000000000000000000000000000000000000000000000000000186a00000000000000000000000000000000000000000000000000000000000000001',
+        expectedError: `Invalid EVM Extra Args V2: data too short, expected at least ${EVM_EXTRA_ARGS_V2_MIN_LENGTH} bytes (4 bytes tag + 32 bytes gasLimit + 32 bytes bool). Example (100_000 gasLimit and true): 0x181dcf1000000000000000000000000000000000000000000000000000000000000186a00000000000000000000000000000000000000000000000000000000000000001`,
       },
       {
         name: 'invalid tag',
         data: (() => {
-          const invalidData = new Uint8Array(evmExtraArgsV2BytesLength)
+          const invalidData = new Uint8Array(EVM_EXTRA_ARGS_V2_MIN_LENGTH)
           invalidData[0] = 0x12
           invalidData[1] = 0x34
           invalidData[2] = 0x56

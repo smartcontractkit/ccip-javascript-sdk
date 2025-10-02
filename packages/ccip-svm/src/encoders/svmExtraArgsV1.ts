@@ -5,6 +5,11 @@ import { address, getAddressEncoder, getAddressDecoder } from '@solana/kit'
  */
 export const SVM_EXTRA_ARGS_V1_TAG = 0x1f3b3aba
 
+/**
+ * Minimum byte length for SVM Extra Args V1: 4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length
+ */
+export const SVM_EXTRA_ARGS_V1_MIN_LENGTH = 53
+
 export type Address = ReturnType<typeof address>
 
 export interface SVMExtraArgsV1 {
@@ -78,10 +83,9 @@ export function encodeSVMExtraArgsV1({
  * @returns Decoded SVMExtraArgsV1 object
  */
 export function decodeSVMExtraArgsV1(data: Uint8Array): SVMExtraArgsV1 {
-  // 4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length
-  if (data.length < 4 + 4 + 8 + 1 + 32 + 4) {
+  if (data.length < SVM_EXTRA_ARGS_V1_MIN_LENGTH) {
     throw new Error(
-      'Invalid SVM Extra Args V1: data too short, expected at least 53 bytes (4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length)',
+      `Invalid SVM Extra Args V1: data too short, expected at least ${SVM_EXTRA_ARGS_V1_MIN_LENGTH} bytes (4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length)`,
     )
   }
 

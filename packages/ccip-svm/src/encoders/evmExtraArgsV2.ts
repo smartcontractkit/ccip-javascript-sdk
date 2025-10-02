@@ -6,6 +6,11 @@ import { toHex, fromHexBuffer } from '../utils/hex'
  */
 export const EVM_EXTRA_ARGS_V2_TAG = 0x181dcf10
 
+/**
+ * Minimum byte length for EVM Extra Args V2: 4 bytes tag + 32 bytes gasLimit + 32 bytes bool
+ */
+export const EVM_EXTRA_ARGS_V2_MIN_LENGTH = 68
+
 export interface EVMExtraArgsV2 {
   gasLimit: bigint
   allowOutOfOrderExecution?: boolean
@@ -49,9 +54,9 @@ export function encodeEVMExtraArgsV2({ gasLimit, allowOutOfOrderExecution = true
  * @returns Decoded EVMExtraArgsV2 object
  */
 export function decodeEVMExtraArgsV2(data: Uint8Array): EVMExtraArgsV2 {
-  if (data.length < 68) {
+  if (data.length < EVM_EXTRA_ARGS_V2_MIN_LENGTH) {
     throw new Error(
-      'Invalid EVM Extra Args V2: data too short, expected at least 68 bytes (4 bytes tag + 32 bytes gasLimit + 32 bytes bool). Example (100_000 gasLimit and true): 0x181dcf1000000000000000000000000000000000000000000000000000000000000186a00000000000000000000000000000000000000000000000000000000000000001',
+      `Invalid EVM Extra Args V2: data too short, expected at least ${EVM_EXTRA_ARGS_V2_MIN_LENGTH} bytes (4 bytes tag + 32 bytes gasLimit + 32 bytes bool). Example (100_000 gasLimit and true): 0x181dcf1000000000000000000000000000000000000000000000000000000000000186a00000000000000000000000000000000000000000000000000000000000000001`,
     )
   }
 

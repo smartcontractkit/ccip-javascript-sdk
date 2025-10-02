@@ -1,5 +1,10 @@
 import { address } from '@solana/kit'
-import { encodeSVMExtraArgsV1, decodeSVMExtraArgsV1, SVM_EXTRA_ARGS_V1_TAG } from '../encoders/svmExtraArgsV1'
+import {
+  encodeSVMExtraArgsV1,
+  decodeSVMExtraArgsV1,
+  SVM_EXTRA_ARGS_V1_TAG,
+  SVM_EXTRA_ARGS_V1_MIN_LENGTH,
+} from '../encoders/svmExtraArgsV1'
 import { keccak256, toBytes } from 'viem'
 import { fromHexBuffer } from '../utils/hex'
 
@@ -11,13 +16,11 @@ const MOCK_ACCOUNT_4 = address('4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU') /
 const MOCK_ACCOUNT_5 = address('DzcwGnG1kM1i6zE9vR4YmzjL48mF8Eik1gC9CkJTQ7K1') // USDT Token Mint (Devnet)
 
 describe('SVM Extra Args V1', () => {
-  const svmExtraArgsV1MinBytesLength = 4 + 4 + 8 + 1 + 32 + 4 // 4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length
-
   const testCases = [
     {
       name: 'should encode with default values',
       input: {},
-      expectedLength: svmExtraArgsV1MinBytesLength,
+      expectedLength: SVM_EXTRA_ARGS_V1_MIN_LENGTH,
       expectedHex:
         '0x1f3b3aba00000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000',
     },
@@ -29,14 +32,14 @@ describe('SVM Extra Args V1', () => {
         allowOutOfOrderExecution: false,
         accounts: [],
       },
-      expectedLength: svmExtraArgsV1MinBytesLength,
+      expectedLength: SVM_EXTRA_ARGS_V1_MIN_LENGTH,
       expectedHex:
         '0x1f3b3aba00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
     },
     {
       name: 'should handle token-only transfers (computeUnits = 0)',
       input: { computeUnits: 0, allowOutOfOrderExecution: true },
-      expectedLength: svmExtraArgsV1MinBytesLength,
+      expectedLength: SVM_EXTRA_ARGS_V1_MIN_LENGTH,
     },
     {
       name: 'should encode SVM extra args with all parameters',
@@ -47,14 +50,14 @@ describe('SVM Extra Args V1', () => {
         tokenReceiver: MOCK_TOKEN_RECEIVER,
         accounts: [MOCK_ACCOUNT_1, MOCK_ACCOUNT_2],
       },
-      expectedLength: svmExtraArgsV1MinBytesLength + 2 * 32, // 53 + 64 bytes for 2 accounts
+      expectedLength: SVM_EXTRA_ARGS_V1_MIN_LENGTH + 2 * 32, // 53 + 64 bytes for 2 accounts
     },
     {
       name: 'should encode with many accounts',
       input: {
         accounts: [MOCK_ACCOUNT_1, MOCK_ACCOUNT_2, MOCK_ACCOUNT_3, MOCK_ACCOUNT_4, MOCK_ACCOUNT_5],
       },
-      expectedLength: svmExtraArgsV1MinBytesLength + 5 * 32, // 53 + 160 bytes for 5 accounts
+      expectedLength: SVM_EXTRA_ARGS_V1_MIN_LENGTH + 5 * 32, // 53 + 160 bytes for 5 accounts
     },
   ]
 
@@ -99,13 +102,12 @@ describe('SVM Extra Args V1', () => {
       {
         name: 'data too short',
         data: new Uint8Array(10),
-        expectedError:
-          'Invalid SVM Extra Args V1: data too short, expected at least 53 bytes (4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length)',
+        expectedError: `Invalid SVM Extra Args V1: data too short, expected at least ${SVM_EXTRA_ARGS_V1_MIN_LENGTH} bytes (4 bytes tag + 4 bytes computeUnits + 8 bytes bitmap + 1 byte bool + 32 bytes tokenReceiver + 4 bytes accounts length)`,
       },
       {
         name: 'invalid tag',
         data: (() => {
-          const invalidData = new Uint8Array(svmExtraArgsV1MinBytesLength)
+          const invalidData = new Uint8Array(SVM_EXTRA_ARGS_V1_MIN_LENGTH)
           invalidData[0] = 0x12
           invalidData[1] = 0x34
           invalidData[2] = 0x56
