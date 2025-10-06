@@ -38,6 +38,12 @@ export default function RootLayout({
           >
             CCIP-JS
           </Link>
+          <Link
+            className="border border-slate-300 rounded-md p-2 hover:bg-slate-300 transition-colors"
+            href="/ccip-ethers"
+          >
+            CCIP Ethers
+          </Link>
         </nav>
         <main className="flex flex-col items-center justify-center bg-slate-100 grow">
           <ClientOnly>{children}</ClientOnly>
