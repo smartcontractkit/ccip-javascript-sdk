@@ -31,7 +31,6 @@ function EthersDemo() {
   const [onRampError, setOnRampError] = useState<string | null>(null);
 
   const [publicClient, setPublicClient] = useState<any>(null);
-  const [walletClient, setWalletClient] = useState<any>(null);
 
   async function connectEthers() {
     try {
@@ -49,10 +48,9 @@ function EthersDemo() {
       } as any;
 
       const viemPublic = ethersProviderToPublicClient(browserProvider, viemChain);
-      const viemWallet = await ethersSignerToWalletClient(signer, viemChain);
+      await ethersSignerToWalletClient(signer, viemChain);
 
       setPublicClient(viemPublic);
-      setWalletClient(viemWallet);
       setPublicReady(true);
       setWalletReady(true);
     } catch (e: any) {
