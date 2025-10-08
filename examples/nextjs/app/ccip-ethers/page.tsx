@@ -5,11 +5,7 @@ import { Providers } from "../ccip-js/providers";
 import { ethers } from "ethers";
 import { createClient } from "@chainlink/ccip-js";
 import { useAccount, useSwitchChain } from "wagmi";
-// Import adapters via compiled dist path to avoid missing type exports in older versions.
-// Runtime will work since the package ships these files.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { ethersProviderToPublicClient, ethersSignerToWalletClient } from "@chainlink/ccip-js/dist/ethers-adapters.js";
+import { ethersProviderToPublicClient, ethersSignerToWalletClient } from "@chainlink/ccip-js";
 
 export default function CCIPEthersDemoPage() {
   return (
