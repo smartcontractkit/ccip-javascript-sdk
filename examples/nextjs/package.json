@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "bdev": "pnpm run build-components && next dev",
+    "bdev": "pnpm run build-ccip-js && pnpm run build-components && next dev",
     "dev": "next dev",
     "build-ccip-js": "pnpm --filter ccip-js run build",
     "build-components": "pnpm --filter ccip-react-components run build",

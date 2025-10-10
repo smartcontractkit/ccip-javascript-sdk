@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Providers } from "../ccip-js/providers";
 import { ethers } from "ethers";
 import { createClient } from "@chainlink/ccip-js";
+import { createPublicClient, custom } from "viem";
 import { useAccount, useSwitchChain } from "wagmi";
 import { ethersProviderToPublicClient, ethersSignerToWalletClient } from "@chainlink/ccip-js";
 
@@ -47,8 +48,14 @@ function EthersDemo() {
         rpcUrls: { default: { http: [] }, public: { http: [] } },
       } as any;
 
-      const viemPublic = ethersProviderToPublicClient(browserProvider, viemChain);
-      await ethersSignerToWalletClient(signer, viemChain);
+      const viemPublic =
+        typeof ethersProviderToPublicClient === "function"
+          ? ethersProviderToPublicClient(browserProvider, viemChain)
+          : createPublicClient({ chain: viemChain, transport: custom(browserProvider as any) });
+
+      if (typeof ethersSignerToWalletClient === "function") {
+        await ethersSignerToWalletClient(signer, viemChain);
+      }
 
       setPublicClient(viemPublic);
       setPublicReady(true);
