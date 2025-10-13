@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "bdev": "pnpm run build-components && next dev",
+    "bdev": "pnpm run build-ccip-js && pnpm run build-components && next dev",
     "dev": "next dev",
     "build-ccip-js": "pnpm --filter ccip-js run build",
     "build-components": "pnpm --filter ccip-react-components run build",
@@ -13,9 +13,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@chainlink/ccip-js": "^0.2.1",
-    "@chainlink/ccip-react-components": "^0.3.0",
+    "@chainlink/ccip-js": "workspace:^",
+    "@chainlink/ccip-react-components": "workspace:^",
     "@tanstack/react-query": "^5.37.1",
+    "ethers": "^6",
     "next": "14.2.3",
     "react": "18",
     "react-dom": "18",

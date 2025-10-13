@@ -56,22 +56,30 @@ function ConnectWallet() {
   const { chains, switchChain, error: switchError, isError: isSwitchError } = useSwitchChain();
 
   const [chainId, setChainId] = useState<string>(`${chain?.id}`);
+  const [localConnectError, setLocalConnectError] = useState<string | null>(null);
 
   return (
     <div className="space-y-2 border rounded-md p-4 bg-white">
-      <h2 className="font-bold">Connect Wallet:</h2>
-      <div className="space-x-2">
-        {connectors.map(connector => (
-          <button
-            className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
-            key={connector.uid}
-            onClick={() => connect({ connector })}
-          >
-            {connector.name}
-          </button>
-        ))}
-      </div>
+      <h2 className="font-bold">Connect Wallet</h2>
+      <button
+        className="rounded-md p-2 bg-black text-white hover:bg-slate-600 transition-colors"
+        onClick={() => {
+          setLocalConnectError(null);
+          const preferredConnector =
+            connectors.find(c => c.id === "metaMask" || c.name.toLowerCase() === "metamask") ||
+            connectors.find(c => c.id === "injected") ||
+            connectors[0];
+          if (!preferredConnector) {
+            setLocalConnectError("No wallet connector available");
+            return;
+          }
+          connect({ connector: preferredConnector });
+        }}
+      >
+        Connect Wallet
+      </button>
       {isConnectError && <p className="text-red-500">{connectError.message}</p>}
+      {localConnectError && <p className="text-red-500">{localConnectError}</p>}
       {address && <p>{`Address: ${address}`}</p>}
       {chain && (
         <>
