@@ -1,5 +1,9 @@
 # CCIP-REACT-COMPONENTS
 
+<div role="note" align="center" style="background:#fff4e5;border-left:4px solid #ff8c00;padding:12px;border-radius:6px;margin-bottom:16px;">
+  <strong>Deprecation notice:</strong> This package for React UI components on top of the <a href="../ccip-js/README.md">CCIP-JS package</a> is deprecated and no longer maintained.   You can access the  <a href="https://www.npmjs.com/package/@chainlink/ccip-sdk"> latest CCIP SDK here</a>. However note also that there is currently no React Components package that is compatible with the new CCIP SDK. 
+</div>
+
 The CCIP-REACT-COMPONENTS package is a set of prebuilt ready-to-use UI components built on top of [CCIP-JS](../ccip-js/README.md). Using both packages, you can add a fully featured CCIP bridge to your app that can be styled to match your app design.
 
 ## Table of contents

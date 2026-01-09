@@ -1,4 +1,8 @@
-# CCIP-JS
+# CCIP-JS Package
+
+<div role="note" align="center" style="background:#fff4e5;border-left:4px solid #ff8c00;padding:12px;border-radius:6px;margin-bottom:16px;">
+  <strong>Deprecation notice:</strong> This package is deprecated and no longer maintained. Instead please use the <a href="https://www.npmjs.com/package/@chainlink/ccip-sdk"> latest CCIP SDK here</a>.
+</div>
 
 CCIP-JS is a TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers. The library utilizes types and helper functions from [Viem](https://viem.sh/).
 
