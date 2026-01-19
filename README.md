@@ -10,12 +10,16 @@
 
 # CCIP JavaScript SDK
 
+<div role="note" align="center" style="background:#fff4e5;border-left:4px solid #ff8c00;padding:12px;border-radius:6px;margin-bottom:16px;">
+  <strong>Deprecation notice:</strong> This repository is deprecated and no longer maintained. Instead please use the <a href="https://www.npmjs.com/package/@chainlink/ccip-sdk"> latest CCIP SDK here</a>.
+</div>
+
 ### Start here
 
 The CCIP JavaScript SDK is a monorepo for two packages:
 
-- [`ccip-js`](/packages/ccip-js/README.md): A TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers.
-- [`ccip-react-components`](/packages/ccip-react-components/README.md): A set of prebuilt ready-to-use React UI components. This package depends on `ccip-js`.
+-   [`ccip-js`](/packages/ccip-js/README.md): A TypeScript library that provides a client for managing cross-chain token transfers that use Chainlink's [Cross-Chain Interoperability Protocol (CCIP)](https://docs.chain.link/ccip) routers.
+-   [`ccip-react-components`](/packages/ccip-react-components/README.md): A set of prebuilt ready-to-use React UI components. This package depends on `ccip-js`.
 
 Using both packages, you can add a fully featured CCIP bridge to your app that can be styled to match your app design.
 
@@ -100,10 +104,10 @@ Contributions to either repos are welcome! Please open an issue or submit a pull
 
 ## Resources
 
-- [ccip-js README](./packages/ccip-js/README.md)
-- [ccip-react-components README](./packages/ccip-react-components/README.md)
-- [examples/nextjs README](./examples/nextjs/README.md)
-- [Chainlink CCIP Javascript SDK Documentation](https://docs.chain.link/ccip/ccip-javascript-sdk/)
-- [Chainlink CCIP Documentation](https://docs.chain.link/ccip)
-- [Chainlink CCIP Directory](https://docs.chain.link/ccip/directory)
-- [Chainlink Documentation](https://docs.chain.link/)
+-   [ccip-js README](./packages/ccip-js/README.md)
+-   [ccip-react-components README](./packages/ccip-react-components/README.md)
+-   [examples/nextjs README](./examples/nextjs/README.md)
+-   [Chainlink CCIP Javascript SDK Documentation](https://docs.chain.link/ccip/ccip-javascript-sdk/)
+-   [Chainlink CCIP Documentation](https://docs.chain.link/ccip)
+-   [Chainlink CCIP Directory](https://docs.chain.link/ccip/directory)
+-   [Chainlink Documentation](https://docs.chain.link/)

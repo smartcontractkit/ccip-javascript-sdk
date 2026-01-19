@@ -1,7 +1,7 @@
 {
   "name": "@chainlink/ccip-react-components",
   "private": false,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "type": "module",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.es.js",
