@@ -13,6 +13,7 @@ import {
   useWriteContract,
 } from 'wagmi';
 import { Button } from '@/components/ui/button';
+import { Loader } from '@/components/Loader';
 import { cn } from '@/utils';
 import { Error } from '@/components/Error';
 import { useRouters } from '@/hooks/useRouters';
@@ -43,7 +44,6 @@ export function SendButton({
     feeAmount,
     feeTokenBalance,
   } = useAppContext();
-
   const { data: walletClient } = useWalletClient();
   const { address, chain } = useAccount();
 
@@ -198,7 +198,7 @@ export function SendButton({
             })
           }
         >
-          Approve LINK
+          {approveFeeIsPending || waitForFeeAllowanceIsLoading ? <Loader /> : 'Approve LINK'}
         </Button>
       </>
     );
@@ -233,7 +233,7 @@ export function SendButton({
             })
           }
         >
-          Approve
+          {approveTokenIsPending ? <Loader /> : 'Approve'}
         </Button>
       </>
     );
@@ -273,7 +273,7 @@ export function SendButton({
           })
         }
       >
-        Send
+        {transferIsPending ? <Loader /> : 'Send'}
       </Button>
     </>
   );
