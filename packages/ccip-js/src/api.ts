@@ -1281,7 +1281,7 @@ export enum TransferStatus {
 }
 
 /**
- * Extends the Viem.Log type to fetch cross-chain trasnfer messageId.
+ * Extends the Viem.Log type to fetch cross-chain transfer messageId.
  */
 export type CCIPTransferReceipt = Viem.Log & {
   args: {
