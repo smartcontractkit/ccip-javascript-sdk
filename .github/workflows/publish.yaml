@@ -15,6 +15,7 @@ jobs:
     environment: publish
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Checkout the repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -22,13 +23,18 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node 20.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.19
           always-auth: true
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@latest
+        shell: bash
 
       - name: Install PNPM
-        run: npm install -g pnpm@9.4.0
+        run: npm install -g pnpm@10
         shell: bash
 
       - name: Install dependencies
@@ -40,7 +46,6 @@ jobs:
         run: |
           pnpm build-ccip-js
           cd packages/ccip-js
-          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_JS }}
           pnpm publish --no-git-checks --access public
         shell: bash
 
@@ -48,7 +53,6 @@ jobs:
         run: |
           pnpm build-components
           cd packages/ccip-react-components
-          pnpm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_CCIP_REACT_COMPONENTS }}
           pnpm publish --no-git-checks --access public
         shell: bash
 
@@ -57,6 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
     steps:
       - name: Checkout the repo
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -64,13 +69,18 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node 20.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.19
           always-auth: true
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@latest
+        shell: bash
 
       - name: Install PNPM
-        run: npm install -g pnpm@9.4.0
+        run: npm install -g pnpm@10
         shell: bash
 
       - name: Install dependencies
