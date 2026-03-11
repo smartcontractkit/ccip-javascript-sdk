@@ -49,7 +49,7 @@ pnpm add @chainlink/ccip-react-components
 
 ## Example Usage
 
-For a working example of how to store, manage and use the NetworkConfig parameters, please refer to the example app here: in the [NextJS Example](../../examples/nextjs/config/networkConfig.ts)
+For a working example of how to store, manage and use the `NetworkConfig` parameters, please refer to the example app here: in the [NextJS Example](../../examples/nextjs/config/networkConfig.ts)
 
 ```tsx
 import 'ccip-react-components/dist/style.css';
