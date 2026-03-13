@@ -1,4 +1,3 @@
-# NPM_TOKEN will only be populated in the context of the `publish` GH environment, see L14
 # Dry run job split as a separate job to conditionally omit `environment`
 
 name: Publish to NPM
@@ -43,6 +42,8 @@ jobs:
         shell: bash
 
       - name: Publish ccip-js to NPM
+        id: publish-ccip-js
+        continue-on-error: true
         run: |
           pnpm build-ccip-js
           cd packages/ccip-js
@@ -50,10 +51,20 @@ jobs:
         shell: bash
 
       - name: Publish ccip-react-components to NPM
+        id: publish-components
+        continue-on-error: true
         run: |
           pnpm build-components
           cd packages/ccip-react-components
           pnpm publish --no-git-checks --access public
+        shell: bash
+
+      - name: Check publish results
+        if: steps.publish-ccip-js.outcome == 'failure' || steps.publish-components.outcome == 'failure'
+        run: |
+          echo "::error::ccip-js publish: ${{ steps.publish-ccip-js.outcome }}"
+          echo "::error::ccip-react-components publish: ${{ steps.publish-components.outcome }}"
+          exit 1
         shell: bash
 
   dry-run-publish:
